@@ -2,24 +2,20 @@
 import numpy as np
 import pandas as pd
 
+class backend:
+        
+    dataset = pd.read_csv('data.csv')
 
-dataset = pd.read_csv('data.csv')
+    def printData(this):
+        print(this.dataset)
 
-print(dataset)
-
-userInput = input("Enter a value to display column: ID(0), Name(1), Description(2): ")
-
-print(userInput)
-
-if(userInput == '0'):
-    print(dataset['ID'])
-elif(userInput == '1'):
-    print(dataset['Name'])
-elif(userInput == '2'):
-    print(dataset['Description'])
-else:
-    print('Error! Invalid Entry')
-
+    def printDataCol(this, col):
+        print(this.dataset.iloc[:,col])
+        
+    
     
 
 
+back = backend()
+
+back.printDataCol(1)
