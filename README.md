@@ -1,3 +1,3 @@
-##Software Design Project##
+**Software Design Project**
 
 Canadian Location Catalogue
