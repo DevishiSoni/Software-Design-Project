@@ -17,7 +17,18 @@ def review():
 def index():
     df = pd.read_csv('geonames.csv')  # Load CSV
     df = df.head(19)
+    
+    #df["Actions"] = df.index.map(lambda i: f'<button onclick="handleClick({i})">Click</button>')
+    df = df.drop(columns=['Source', 'Toponymic Feature ID', 'ISO Language Code'
+                          , 'Language', 'Syllabic Form'
+                          ], axis=1)
+    
+    
+    print(df.head(10))
+    
     table = df.to_html(classes='table table-striped', index=False)  # Convert to HTML table
+    
+    
     return render_template('database.html', table=table)
 
 if __name__ == '__main__':
