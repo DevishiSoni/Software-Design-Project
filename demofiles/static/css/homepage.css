@@ -1,0 +1,35 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.logo img {
+    max-width: 300px; /* Adjust size of logo */
+    height: auto;
+}
+
+.content h1 {
+    font-size: 2rem;
+    margin-top: 20px;
+}
+
+.content p {
+    font-size: 1rem;
+    margin-top: 10px;
+    color: #555;
+}

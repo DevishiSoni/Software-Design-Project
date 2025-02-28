@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reviewStyle.css') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('review') }}">Reviews</a>
+            <a href="{{ url_for('index') }}">Database</a>
+        </div>
+    </div>
+
+
+    <div id="table-container">
+        {{table | safe }}
+    </div>
+</body>
+</html>
