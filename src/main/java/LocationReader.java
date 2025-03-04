@@ -1,6 +1,12 @@
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,26 +17,79 @@ import java.util.Scanner;
 //the csv file.
 public class LocationReader {
 
-    public static void main(String[] args) throws FileNotFoundException {
-        String filePath = new File("").getAbsolutePath();
-        filePath += "/geonames.csv";
+    private DefaultTableModel tableModel;
 
-        CSVReader reader = null;
+    LocationReader(File file)
+    {
+        try(CSVReader reader = new CSVReader(new FileReader(file))){
 
-        try {
-            reader = new CSVReader(new FileReader(filePath));
-            String[] nextLine;
+            String[] header = reader.readNext();
 
-            while((nextLine = reader.readNext()) != null)
+            tableModel = new DefaultTableModel();
+
+            if (header != null)
             {
-                for(String token: nextLine)
-                {
-                    System.out.println(token);
-                }
+                tableModel.setColumnIdentifiers(header);
             }
-        } catch (CsvValidationException | IOException e) {
-            e.printStackTrace();
-        }
 
+            String[] line;
+            while((line = reader.readNext()) != null)
+            {
+                tableModel.addRow(line);
+            }
+
+
+
+        } catch (IOException | CsvValidationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public DefaultTableModel getTableModel() {
+        return this.tableModel;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+        String geonamesPath = new File("").getAbsolutePath();
+        geonamesPath += File.separator + "geonames.csv";
+        LocationReader reader = new LocationReader(new File(geonamesPath));
+
+        DefaultTableModel model = reader.getTableModel();
+
+        // Create the JTable with the model
+        JTable table = new JTable(model);
+
+        // Create a JScrollPane for scrolling functionality
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Set up JFrame
+        JFrame frame = new JFrame("GeoNames Data");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600); // Set window size
+        frame.setLayout(new BorderLayout());
+        frame.add(scrollPane, BorderLayout.CENTER); // Add JScrollPane containing the table to the frame
+
+        // Make the frame visible
+        frame.setVisible(true);
+
+        FuzzyFinder fuzzyFinder = new FuzzyFinder(table);
+
+        // Search field
+        JTextField searchField = new JTextField();
+        searchField.setToolTipText("Type to search...");
+
+        // Key listener for search field
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                fuzzyFinder.performFuzzySearch(searchField.getText());
+            }
+        });
+
+        // Add components to frame
+        frame.add(searchField, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        frame.setVisible(true);
     }
 }
