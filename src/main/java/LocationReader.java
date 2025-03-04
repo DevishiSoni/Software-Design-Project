@@ -3,6 +3,7 @@ import com.opencsv.exceptions.CsvValidationException;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -49,6 +50,20 @@ public class LocationReader {
         return this.tableModel;
     }
 
+    static void hideColumn(TableColumnModel tableColumnModel, int i){
+        tableColumnModel.getColumn(i).setMinWidth(0);
+        tableColumnModel.getColumn(i).setMaxWidth(0);
+        tableColumnModel.getColumn(i).setPreferredWidth(0);
+    }
+
+    static void hideColumns(TableColumnModel tcm, int[] vals)
+    {
+        for(int i : vals)
+        {
+            hideColumn(tcm, i);
+        }
+    }
+
     public static void main(String[] args) throws FileNotFoundException {
         String geonamesPath = new File("").getAbsolutePath();
         geonamesPath += File.separator + "geonames.csv";
@@ -58,6 +73,10 @@ public class LocationReader {
 
         // Create the JTable with the model
         JTable table = new JTable(model);
+
+        TableColumnModel columnModel = table.getColumnModel();
+
+        hideColumns(columnModel, new int[]{0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);
