@@ -102,4 +102,17 @@ public class ChangeDatabase {
 
         return success;
     }
+
+    public static void main(String[] args) {
+        String filePath = new File("").getAbsolutePath();
+        filePath += "/geonames.csv";
+
+        ArrayList<String> locations = new ArrayList<>(2);
+        locations.add("Pyramids");
+        locations.add("Egypt");
+
+        //addToFile(locations,filePath);
+        //deleteFromFile(locations.getFirst(),filePath);
+    }
+    
 }
