@@ -1,40 +1,47 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 
 public class LoginGUI extends JFrame {
-    private JTextField usernameField;
+    public JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton registerButton;
-    private JButton logoutButton;
+//    private JButton logoutButton;
     private String loggedInUser = null; // Track the logged-in user
 
     public LoginGUI() {
         // Set up the GUI
-        setTitle("Login/Register/Logout");
-        setSize(300, 250);
+        setTitle("TourCat - Login");
+        setSize(500, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBackground(Color.CYAN);
+
+
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-        usernameField = new JTextField(20);
-        passwordField = new JPasswordField(20);
+        usernameField = new JTextField(15);
+        passwordField = new JPasswordField(15);
         loginButton = new JButton("Login");
         registerButton = new JButton("Register");
-        logoutButton = new JButton("Logout");
+//        logoutButton = new JButton("Logout");
 
+        JLabel welcome = new JLabel("Welcome to TourCat! Please login to start touring :)");
+        welcome.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
+        add(welcome);
         add(new JLabel("Username:"));
         add(usernameField);
         add(new JLabel("Password:"));
         add(passwordField);
         add(loginButton);
         add(registerButton);
-        add(logoutButton);
+//        add(logoutButton);
 
         // Disable logout button initially
-        logoutButton.setEnabled(false);
+//        logoutButton.setEnabled(false);
 
         // Add action listener for the login button
         loginButton.addActionListener(new ActionListener() {
@@ -59,7 +66,13 @@ public class LoginGUI extends JFrame {
                         JOptionPane.showMessageDialog(LoginGUI.this, "Login Successful!");
                         loginButton.setEnabled(false);
                         registerButton.setEnabled(false);
-                        logoutButton.setEnabled(true);
+//                        logoutButton.setEnabled(true);
+
+                        SwingUtilities.invokeLater(() -> {
+                            new HomePage(username); // Open home screen
+                            dispose(); // Close login window
+                        });
+
                     } else {
                         JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -89,6 +102,12 @@ public class LoginGUI extends JFrame {
                     String response = reader.readLine();
                     if ("REGISTRATION_SUCCESS".equals(response)) {
                         JOptionPane.showMessageDialog(LoginGUI.this, "Registration Successful!");
+
+                        SwingUtilities.invokeLater(() -> {
+                            new HomePage(username); // Open home screen
+                            dispose(); // Close login window
+                        });
+
                     } else {
                         JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -99,41 +118,41 @@ public class LoginGUI extends JFrame {
         });
 
         // Add action listener for the logout button
-        logoutButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (loggedInUser == null) {
-                    JOptionPane.showMessageDialog(LoginGUI.this, "No user is currently logged in.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                try (Socket socket = new Socket("localhost", 12345);
-                     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-                    // Debug: Print the username being sent
-                    System.out.println("Attempting to log out user: " + loggedInUser);
-
-                    // Send logout request
-                    writer.println("LOGOUT");
-                    writer.println(loggedInUser); // Send the logged-in username
-
-                    // Receive response from the server
-                    String response = reader.readLine();
-                    if ("LOGOUT_SUCCESS".equals(response)) {
-                        JOptionPane.showMessageDialog(LoginGUI.this, "Logout Successful!");
-                        loggedInUser = null; // Clear the logged-in user
-                        loginButton.setEnabled(true);
-                        registerButton.setEnabled(true);
-                        logoutButton.setEnabled(false);
-                    } else {
-                        JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
+//        logoutButton.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (loggedInUser == null) {
+//                    JOptionPane.showMessageDialog(LoginGUI.this, "No user is currently logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+//                    return;
+//                }
+//
+//                try (Socket socket = new Socket("localhost", 12345);
+//                     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+//                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+//
+//                    // Debug: Print the username being sent
+//                    System.out.println("Attempting to log out user: " + loggedInUser);
+//
+//                    // Send logout request
+//                    writer.println("LOGOUT");
+//                    writer.println(loggedInUser); // Send the logged-in username
+//
+//                    // Receive response from the server
+//                    String response = reader.readLine();
+//                    if ("LOGOUT_SUCCESS".equals(response)) {
+//                        JOptionPane.showMessageDialog(LoginGUI.this, "Logout Successful!");
+//                        loggedInUser = null; // Clear the logged-in user
+//                        loginButton.setEnabled(true);
+//                        registerButton.setEnabled(true);
+//                        logoutButton.setEnabled(false);
+//                    } else {
+//                        JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+//                    }
+//                } catch (IOException ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        });
     }
 
     public static void main(String[] args) {
