@@ -65,5 +65,16 @@ public class HomePage extends JFrame {
            new LoginGUI().setVisible(true); // Open login screen
        });
 
+       add.addActionListener(e -> {
+          frame.setVisible(false);
+          dispose();
+          new AddForm(username).setVisible(true);
+       });
+
+       delete.addActionListener(e -> {
+          frame.setVisible(false);
+          dispose();
+          new DeleteForm(username).setVisible(true);
+       });
    }
 }
