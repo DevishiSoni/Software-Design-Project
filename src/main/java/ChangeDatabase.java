@@ -25,7 +25,7 @@ public class ChangeDatabase {
 
         // save the String inputs
         ArrayList<String> columns = new ArrayList<>() ;
-        for (int i = 0; i < numOfColumns; i++) {columns.add("");}
+        for (int i = 0; i < numOfColumns; i++) {columns.add(" ");}
         columns.add(indexOfName,landmark.getFirst());
         columns.add(indexOfLocation,landmark.getLast());
 
