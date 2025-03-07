@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 public class HomePage extends JFrame {
     private String loggedInUser;
     public HomePage(String username) {
+        loggedInUser = username;
 
        JFrame frame = new JFrame("TourCat");
        frame.setLayout(new BorderLayout());
@@ -78,10 +79,37 @@ public class HomePage extends JFrame {
        frame.add(bgPanel, BorderLayout.CENTER);
        frame.setVisible(true);
 
-       logout.addActionListener(e -> {
-           frame.setVisible(false);// Close home screen
-           dispose();
-           new LoginGUI().setVisible(true); // Open login screen
+       logout.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+             if (loggedInUser == null) {
+                 JOptionPane.showMessageDialog(HomePage.this, "No user is currently logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+                 return;
+             }
+
+             try (Socket socket = new Socket("localhost", 12345);
+                  PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                  BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                 // Debug: Print the username being sent
+                 System.out.println("Attempting to log out user: " + loggedInUser);
+
+                 // Send logout request
+                 writer.println("LOGOUT");
+                 writer.println(loggedInUser); // Send the logged-in username
+
+                 // Receive response from the server
+                 String response = reader.readLine();
+                 if ("LOGOUT_SUCCESS".equals(response)) {
+                     JOptionPane.showMessageDialog(HomePage.this, "Logout Successful!");
+                     loggedInUser = null; // Clear the logged-in user
+                 } else {
+                     JOptionPane.showMessageDialog(HomePage.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+                 }
+             } catch (IOException ex) {
+                 ex.printStackTrace();
+             }
+         }
        });
 
        add.addActionListener(e -> {
