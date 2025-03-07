@@ -109,6 +109,9 @@ public class HomePage extends JFrame {
              } catch (IOException ex) {
                  ex.printStackTrace();
              }
+             frame.setVisible(false);
+             dispose();
+             new LoginGUI().setVisible(true);
          }
        });
 
