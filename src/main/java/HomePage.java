@@ -76,5 +76,12 @@ public class HomePage extends JFrame {
           dispose();
           new DeleteForm(username).setVisible(true);
        });
+
+       catalogue.addActionListener( e -> {
+          frame.setVisible(false);
+          dispose();
+          new CatalogView(username);
+
+       });
    }
 }

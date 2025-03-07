@@ -2,15 +2,20 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Vector;
 
 public class FuzzyFinder {
     private static final LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
     private final JTable table;
     private final Vector<Vector<Object>> originalData; // Manually copied for type safety
+
+    private int maxRows = 25;
 
     public FuzzyFinder(JTable table) {
         this.table = table;
@@ -23,6 +28,21 @@ public class FuzzyFinder {
             Vector<Object> typedRow = new Vector<>(rawRow);  // Convert to correct type
             originalData.add(typedRow);
         }
+
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                return entry.getIdentifier() < maxRows;
+            }
+        });
+
+        table.setRowSorter(sorter);
+    }
+
+    public void setMaxRows(int rows)
+    {
+        this.maxRows = rows;
     }
 
     public void performFuzzySearch(String query) {
@@ -51,47 +71,6 @@ public class FuzzyFinder {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Fuzzy Search with JTable");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(400, 300);
-            frame.setLayout(new BorderLayout());
 
-            // Table data
-            String[] columnNames = {"ID", "Name", "Category"};
-            Object[][] data = {
-                    {1, "Apple", "Fruit"},
-                    {2, "Banana", "Fruit"},
-                    {3, "Carrot", "Vegetable"},
-                    {4, "Grape", "Fruit"},
-                    {5, "Mango", "Fruit"}
-            };
-
-            // JTable setup
-            DefaultTableModel tableModel = new DefaultTableModel(data, columnNames);
-            JTable table = new JTable(tableModel);
-            JScrollPane scrollPane = new JScrollPane(table);
-
-            // Search field
-            JTextField searchField = new JTextField();
-            searchField.setToolTipText("Type to search...");
-
-            // FuzzyFinder instance
-            FuzzyFinder fuzzyFinder = new FuzzyFinder(table);
-
-            // Key listener for search field
-            searchField.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyReleased(KeyEvent e) {
-                    fuzzyFinder.performFuzzySearch(searchField.getText());
-                }
-            });
-
-            // Add components to frame
-            frame.add(searchField, BorderLayout.NORTH);
-            frame.add(scrollPane, BorderLayout.CENTER);
-
-            frame.setVisible(true);
-        });
     }
 }
