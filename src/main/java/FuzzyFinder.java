@@ -30,10 +30,11 @@ public class FuzzyFinder {
         }
 
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                return entry.getIdentifier() < maxRows;
+                return true;
             }
         });
 

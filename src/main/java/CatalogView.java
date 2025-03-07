@@ -2,6 +2,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -40,6 +42,19 @@ public class CatalogView {
 
         // Search field
         JTextField searchField = new JTextField();
+
+        searchField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                searchField.setText("");
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                searchField.setText("Search here:");
+            }
+        });
+
         searchField.setToolTipText("Type to search...");
 
         // Key listener for search field
@@ -49,6 +64,8 @@ public class CatalogView {
                 fuzzyFinder.performFuzzySearch(searchField.getText());
             }
         });
+
+        fuzzyFinder.setMaxRows(1000);
 
         JButton returnButton = new JButton("Return To Homepage");
 
@@ -61,6 +78,8 @@ public class CatalogView {
         rightPanel.setLayout(new GridLayout(4, 1));
 
         rightPanel.add(returnButton);
+
+        searchField.setText("Search:");
 
         // Add components to frame
         frame.add(rightPanel, BorderLayout.EAST);
