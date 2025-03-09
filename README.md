@@ -23,6 +23,12 @@ This project aims to provide users with relevant information on Canadian landmar
 
 The main goal of this iteration is to make sure we have the basic functionality of our application ready to present to the customer which includes most but not all of the customer's must have requirements!
 
+### Running the MVP
+
+1. Clone the repository using this link [Repo Link](https://github.com/DevishiSoni/Software-Design-Project.git)
+2. Make sure the IDE of your choice has java installed, (we've used IntelliJ as our IDE)
+3. Run the LoginServer.java file first and then run the LoginGUI.java file to launch the application
+
 **Reminder: We will all meet on Tuesday from 2:00pm - 3:30pm to integrate the code all together to be ready for our demo!**
 
 Happy Coding!
