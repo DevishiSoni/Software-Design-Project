@@ -24,6 +24,12 @@ This project aims to provide users with relevant information on Canadian landmar
   <img src="Burndown.png"/>
 </p>
 
+![image](https://github.com/user-attachments/assets/8f2fd9a2-7adc-4d60-be7b-f3cbf9e68e66)
+
+![image](https://github.com/user-attachments/assets/0a137ff5-2a34-4ba6-ae49-8223e840aed7)
+
+
+
 ### Running the MVP (To be updated!)
 
 1. Clone the repository using this link [Repo Link](https://github.com/DevishiSoni/Software-Design-Project.git)
