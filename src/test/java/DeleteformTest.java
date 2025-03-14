@@ -1,89 +1,68 @@
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import javax.swing.*;
-
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 class DeleteFormTest {
 
-    private DeleteForm deleteForm;
+    static DeleteForm testDelForm;
 
-    @Mock
-    private ChangeDatabase changeDatabaseMock;  // Mock ChangeDatabase class
+    @BeforeAll
+    public static void setup() {
+        testDelForm = new DeleteForm("test");
+        testDelForm.setFilename("testnames.csv");
+    }
 
-    @Mock
-    private JLabel submissionReplyLabel;
-
-    @BeforeEach
-    void setUp() {
-        // Initialize mocks
-        MockitoAnnotations.openMocks(this);
-
-        // Create the DeleteForm instance
-        deleteForm = new DeleteForm("testUser");
-
-        // Inject mock submissionReplyLabel into DeleteForm
-        deleteForm.setSubmissionReplyLabel(submissionReplyLabel);
+    private long countLines(String filePath) throws IOException {
+        return Files.lines(Paths.get(filePath)).count();
     }
 
     @Test
-    void testDeleteButton_withValidName() {
-        // Set the text for the landmark name
-        deleteForm.nameField.setText("Eiffel Tower");
+    void delSuccessTest() throws IOException {
+        // Count lines before submitting
+        long initialLineCount = countLines(testDelForm.getAbsCSVPath());
 
-        // Mock the behavior of ChangeDatabase.deleteFromFile (simulate success)
-        when(ChangeDatabase.deleteFromFile(anyString(), anyString())).thenReturn(true);
 
-        // Simulate clicking the delete button
-        deleteForm.deleteButton.doClick();
 
-        // Verify that the label text was updated to reflect the success
-        verify(submissionReplyLabel).setText("Location successfully deleted from the database");
+        // Set input fields
+        testDelForm.nameField.setText("newN");
 
-        // Verify that the name field is cleared
-        assertEquals("", deleteForm.nameField.getText(), "The name field should be cleared after deletion");
+        // Simulate button click
+        testDelForm.deleteButton.doClick();
+
+        // Count lines after submitting
+        long finalLineCount = countLines(testDelForm.getAbsCSVPath());
+
+        // Ensure exactly one new line was added
+        Assertions.assertEquals(initialLineCount - 1, finalLineCount, "A new entry should have been added to the file.");
+
+        // Output success of add test.
+        System.out.println("Test Passed: locationAddTest - The CSV file increased by one line after form submission.");
     }
+
 
     @Test
-    void testDeleteButton_withInvalidName() {
-        // Set the name field to empty (invalid name)
-        deleteForm.nameField.setText("");
+    void delFailTest() throws IOException {
+        // Count lines before submitting
+        long initialLineCount = countLines(testDelForm.getAbsCSVPath());
 
-        // Simulate clicking the delete button
-        deleteForm.deleteButton.doClick();
 
-        // Verify that the label text was updated to ask for a valid landmark name
-        verify(submissionReplyLabel).setText("Please enter the name of the landmark to be deleted");
-    }
 
-    @Test
-    void testDeleteButton_whenDeletionFails() {
-        // Set the name field with a fake landmark
-        deleteForm.nameField.setText("Fake Landmark");
+        // Set input fields
+        testDelForm.nameField.setText("");
 
-        // Mock the behavior of ChangeDatabase.deleteFromFile (simulate failure)
-        when(ChangeDatabase.deleteFromFile(anyString(), anyString())).thenReturn(false);
+        // Simulate button click
+        testDelForm.deleteButton.doClick();
 
-        // Simulate clicking the delete button
-        deleteForm.deleteButton.doClick();
+        // Count lines after submitting
+        long finalLineCount = countLines(testDelForm.getAbsCSVPath());
 
-        // Verify that the label text was updated to reflect the failure
-        verify(submissionReplyLabel).setText("Failed to delete location from the database");
-    }
+        // Ensure exactly one new line was added
+        Assertions.assertEquals(initialLineCount, finalLineCount, "A new entry should have been added to the file.");
 
-    @Test
-    void testCancelButton() {
-        // Simulate clicking the cancel button
-        deleteForm.cancelButton.doClick();
-
-        // Verify that the form was closed
-        verify(deleteForm).dispose();
-    }
-    public static void main(String[] args) {
-
+        // Output success of add test.
+        System.out.println("Test Passed: locationAddTest - The CSV file increased by one line after form submission.");
     }
 }

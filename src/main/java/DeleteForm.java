@@ -9,6 +9,8 @@ public class DeleteForm extends JFrame {
     public JButton deleteButton;
     public JButton cancelButton;
 
+    private String filename = "geonames.csv";
+
     public DeleteForm(String username) {
         setTitle("Delete Form");
         setSize(500, 185);
@@ -33,13 +35,12 @@ public class DeleteForm extends JFrame {
         add(cancelButton);
 
         deleteButton.addActionListener(e->{
-            String filePath = new File("").getAbsolutePath();
-            filePath += "/geonames.csv";
 
+            String filePath = getAbsCSVPath();
             String name = nameField.getText();
 
             if (!name.isBlank()) {
-                boolean success = ChangeDatabase.deleteFromFile(name,filePath);
+                boolean success = ChangeDatabase.deleteFromFile(name, filePath);
 
                 if (success) {
                     submissionReplyLabel.setText("Location successfully deleted from the database");
@@ -62,5 +63,20 @@ public class DeleteForm extends JFrame {
 
     public void setSubmissionReplyLabel(JLabel submissionReplyLabel) {
 
+    }
+
+    public String getAbsCSVPath()
+    {
+        String filePath = new File("").getAbsolutePath();
+        filePath += File.separator + this.filename;
+        return filePath;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 }
