@@ -61,5 +61,6 @@ public class DeleteForm extends JFrame {
     }
 
     public void setSubmissionReplyLabel(JLabel submissionReplyLabel) {
+
     }
 }

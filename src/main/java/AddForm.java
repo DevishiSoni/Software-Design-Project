@@ -10,6 +10,7 @@ public class AddForm extends JFrame {
     public JButton submitButton, cancelButton;
     public JLabel submissionReplyLabel;
 
+    private String saveFileName = File.separator + "geonames.csv";
 
     public AddForm(String username) {
         setTitle("Add Form");
@@ -40,7 +41,7 @@ public class AddForm extends JFrame {
         submitButton.addActionListener(e ->
         {
             String filePath = new File("").getAbsolutePath();
-            filePath += "/geonames.csv";
+            filePath += saveFileName;
             addFieldsToFile(new File(filePath));
         });
 
@@ -49,6 +50,8 @@ public class AddForm extends JFrame {
             dispose();
         });
     }
+
+
 
     private void addFieldsToFile(File f) {
 
@@ -84,7 +87,21 @@ public class AddForm extends JFrame {
     }
 
 
+    public String getCSFilename() {
+        return saveFileName;
+    }
 
+    public void setFilepath(String filepath) {
+        this.saveFileName = filepath;
+    }
 
+    public String getSaveFileAbsPath(){
+        return new File("").getAbsolutePath() + this.getCSFilename();
+    }
 
+    public static void main(String[] args) {
+        AddForm af = new AddForm("tester");
+        af.setFilepath(File.separator + "testnames.csv");
+        af.setVisible(true);
+    }
 }
