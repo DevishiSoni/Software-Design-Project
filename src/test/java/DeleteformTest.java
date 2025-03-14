@@ -24,8 +24,6 @@ class DeleteFormTest {
         // Count lines before submitting
         long initialLineCount = countLines(testDelForm.getAbsCSVPath());
 
-
-
         // Set input fields
         testDelForm.nameField.setText("newN");
 
@@ -47,7 +45,6 @@ class DeleteFormTest {
     void delFailTest() throws IOException {
         // Count lines before submitting
         long initialLineCount = countLines(testDelForm.getAbsCSVPath());
-
 
 
         // Set input fields
