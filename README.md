@@ -20,7 +20,9 @@ This project aims to provide users with relevant information on Canadian landmar
 
 ### Burndown Chart & State Chart Diagrams:
 
-**Insert Photos Here!**
+<p align="center">
+  <img src="Burndown.png"/>
+</p>
 
 ### Running the MVP (To be updated!)
 
