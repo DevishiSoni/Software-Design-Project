@@ -12,11 +12,11 @@ This project aims to provide users with relevant information on Canadian landmar
 ### Goals:
 1. Set up version control system - so user can build and run the program on their local device
 2. Setting up test cases for classes to complete unit-level testing
-3. Confirm requirements with the customer and complete the following fucntionalities of the software:
-     a. Searching
-     b. Filtering
-     c. Add photos of landmarks (time permitting add a brief description of the location)
-   Complete these functionalities while keeping in mind that application should be aesthetically pleasing and user friendly!
+3. Confirm requirements with the customer and complete the following functionalities of the software:  
+     a. Searching  
+     b. Filtering  
+     c. Add photos of landmarks (time permitting add a brief description of the location)  
+4. Complete these functionalities while keeping in mind that application should be aesthetically pleasing and user friendly!
 
 ### Burndown Chart & State Chart Diagrams:
 
