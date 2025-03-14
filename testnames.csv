@@ -1,3 +1,5 @@
+ID,Geographical Name, Location, PhotoID
+
 CGNDB ID,Geographical Name,ISO Language Code,Language,Syllabic Form,Generic Term,Generic Category,Concise Code,Toponymic Feature ID,Latitude,Longitude,Location,Province - Territory,Relevance at Scale,Decision Date,Source
  ,Banff National Park, , , , , , , ,51.4968,-115.9281,1,Alberta, , ,
  ,Niagara Falls, , , , , , , ,43.0896,-79.0849,1,Ontario, , ,
@@ -20,5 +22,6 @@ CGNDB ID,Geographical Name,ISO Language Code,Language,Syllabic Form,Generic Term
  ,Prince Edward Island National Park, , , , , , , ,46.4705,-63.1303,1,Prince Edward Island, , ,
 newN,newL
 meow,2000
+newN,newL
 newN,newL
 newN,newL
