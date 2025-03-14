@@ -40,4 +40,26 @@ class AddFormTest {
         // Output success of add test.
         System.out.println("Test Passed: locationAddTest - The CSV file increased by one line after form submission.");
     }
+
+    @Test
+    void incompleteFormTest() throws IOException {
+        // Count lines before submitting
+        long initialLineCount = countLines(testAddForm.getSaveFileAbsPath());
+
+        // Set input fields
+        testAddForm.locationField.setText("newL");
+
+        // Simulate button click
+        testAddForm.submitButton.doClick();
+
+        // Count lines after submitting
+        long finalLineCount = countLines(testAddForm.getSaveFileAbsPath());
+
+        // Ensure exactly one new line was added
+        Assertions.assertEquals(initialLineCount, finalLineCount, "A new entry should not have been added to the file.");
+
+        // Output success of add test.
+        System.out.println("Test Passed: location was not added to the file.");
+
+    }
 }
