@@ -6,6 +6,5 @@ public class AddTest {
     @Test
     public void firstTest() {
         Assert.assertTrue(true);
-        
     }
 }
