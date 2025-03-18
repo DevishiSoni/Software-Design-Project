@@ -1,3 +1,4 @@
+import TourCatGUI.AddForm;
 import TourCatSystem.FileManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,10 @@ class AddFormTest {
     @BeforeAll
     public static void setup() {
         testAddForm = new AddForm("test");
-        testAddForm.setFilepath("/testnames.csv");
+        testAddForm.setFilepath("test.csv");
+        FileManager.getInstance(true);
+
+
     }
 
     private long countLines(String filePath) throws IOException {

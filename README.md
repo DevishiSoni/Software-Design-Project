@@ -34,7 +34,7 @@ This project aims to provide users with relevant information on Canadian landmar
 
 1. Clone the repository using this link [Repo Link](https://github.com/DevishiSoni/Software-Design-Project.git)
 2. Make sure the IDE of your choice has java installed, (we've used IntelliJ as our IDE)
-3. Run the LoginServer.java file first and then run the LoginGUI.java file to launch the application
+3. Run the TourCatServer.LoginServer.java file first and then run the TourCatGUI.LoginGUI.java file to launch the application
 
 
 ## Iteration 1
