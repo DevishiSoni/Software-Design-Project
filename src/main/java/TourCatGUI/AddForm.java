@@ -15,7 +15,7 @@ public class AddForm extends JFrame {
     public JButton submitButton, cancelButton;
     public JLabel submissionReplyLabel;
 
-    private String saveFileName = File.separator + "geonames.csv";
+    File saveFile;
 
     public AddForm(String username) {
         setTitle("Add Form");
@@ -45,8 +45,7 @@ public class AddForm extends JFrame {
 
         submitButton.addActionListener(e ->
         {
-            File filePath = FileManager.getInstance().getResourceFile("test.csv");
-            addFieldsToFile(filePath);
+            addFieldsToFile(saveFile);
         });
 
         cancelButton.addActionListener(e -> {
@@ -88,21 +87,20 @@ public class AddForm extends JFrame {
         return !nameField.getText().isBlank() && !locationField.getText().isBlank();
     }
 
-    public String getCSFilename() {
-        return saveFileName;
-    }
 
-    public void setFilepath(String filepath) {
-        this.saveFileName = filepath;
+    public void setSaveFile(File file){
+        this.saveFile = file;
     }
 
     public String getSaveFileAbsPath(){
-        return FileManager.getInstance().getResourceDirectoryPath() + File.separator + this.getCSFilename();
+        return saveFile.getAbsolutePath();
     }
 
     public static void main(String[] args) {
         AddForm af = new AddForm("tester");
-        af.setFilepath(File.separator + "testnames.csv");
+
+        af.setSaveFile(FileManager.getInstance(true).getResourceFile("test2.csv"));
+
         af.setVisible(true);
     }
 }

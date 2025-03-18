@@ -16,7 +16,7 @@ class AddFormTest {
     @BeforeAll
     public static void setup() {
         testAddForm = new AddForm("test");
-        testAddForm.setFilepath("test.csv");
+        testAddForm.setFilepath("test2.csv");
         FileManager.getInstance(true);
 
 

@@ -161,4 +161,8 @@ class BackgroundPanel extends JPanel {
          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
       }
    }
+
+   public static void main(String[] args) {
+      HomePage homePage = new HomePage("Username");
+   }
 }

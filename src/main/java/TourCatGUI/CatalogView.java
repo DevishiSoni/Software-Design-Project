@@ -1,5 +1,6 @@
 package TourCatGUI;
 
+import TourCatSystem.FileManager;
 import TourCatSystem.LocationReader;
 
 import javax.swing.*;
@@ -18,9 +19,9 @@ public class CatalogView {
 
     CatalogView(String username)
     {
-        String geonamesPath = new File("").getAbsolutePath();
-        geonamesPath += File.separator + "geonames.csv";
-        LocationReader reader = new LocationReader(new File(geonamesPath));
+        File dataBase = FileManager.getInstance().getResourceFile("test.csv");
+
+        LocationReader reader = new LocationReader(dataBase);
 
         DefaultTableModel model = reader.getTableModel();
 
@@ -29,7 +30,7 @@ public class CatalogView {
 
         TableColumnModel columnModel = table.getColumnModel();
 
-        LocationReader.hideColumns(columnModel, new int[]{0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15});
+        LocationReader.hideColumns(columnModel, new int[]{});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);
