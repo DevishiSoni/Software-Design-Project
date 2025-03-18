@@ -1,5 +1,6 @@
+ID,Geographical Name, Location, PhotoID
+
 CGNDB ID,Geographical Name,ISO Language Code,Language,Syllabic Form,Generic Term,Generic Category,Concise Code,Toponymic Feature ID,Latitude,Longitude,Location,Province - Territory,Relevance at Scale,Decision Date,Source
- ,CN Tower, , , , , , , ,43.6426,-79.3871,1,Ontario, , ,
  ,Banff National Park, , , , , , , ,51.4968,-115.9281,1,Alberta, , ,
  ,Niagara Falls, , , , , , , ,43.0896,-79.0849,1,Ontario, , ,
  ,Parliament Hill, , , , , , , ,45.4236,-75.7009,1,Ontario, , ,
@@ -19,3 +20,8 @@ CGNDB ID,Geographical Name,ISO Language Code,Language,Syllabic Form,Generic Term
  ,West Edmonton Mall, , , , , , , ,53.5228,-113.6242,1,Alberta, , ,
  ,Thousand Islands, , , , , , , ,44.3000,-76.0000,1,Ontario, , ,
  ,Prince Edward Island National Park, , , , , , , ,46.4705,-63.1303,1,Prince Edward Island, , ,
+newN,newL
+meow,2000
+newN,newL
+newN,newL
+newN,newL

@@ -10,6 +10,8 @@ import java.io.File;
 
 public class CatalogView {
 
+    public JButton alertButton;
+
     CatalogView(String username)
     {
         String geonamesPath = new File("").getAbsolutePath();
@@ -23,7 +25,7 @@ public class CatalogView {
 
         TableColumnModel columnModel = table.getColumnModel();
 
-        LocationReader.hideColumns(columnModel, new int[]{0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15});
+        LocationReader.hideColumns(columnModel, new int[]{0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);
@@ -65,6 +67,8 @@ public class CatalogView {
             }
         });
 
+        alertButton = new JButton("Alert");
+
         fuzzyFinder.setMaxRows(1000);
 
         JButton returnButton = new JButton("Return To Homepage");
@@ -74,11 +78,31 @@ public class CatalogView {
             frame.dispose();
         });
 
+        alertButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+
+            if (selectedRow != -1) { // Ensure a row is selected
+                int columnCount = table.getColumnCount();
+                StringBuilder rowData = new StringBuilder();
+
+                for (int i = 0; i < columnCount; i++) {
+                    rowData.append(table.getValueAt(selectedRow, i)).append("\t");
+                }
+
+                System.out.println(rowData.toString().trim());
+            } else {
+                System.out.println("No row selected.");
+            }
+        });
+
+
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new GridLayout(4, 1));
 
+
         rightPanel.add(returnButton);
 
+        rightPanel.add(alertButton);
         searchField.setText("Search:");
 
         // Add components to frame

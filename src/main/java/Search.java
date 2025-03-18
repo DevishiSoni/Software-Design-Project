@@ -1,46 +1,41 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Search {
-    public static void search(String filepath){
-
-        //To receive user input
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Search: ");
-        String input = scanner.nextLine().toLowerCase();
+    public static ArrayList<String> search(String filepath, String query) {
+        ArrayList<String> results = new ArrayList<>();
         boolean found = false;
 
-        //Read the given file to search through it
-        try{
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
 
-            //Read file *SWITCH TO LocationReader WHEN IT'S COMPLETE*
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath));
             String line;
 
-            //Print any matches found
-            while((line = bufferedReader.readLine()) != null){
-                if(line.toLowerCase().contains(input)){
-                    System.out.println("Matches: " + line);
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.toLowerCase().contains(query.toLowerCase())) {
+//                    System.out.println("Match: " + line);
                     found = true;
+                    results.add(line);
                 }
             }
 
-            //Print a message if there are no matches
-            if(!found){
-                System.out.println("No matches found.");
+            if (!found) {
+//                System.out.println("No matches found.");
             }
-
-            //Catch an error
         } catch (IOException e) {
-            System.out.println("Error: "+e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
-        scanner.close();
+        return results;
     }
 
     public static void main(String[] args) {
-        search("geonames.csv");
+        Scanner scanner = new Scanner(System.in);
+//        System.out.print("Search: ");
+        String input = scanner.nextLine();
+        scanner.close();
+
+        search("filtertest.csv", input);
     }
 }
-

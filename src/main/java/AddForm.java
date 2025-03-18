@@ -7,8 +7,10 @@ public class AddForm extends JFrame {
 
     public JTextField nameField;
     public JTextField locationField;
-    public JButton submitButton;
-    public JButton cancelButton;
+    public JButton submitButton, cancelButton;
+    public JLabel submissionReplyLabel;
+
+    private String saveFileName = File.separator + "geonames.csv";
 
     public AddForm(String username) {
         setTitle("Add Form");
@@ -24,7 +26,7 @@ public class AddForm extends JFrame {
         JLabel intro = new JLabel("Please enter the name and location of the landmark to be added");
         intro.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
 
-        JLabel submissionReplyLabel = new JLabel(" ");
+        submissionReplyLabel = new JLabel("");
         submissionReplyLabel.setFont(new Font("Trebuchet MS", Font.ITALIC, 15));
 
         add(intro);
@@ -36,38 +38,70 @@ public class AddForm extends JFrame {
         add(submitButton);
         add(cancelButton);
 
-        submitButton.addActionListener(e->{
+        submitButton.addActionListener(e ->
+        {
             String filePath = new File("").getAbsolutePath();
-            filePath += "/geonames.csv";
-
-            String name = nameField.getText();
-            String location = locationField.getText();
-
-            if (!name.isBlank() && !location.isBlank()) {
-
-                ArrayList<String> newLandmark = new ArrayList<String>();
-                newLandmark.add(name);
-                newLandmark.add(location);
-
-                boolean success = ChangeDatabase.addToFile(newLandmark, filePath);
-
-                if (success) {
-                    submissionReplyLabel.setText("Location successfully added to the database");
-                    nameField.setText("");
-                    locationField.setText("");
-                }
-                else {
-                    submissionReplyLabel.setText("Failed to add location to the database");
-                }
-            }
-            else {
-                submissionReplyLabel.setText("Please enter the name and location of the landmark to be added");
-            }
+            filePath += saveFileName;
+            addFieldsToFile(new File(filePath));
         });
 
-        cancelButton.addActionListener(e->{
+        cancelButton.addActionListener(e -> {
             new HomePage(username);
             dispose();
         });
+    }
+
+
+
+    private void addFieldsToFile(File f) {
+
+        String name = nameField.getText();
+        String location = locationField.getText();
+
+        if (!isNameLocationValid()){
+            submissionReplyLabel.setText("Please enter the name and location of the landmark to be added");
+            return;
+        }
+
+        ArrayList<String> newLandmark = new ArrayList<String>();
+        newLandmark.add(name);
+        newLandmark.add(location);
+
+        boolean success = ChangeDatabase.addToFile(newLandmark, f.getAbsolutePath());
+
+        if (!success) {
+            submissionReplyLabel.setText("Failed to add location to the database");
+            return;
+        }
+
+
+        submissionReplyLabel.setText("Location successfully added to the database");
+        nameField.setText("");
+        locationField.setText("");
+
+    }
+
+    boolean isNameLocationValid()
+    {
+        return !nameField.getText().isBlank() && !locationField.getText().isBlank();
+    }
+
+
+    public String getCSFilename() {
+        return saveFileName;
+    }
+
+    public void setFilepath(String filepath) {
+        this.saveFileName = filepath;
+    }
+
+    public String getSaveFileAbsPath(){
+        return new File("").getAbsolutePath() + this.getCSFilename();
+    }
+
+    public static void main(String[] args) {
+        AddForm af = new AddForm("tester");
+        af.setFilepath(File.separator + "testnames.csv");
+        af.setVisible(true);
     }
 }
