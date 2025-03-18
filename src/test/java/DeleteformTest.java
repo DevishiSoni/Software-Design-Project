@@ -1,6 +1,9 @@
+import TourCatSystem.FileManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,13 +34,13 @@ class DeleteFormTest {
         testDelForm.deleteButton.doClick();
 
         // Count lines after submitting
-        long finalLineCount = countLines(testDelForm.getAbsCSVPath());
+        long finalLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
 
         // Ensure exactly one new line was added
-        Assertions.assertEquals(initialLineCount - 1, finalLineCount, "A new entry should have been added to the file.");
+        Assertions.assertEquals(initialLineCount - 1, finalLineCount, "A new entry should have been removed from the file.");
 
         // Output success of add test.
-        System.out.println("Test Passed: locationAddTest - The CSV file increased by one line after form submission.");
+        System.out.println("Test Passed: locationAddTest - The CSV file decreased.");
     }
 
 

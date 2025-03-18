@@ -61,10 +61,6 @@ public class DeleteForm extends JFrame {
         });
     }
 
-    public void setSubmissionReplyLabel(JLabel submissionReplyLabel) {
-
-    }
-
     public String getAbsCSVPath()
     {
         String filePath = new File("").getAbsolutePath();

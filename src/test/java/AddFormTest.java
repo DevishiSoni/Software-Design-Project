@@ -1,6 +1,9 @@
+import TourCatSystem.FileManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -22,7 +25,7 @@ class AddFormTest {
     @Test
     void newCsvLineTest() throws IOException {
         // Count lines before submitting
-        long initialLineCount = countLines(testAddForm.getSaveFileAbsPath());
+        long initialLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
 
         // Set input fields
         testAddForm.locationField.setText("newL");
@@ -32,7 +35,7 @@ class AddFormTest {
         testAddForm.submitButton.doClick();
 
         // Count lines after submitting
-        long finalLineCount = countLines(testAddForm.getSaveFileAbsPath());
+        long finalLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
 
         // Ensure exactly one new line was added
         Assertions.assertEquals(initialLineCount + 1, finalLineCount, "A new entry should have been added to the file.");
@@ -43,8 +46,9 @@ class AddFormTest {
 
     @Test
     void incompleteFormTest() throws IOException {
-        // Count lines before submitting
-        long initialLineCount = countLines(testAddForm.getSaveFileAbsPath());
+
+        // Count lines after submitting
+        long initialLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
 
         // Set input fields
         testAddForm.locationField.setText("newL");
@@ -52,8 +56,10 @@ class AddFormTest {
         // Simulate button click
         testAddForm.submitButton.doClick();
 
+
         // Count lines after submitting
-        long finalLineCount = countLines(testAddForm.getSaveFileAbsPath());
+        long finalLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
+
 
         // Ensure exactly one new line was added
         Assertions.assertEquals(initialLineCount, finalLineCount, "A new entry should not have been added to the file.");
