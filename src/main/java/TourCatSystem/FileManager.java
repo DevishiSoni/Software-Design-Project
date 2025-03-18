@@ -13,10 +13,16 @@ public class FileManager {
     // Resource directory path
     private Path resourceDirectory;
 
-    // Private constructor to prevent instantiation
-    private FileManager() {
-        // Default resource directory path - can be customized based on needs
-        this.resourceDirectory = Paths.get("src", "main", "resources");
+    private final boolean testMode;  // Made final so it cannot be changed after initialization
+
+    // Private constructor with testMode parameter
+    private FileManager(boolean testMode) {
+        this.testMode = testMode;  // Assign testMode early
+
+        // Set resource directory based on mode
+        this.resourceDirectory = testMode
+                ? Paths.get("src", "test", "resources")
+                : Paths.get("src", "main", "resources");
 
         // Create the directory if it doesn't exist
         try {
@@ -28,12 +34,17 @@ public class FileManager {
         }
     }
 
-    // Method to get the singleton instance
-    public static synchronized FileManager getInstance() {
-        if (instance == null) {
-            instance = new FileManager();
+    // Method to get the singleton instance with specific mode
+    public static synchronized FileManager getInstance(boolean testMode) {
+        if (instance == null || instance.testMode != testMode) {
+            instance = new FileManager(testMode);
         }
         return instance;
+    }
+
+    // For backward compatibility, default to production mode
+    public static synchronized FileManager getInstance() {
+        return getInstance(instance != null && instance.testMode);
     }
 
     // Get resource directory as Path object
@@ -73,5 +84,15 @@ public class FileManager {
     // Check if a resource exists
     public boolean resourceExists(String resourceName) {
         return Files.exists(getResource(resourceName));
+    }
+
+    // Get current mode
+    public boolean isTestMode() {
+        return testMode;
+    }
+
+    public File getResourceFile(String fileName)
+    {
+        return new File(getResourceDirectoryPath() + File.separator + fileName);
     }
 }
