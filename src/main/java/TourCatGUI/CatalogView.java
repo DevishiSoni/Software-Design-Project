@@ -16,22 +16,30 @@ import java.io.File;
 
 public class CatalogView {
 
-    public JButton alertButton;
+    public JButton viewButton;
+
+    JTable table;
+    File dataBase;
+    DefaultTableModel model;
+
+    JTextField searchField;
+
 
     CatalogView(String username)
     {
-        File dataBase = FileManager.getInstance().getResourceFile("test.csv");
+        this.dataBase = FileManager.getInstance().getResourceFile("test.csv");
 
         LocationReader reader = new LocationReader(dataBase);
 
-        DefaultTableModel model = reader.getTableModel();
+        this.model = reader.getTableModel();
 
         // Create the JTable with the model
-        JTable table = new JTable(model);
+        this.table = new JTable(model);
+
 
         TableColumnModel columnModel = table.getColumnModel();
 
-        LocationReader.hideColumns(columnModel, new int[]{});
+        LocationReader.hideColumns(columnModel, new int[]{0});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);
@@ -49,7 +57,7 @@ public class CatalogView {
         FuzzyFinder fuzzyFinder = new FuzzyFinder(table);
 
         // Search field
-        JTextField searchField = new JTextField();
+        searchField = new JTextField();
 
         searchField.addFocusListener(new FocusListener() {
             @Override
@@ -73,7 +81,7 @@ public class CatalogView {
             }
         });
 
-        alertButton = new JButton("Alert");
+        viewButton = new JButton("View");
 
 
         JButton returnButton = new JButton("Return To Homepage");
@@ -83,7 +91,7 @@ public class CatalogView {
             frame.dispose();
         });
 
-        alertButton.addActionListener(e -> {
+        viewButton.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
 
             if (selectedRow != -1) { // Ensure a row is selected
@@ -107,7 +115,7 @@ public class CatalogView {
 
         rightPanel.add(returnButton);
 
-        rightPanel.add(alertButton);
+        rightPanel.add(viewButton);
         searchField.setText("Search:");
 
         JButton deleteButton = new JButton("Delete");
@@ -122,22 +130,11 @@ public class CatalogView {
 
 
 
+
         frame.setVisible(true);
 
         deleteButton.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
 
-            if (selectedRow != -1) { // Ensure a row is selected
-                int columnCount = table.getColumnCount();
-
-                String selectedRowID = (String) table.getValueAt(selectedRow, 0);
-
-                DatabaseManager.deleteFromFile(selectedRowID, dataBase);
-
-                model.removeRow(selectedRow);
-            } else {
-                System.out.println("No row selected.");
-            }
         });
 
 
@@ -146,5 +143,27 @@ public class CatalogView {
     }
 
 
+    void deleteRow()
+    {
+        int selectedRow = table.getSelectedRow();
 
+        if (selectedRow != -1) { // Ensure a row is selected
+            int columnCount = table.getColumnCount();
+
+            String selectedRowID = (String) table.getValueAt(selectedRow, 0);
+
+            DatabaseManager.deleteFromFile(selectedRowID, dataBase);
+
+            model.removeRow(selectedRow);
+        } else {
+            System.out.println("No row selected.");
+        }
+    }
+
+
+    public void setSearch(String text) {
+        searchField.requestFocus();
+        this.searchField.setText(text);
+        System.out.println(text);
+    }
 }

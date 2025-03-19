@@ -130,6 +130,17 @@ public class HomePage extends JFrame {
           new CatalogView(username);
 
        });
+
+       searchButton.addActionListener(e -> {
+          CatalogView newCatalogue = new CatalogView(username);
+          newCatalogue.setSearch(searchBar.getText());
+          frame.setVisible(false);
+          dispose();
+
+
+
+
+       });
    }
 }
 

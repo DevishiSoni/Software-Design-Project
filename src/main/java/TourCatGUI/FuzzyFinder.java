@@ -51,11 +51,30 @@ public class FuzzyFinder {
 
         for (Vector<Object> row : originalData) {
             boolean match = false;
+            int i = 0;
             for (Object cell : row) {
-                if (cell != null && levenshteinDistance.apply(query.toLowerCase(), cell.toString().toLowerCase()) <= 3) {
-                    match = true;
-                    break;
+
+                if(i == 0)
+                {
+                    i++;
+                    continue;
                 }
+
+
+
+                String[] words = cell.toString().split(" ");
+
+
+                for(String word: words) {
+                    if (levenshteinDistance.apply(query.toLowerCase(), word.toLowerCase()) <= 2) {
+                        System.out.println(word);
+                        match = true;
+                        break;
+                    }
+                }
+
+                i++;
+
             }
             if (match) {
                 model.addRow(row);
