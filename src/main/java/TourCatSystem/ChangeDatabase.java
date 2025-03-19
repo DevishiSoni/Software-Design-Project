@@ -76,13 +76,12 @@ public class ChangeDatabase {
         }
     }
 
-    public static boolean addToFile(ArrayList<String> newLandmark, String absolutePath) {
+    public static boolean addToFile(ArrayList<String> newLandmark, File file) {
         if (newLandmark == null || newLandmark.isEmpty()) {
             System.err.println("Error: Empty landmark data.");
             return false;
         }
 
-        File file = new File(absolutePath);
         boolean success = false;
 
         try (

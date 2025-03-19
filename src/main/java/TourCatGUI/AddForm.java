@@ -18,6 +18,9 @@ public class AddForm extends JFrame {
     File saveFile;
 
     public AddForm(String username) {
+
+        saveFile = FileManager.getInstance().getResourceFile("test.csv");
+
         setTitle("Add Form");
         setSize(500, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,7 +71,7 @@ public class AddForm extends JFrame {
         newLandmark.add(name);
         newLandmark.add(location);
 
-        boolean success = ChangeDatabase.addToFile(newLandmark, f.getAbsolutePath());
+        boolean success = ChangeDatabase.addToFile(newLandmark, f);
 
         if (!success) {
             submissionReplyLabel.setText("Failed to add location to the database");
