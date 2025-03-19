@@ -31,7 +31,7 @@ public class HomePage extends JFrame {
        bgPanel.setLayout(new GridBagLayout());
        setContentPane(bgPanel);
 
-       JLabel welcomeLabel = new JLabel("Welcome to TourCat " + username + "!", SwingConstants.CENTER);
+       JLabel welcomeLabel = new JLabel("Welcome to TourCat, " + username + "!", SwingConstants.CENTER);
        welcomeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 36));
        bgPanel.add(welcomeLabel);
 

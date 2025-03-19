@@ -1,6 +1,6 @@
 package TourCatGUI;
 
-import TourCatSystem.ChangeDatabase;
+import TourCatSystem.DatabaseManager;
 import TourCatSystem.FileManager;
 
 import javax.swing.*;
@@ -71,7 +71,7 @@ public class AddForm extends JFrame {
         newLandmark.add(name);
         newLandmark.add(location);
 
-        boolean success = ChangeDatabase.addToFile(newLandmark, f);
+        boolean success = DatabaseManager.addToFile(newLandmark, f);
 
         if (!success) {
             submissionReplyLabel.setText("Failed to add location to the database");

@@ -6,7 +6,7 @@ import com.opencsv.exceptions.CsvValidationException;
 import java.io.*;
 import java.util.ArrayList;
 
-public class ChangeDatabase {
+public class DatabaseManager {
 
     public static boolean deleteFromFile(String landmarkName, File file) {
         boolean success = false;

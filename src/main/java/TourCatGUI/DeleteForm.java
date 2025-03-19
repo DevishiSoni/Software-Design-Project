@@ -1,7 +1,6 @@
 package TourCatGUI;
 
-import TourCatSystem.ChangeDatabase;
-import TourCatSystem.FileManager;
+import TourCatSystem.DatabaseManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,7 +42,7 @@ public class DeleteForm extends JFrame {
             String name = nameField.getText();
 
             if (!name.isBlank()) {
-                boolean success = ChangeDatabase.deleteFromFile(name, this.databaseFile);
+                boolean success = DatabaseManager.deleteFromFile(name, this.databaseFile);
 
                 if (success) {
                     submissionReplyLabel.setText("Location successfully deleted from the database");

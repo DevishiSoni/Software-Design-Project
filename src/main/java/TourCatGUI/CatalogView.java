@@ -1,6 +1,6 @@
 package TourCatGUI;
 
-import TourCatSystem.ChangeDatabase;
+import TourCatSystem.DatabaseManager;
 import TourCatSystem.FileManager;
 import TourCatSystem.LocationReader;
 
@@ -13,7 +13,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.ArrayList;
 
 public class CatalogView {
 
@@ -134,7 +133,7 @@ public class CatalogView {
 
                 String selectedRowID = (String) table.getValueAt(selectedRow, 0);
 
-                ChangeDatabase.deleteFromFile(selectedRowID, dataBase);
+                DatabaseManager.deleteFromFile(selectedRowID, dataBase);
 
                 model.removeRow(selectedRow);
             } else {
