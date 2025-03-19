@@ -1,5 +1,7 @@
 package TourCatGUI;
 
+import TourCatSystem.FileManager;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -24,7 +26,8 @@ public class HomePage extends JFrame {
        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        frame.setSize(1000, 500);
 
-       BackgroundPanel bgPanel = new BackgroundPanel("torontoSkyline.jpg", 0.75f);
+       File skylineImg = FileManager.getInstance().getImageFile("torontoSkyline.jpg");
+       BackgroundPanel bgPanel = new BackgroundPanel(skylineImg.getAbsolutePath(), 0.75f);
        bgPanel.setLayout(new GridBagLayout());
        setContentPane(bgPanel);
 
@@ -51,20 +54,17 @@ public class HomePage extends JFrame {
        JButton homeButton = new JButton("Home");
        JButton catalogue = new JButton("Catalogue");
        JButton add = new JButton("Add to Catalogue");
-       JButton delete = new JButton("Delete from Catalogue");
        JButton logout = new JButton("Logout");
 
        Dimension buttonSize = new Dimension(120, 40);
        homeButton.setPreferredSize(new Dimension(100, 40));
        catalogue.setPreferredSize(buttonSize);
        add.setPreferredSize(new Dimension(140, 40));
-       delete.setPreferredSize(new Dimension(175, 40));
        logout.setPreferredSize(buttonSize);
 
        buttonPanel.add(homeButton);
        buttonPanel.add(catalogue);
        buttonPanel.add(add);
-       buttonPanel.add(delete);
        buttonPanel.add(logout);
 
        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -123,11 +123,6 @@ public class HomePage extends JFrame {
           new AddForm(username).setVisible(true);
        });
 
-       delete.addActionListener(e -> {
-          frame.setVisible(false);
-          dispose();
-          new DeleteForm(username).setVisible(true);
-       });
 
        catalogue.addActionListener( e -> {
           frame.setVisible(false);

@@ -95,4 +95,9 @@ public class FileManager {
     {
         return new File(getResourceDirectoryPath() + File.separator + fileName);
     }
+
+    public File getImageFile(String imageName)
+    {
+        return getResourceFile("image" + File.separator + imageName);
+    }
 }
