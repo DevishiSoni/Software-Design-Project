@@ -32,7 +32,7 @@ class AddFormTest {
         long initialLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
 
         // Set input fields
-        testAddForm.locationField.setText("newL");
+        testAddForm.cityField.setText("newL");
         testAddForm.nameField.setText("newN");
 
         // Simulate button click
@@ -55,7 +55,7 @@ class AddFormTest {
         long initialLineCount = countLines(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
 
         // Set input fields
-        testAddForm.locationField.setText("newL");
+        testAddForm.cityField.setText("newL");
 
         // Simulate button click
         testAddForm.submitButton.doClick();

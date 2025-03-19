@@ -1,6 +1,3 @@
-ID,Geographical Name, City, Province, Category
-newN,newL
-newN,newL
-newN,newL
-newN,newL
-newN,newL
+ID,Geographical Name, City, Province, Category, Image Name
+00000,CN Tower,Toronto,Ontario,SkyScraper,torontoSkyline.jpg
+00001,trial,by,fire,dont fail,Burndown.png

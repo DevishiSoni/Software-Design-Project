@@ -30,7 +30,7 @@ public class CatalogView {
 
         TableColumnModel columnModel = table.getColumnModel();
 
-        LocationReader.hideColumns(columnModel, new int[]{});
+        LocationReader.hideColumns(columnModel, new int[]{0,5});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);

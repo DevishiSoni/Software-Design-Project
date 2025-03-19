@@ -1,5 +1,7 @@
 package TourCatGUI;
 
+import TourCatSystem.FileManager;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -24,7 +26,8 @@ public class HomePage extends JFrame {
        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        frame.setSize(1000, 500);
 
-       BackgroundPanel bgPanel = new BackgroundPanel("torontoSkyline.jpg", 0.75f);
+       String backgroundImagePath = FileManager.getInstance().getImagePathByName("torontoSkyline.jpg");
+       BackgroundPanel bgPanel = new BackgroundPanel(backgroundImagePath, 0.75f);
        bgPanel.setLayout(new GridBagLayout());
        setContentPane(bgPanel);
 

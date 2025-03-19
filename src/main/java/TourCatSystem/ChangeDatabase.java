@@ -104,6 +104,29 @@ public class ChangeDatabase {
         return success;
     }
 
+    public static int getMaxId(File file) {
+        try(CSVReader reader = new CSVReaderBuilder(new FileReader(file))
+                .withSkipLines(0)
+                .build();)
+        {
+            String[] nextLine = reader.readNext();
+            int maxId = -1;
+            while ((nextLine = reader.readNext()) != null) {
+                // Make sure we're not trying to access beyond array bounds
+                if (nextLine.length > 1) {
+                    int id = Integer.parseInt(nextLine[0]);
+                    if(id > maxId){
+                        maxId = id;
+                    }
+                }
+            }
+            return maxId;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+        return -1;
+    }
+
     public static void main(String[] args) {
         String fileName = "test.csv";
 
