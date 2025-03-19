@@ -12,7 +12,6 @@ public class FuzzyFinder {
     private final JTable table;
     private final Vector<Vector<Object>> originalData; // Manually copied for type safety
 
-    private int maxRows = 25;
 
     public FuzzyFinder(JTable table) {
         this.table = table;
@@ -38,10 +37,6 @@ public class FuzzyFinder {
         table.setRowSorter(sorter);
     }
 
-    public void setMaxRows(int rows)
-    {
-        this.maxRows = rows;
-    }
 
     public void performFuzzySearch(String query) {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
@@ -57,7 +52,7 @@ public class FuzzyFinder {
         for (Vector<Object> row : originalData) {
             boolean match = false;
             for (Object cell : row) {
-                if (cell != null && levenshteinDistance.apply(query.toLowerCase(), cell.toString().toLowerCase()) <= 2) {
+                if (cell != null && levenshteinDistance.apply(query.toLowerCase(), cell.toString().toLowerCase()) <= 3) {
                     match = true;
                     break;
                 }

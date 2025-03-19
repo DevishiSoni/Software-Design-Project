@@ -1,1 +1,20 @@
-ID,Geographical Name, City, Province, Category
+ID,Geographical Name,City,Province,Category
+1,CN Tower,Toronto,Ontario,Landmark
+2,Stanley Park,Vancouver,British Columbia,Park
+3,Old Quebec,Quebec City,Quebec,Historic Site
+4,Niagara Falls,Niagara Falls,Ontario,Natural Wonder
+5,The Forks,Winnipeg,Manitoba,Cultural Site
+6,Parliament Hill,Ottawa,Ontario,Government Building
+7,Peggy's Cove Lighthouse,Peggy's Cove,Nova Scotia,Lighthouse
+9,Whistler Blackcomb,Whistler,British Columbia,Ski Resort
+10,Hopewell Rocks,Hopewell Cape,New Brunswick,Natural Attraction
+11,Gros Morne National Park,Rocky Harbour,Newfoundland and Labrador,National Park
+12,Confederation Bridge,Borden-Carleton,Prince Edward Island,Bridge
+13,Capilano Suspension Bridge,Vancouver,British Columbia,Bridge
+14,West Edmonton Mall,Edmonton,Alberta,Shopping Mall
+15,Rideau Canal,Ottawa,Ontario,Waterway
+16,Montmorency Falls,Quebec City,Quebec,Waterfall
+17,Science World,Vancouver,British Columbia,Museum
+18,Signal Hill,St. John's,Newfoundland and Labrador,Historic Site
+19,Reversing Falls,Saint John,New Brunswick,Natural Phenomenon
+20,Canada's Wonderland,Vaughan,Ontario,Amusement Park

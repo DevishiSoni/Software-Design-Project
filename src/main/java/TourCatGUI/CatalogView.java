@@ -75,7 +75,6 @@ public class CatalogView {
 
         alertButton = new JButton("Alert");
 
-        fuzzyFinder.setMaxRows(1000);
 
         JButton returnButton = new JButton("Return To Homepage");
 
