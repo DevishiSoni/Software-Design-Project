@@ -1,6 +1,10 @@
+import TourCatGUI.AddForm;
+import TourCatSystem.FileManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -12,17 +16,23 @@ class AddFormTest {
     @BeforeAll
     public static void setup() {
         testAddForm = new AddForm("test");
-        testAddForm.setFilepath("/testnames.csv");
+
+        testAddForm.setSaveFile(FileManager.getInstance(true).getResourceFile("test.csv"));
+
+        FileManager.getInstance(true);
+
+
     }
 
-    private long countLines(String filePath) throws IOException {
-        return Files.lines(Paths.get(filePath)).count();
+    private long countLines(File file) throws IOException {
+        return Files.lines(file.toPath()).count();
     }
 
     @Test
     void newCsvLineTest() throws IOException {
         // Count lines before submitting
-        long initialLineCount = countLines(testAddForm.getSaveFileAbsPath());
+        File testFile = FileManager.getInstance(true).getResourceFile("test.csv");
+        long initialLineCount = countLines(testFile);
 
         // Set input fields
         testAddForm.locationField.setText("newL");
@@ -32,8 +42,7 @@ class AddFormTest {
         testAddForm.submitButton.doClick();
 
         // Count lines after submitting
-        long finalLineCount = countLines(testAddForm.getSaveFileAbsPath());
-
+        long finalLineCount = countLines(testFile);
         // Ensure exactly one new line was added
         Assertions.assertEquals(initialLineCount + 1, finalLineCount, "A new entry should have been added to the file.");
 
@@ -43,8 +52,10 @@ class AddFormTest {
 
     @Test
     void incompleteFormTest() throws IOException {
-        // Count lines before submitting
-        long initialLineCount = countLines(testAddForm.getSaveFileAbsPath());
+
+        File testFile = FileManager.getInstance(true).getResourceFile("test.csv");
+        // Count lines after submitting
+        long initialLineCount = countLines(testFile);
 
         // Set input fields
         testAddForm.locationField.setText("newL");
@@ -52,8 +63,9 @@ class AddFormTest {
         // Simulate button click
         testAddForm.submitButton.doClick();
 
+
         // Count lines after submitting
-        long finalLineCount = countLines(testAddForm.getSaveFileAbsPath());
+        long finalLineCount = countLines(testFile);
 
         // Ensure exactly one new line was added
         Assertions.assertEquals(initialLineCount, finalLineCount, "A new entry should not have been added to the file.");
