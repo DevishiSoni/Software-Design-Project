@@ -96,6 +96,10 @@ public class FileManager {
         return new File(getResourceDirectoryPath() + File.separator + fileName);
     }
 
+    public String createImagePath(String imageName){
+        return getResourceDirectoryPath() + File.separator + "images" + File.separator + imageName;
+    }
+
     public String getImagePathByName(String filename){
         return getResource("images").resolve(filename).toString();
     }

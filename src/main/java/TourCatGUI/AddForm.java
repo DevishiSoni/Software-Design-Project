@@ -3,9 +3,12 @@ package TourCatGUI;
 import TourCatSystem.ChangeDatabase;
 import TourCatSystem.FileManager;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class AddForm extends JFrame {
@@ -15,7 +18,9 @@ public class AddForm extends JFrame {
     public JLabel chosenImageLabel, submissionReplyLabel;
 
     File saveFile = FileManager.getInstance().getResourceFile("test.csv");
+    File imageFile = null;
     String imageName = "";
+    String fileType = "";
 
     public AddForm(String username) {
         setTitle("Add Form");
@@ -68,7 +73,9 @@ public class AddForm extends JFrame {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                imageName = chooser.getSelectedFile().getName();
+                imageFile = chooser.getSelectedFile();
+                imageName = imageFile.getName();
+                fileType = imageName.split("\\.")[1];
                 chosenImageLabel.setText("Chosen image: " + imageName);
             }
         });
@@ -92,13 +99,21 @@ public class AddForm extends JFrame {
             return;
         }
 
+        try {
+            BufferedImage bimg = ImageIO.read(imageFile);
+            File outputfile = new File(FileManager.getInstance().createImagePath(id+"."+fileType));
+            ImageIO.write(bimg,fileType, outputfile);
+        } catch (IOException e) {
+            System.out.println("Image could not be read");
+        }
+
         ArrayList<String> newLandmark = new ArrayList<String>();
         newLandmark.add(id);
         newLandmark.add(name);
         newLandmark.add(location);
         newLandmark.add(province);
         newLandmark.add(category);
-        newLandmark.add(imageName);
+        newLandmark.add(fileType);
 
         boolean success = ChangeDatabase.addToFile(newLandmark, f.getAbsolutePath());
 
@@ -107,12 +122,12 @@ public class AddForm extends JFrame {
             return;
         }
 
-
         submissionReplyLabel.setText("Location successfully added to the database");
         nameField.setText("");
         cityField.setText("");
         provinceField.setText("");
         categoryField.setText("");
+        imageFile = null;
         imageName = "";
         chosenImageLabel.setText("Chosen Image: " + imageName);
     }

@@ -1,4 +1,2 @@
-ID,Geographical Name, City, Province, Category, Image Name
-00000,CN Tower,Toronto,Ontario,SkyScraper,torontoSkyline.jpg
-00001,trial,by,fire,dont fail,Burndown.png
-00002,I,dont,know,anymore,Burndown.png
+ID,Geographical Name, City, Province, Category, Image Type
+00000,CN Tower,Toronto,Ontario,Skyscraper,jpg
