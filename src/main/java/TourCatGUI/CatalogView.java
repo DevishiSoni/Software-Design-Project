@@ -233,7 +233,7 @@ public class CatalogView {
         frame.setVisible(true);
 
         deleteButton.addActionListener(e -> {
-
+            deleteRow();
         });
 
     }

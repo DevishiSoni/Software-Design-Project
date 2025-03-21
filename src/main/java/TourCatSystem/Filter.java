@@ -10,9 +10,12 @@ public class Filter {
     static String province;
     static String type;
 
-    private static final String filepath = String.valueOf(FileManager.getInstance().getResourceFile("test.csv"));
+    private static final String filepath = String.valueOf(FileManager.getInstance().getResourceFile("test.csv"));;
 
-    public Filter() {
+
+
+
+    public Filter(){
         provinces = new ArrayList<>();
         types = new ArrayList<>();
         results = new ArrayList<>();
@@ -21,6 +24,7 @@ public class Filter {
         types.add("Historic Site");
         types.add("Bridge");
         types.add("Waterfall");
+
 
         provinces.add("Ontario");
         provinces.add("Quebec");
@@ -32,9 +36,11 @@ public class Filter {
         provinces.add("New Brunswick");
         provinces.add("Prince Edward Island");
         provinces.add("Newfoundland and Labrador");
+
     }
 
     // User clicks 1 chosen province
+
     public void filterProvince(String selectedProvince) {
         Search searchObj = new Search();
         province = selectedProvince; // Dropdown input
@@ -42,7 +48,9 @@ public class Filter {
         results = searchObj.search(filepath, province);
     }
 
+
     // User clicks 1 chosen type
+
     public void filterType(String selectedType) {
         Search searchObj = new Search();
         type = selectedType; // Dropdown input
@@ -51,6 +59,7 @@ public class Filter {
     }
 
     // User clicks 1 chosen province AND 1 chosen type
+
     public void filterBoth(String selectedProvince, String selectedType) {
         Search searchObj = new Search();
         province = selectedProvince; // Dropdown input
@@ -59,13 +68,12 @@ public class Filter {
 
         ArrayList<String> firstResults = searchObj.search(filepath, province);
 
-        for (String line : firstResults) {
-            if (line.toLowerCase().contains(type.toLowerCase())) {
+        for(String line : firstResults){
+            if(line.toLowerCase().contains(type.toLowerCase())){
                 results.add(line);
             }
         }
     }
-
     public ArrayList<String> getResults() {
         return results;
     }
@@ -79,6 +87,7 @@ public class Filter {
             }
         }
     }
+
 
     public static void main(String[] args) {
         Filter filter = new Filter();
