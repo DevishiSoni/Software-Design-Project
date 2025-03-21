@@ -37,6 +37,6 @@ public class Search {
         String input = scanner.nextLine();
         scanner.close();
 
-        search("filtertest.csv", input);
+        search("database.csv", input);
     }
 }

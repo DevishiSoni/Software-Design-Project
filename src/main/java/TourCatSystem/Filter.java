@@ -10,7 +10,7 @@ public class Filter {
     static String province;
     static String type;
 
-    private static final String filepath = String.valueOf(FileManager.getInstance().getResourceFile("test.csv"));;
+    private static final String filepath = String.valueOf(FileManager.getInstance().getResourceFile("database.csv"));;
 
 
 
