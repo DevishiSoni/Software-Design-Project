@@ -104,6 +104,15 @@ public class CatalogView {
         });
 
         viewButton.addActionListener(e -> {
+<<<<<<< Updated upstream
+=======
+            //TODO: Replace this specific function with a class with these parameters.
+
+            System.out.println("MESSAGE!");
+
+
+
+>>>>>>> Stashed changes
             int selectedRow = table.getSelectedRow();
 
             if (selectedRow != -1) { // Ensure a row is selected
@@ -113,6 +122,8 @@ public class CatalogView {
                 String province = (String) table.getValueAt(selectedRow, 3);
                 String category = (String) table.getValueAt(selectedRow, 4);
                 String imagePath = (String) table.getValueAt(selectedRow, 5);
+
+
 
                 // Create a new JFrame to display details
                 JFrame detailsFrame = new JFrame("Location Details");
@@ -139,6 +150,7 @@ public class CatalogView {
                     imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 }
 
+                imageLabel.setText(imageFile.getAbsolutePath());
                 // Add components to frame
                 detailsFrame.add(textPanel, BorderLayout.NORTH);
                 detailsFrame.add(imageLabel, BorderLayout.CENTER);
@@ -148,6 +160,8 @@ public class CatalogView {
             } else {
                 System.out.println("No row selected.");
             }
+
+
         });
 
 
