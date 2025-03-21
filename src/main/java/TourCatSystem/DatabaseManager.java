@@ -218,7 +218,7 @@ public class DatabaseManager {
         return maxID;
     }
 
-    
+
     public static void main(String[] args) {
         String fileName = "test.csv";
 

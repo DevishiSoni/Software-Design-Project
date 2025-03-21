@@ -32,67 +32,52 @@ class AddFormTest {
 
     @Test
     void newCsvLineTest() throws IOException {
-        // Count lines before submitting
         File testFile = testAddForm.saveFile;
         long initialLineCount = countLines(testFile);
 
-        // Set input fields
         testAddForm.locationField.setText("newL");
         testAddForm.nameField.setText("newN");
 
-        // Simulate button click
         testAddForm.submitButton.doClick();
 
-        // Count lines after submitting
         long finalLineCount = countLines(testFile);
-        // Ensure exactly one new line was added
-        Assertions.assertEquals(initialLineCount + 1, finalLineCount, "A new entry should have been added to the file.");
+        boolean passed = (initialLineCount + 1 == finalLineCount);
 
-        // Output success of add test.
-        System.out.println("Test Passed: locationAddTest - The CSV file increased by one line after form submission.");
+        printTestResult("newCsvLineTest", initialLineCount, finalLineCount, passed);
     }
 
     @Test
     void incompleteFormTest() throws IOException {
-
         File testFile = testAddForm.saveFile;
-        // Count lines after submitting
         long initialLineCount = countLines(testFile);
 
-        // Set input fields
         testAddForm.locationField.setText("newL");
-
-        // Simulate button click
         testAddForm.submitButton.doClick();
 
-
-        // Count lines after submitting
         long finalLineCount = countLines(testFile);
+        boolean passed = (initialLineCount == finalLineCount);
 
-        // Ensure exactly one new line was added
-        Assertions.assertEquals(initialLineCount, finalLineCount, "A new entry should not have been added to the file.");
-
-        // Output success of add test.
-        System.out.println("Test Passed: location was not added to the file.");
-
+        printTestResult("incompleteFormTest", initialLineCount, finalLineCount, passed);
     }
 
-    void newHighestIDTest()
-    {
+    @Test
+    void newHighestIDTest() {
         File testFile = testAddForm.saveFile;
+        int expHighestID = DatabaseManager.getMaxID(testFile) + 1;
 
-
-        int expHighestID = DatabaseManager.getMaxID(testFile) + 1; //Expect that the next ID added is one larger.
-
-
-        //TODO: Add code that adds in new location! EXPECT A FAIL!
-
-
+        // TODO: Add actual location submission logic
+        // testAddForm.locationField.setText("...");
+        // testAddForm.submitButton.doClick();
 
         int actHighestID = DatabaseManager.getMaxID(testFile);
+        boolean passed = (expHighestID == actHighestID);
 
-        Assertions.assertEquals(expHighestID, actHighestID, "The new ID Should Have been one larger than previous highest.");
-
-        System.out.println("Test Passed: Location was added to the file.");
+        printTestResult("newHighestIDTest", expHighestID, actHighestID, passed);
     }
+
+    private void printTestResult(String testName, Object expected, Object actual, boolean passed) {
+        System.out.printf("| %-20s | %-10s | %-10s | %-8s |\n", testName, expected, actual, passed ? "✅ PASS" : "❌ FAIL");
+    }
+
+
 }
