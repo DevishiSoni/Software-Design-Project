@@ -98,14 +98,34 @@ public class AddForm extends JFrame {
     private void selectImage() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Choose an image");
+
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            imagePath = file.getAbsolutePath();
-            ImageIcon icon = new ImageIcon(new ImageIcon(imagePath)
-                    .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
-            imagePreviewLabel.setIcon(icon);
+
+            // Define the relative folder (inside src or another location)
+            File destinationFolder = new File("src/Resources/images");
+
+            // Define the destination file inside the project folder
+            File destinationFile = new File(destinationFolder, file.getName());
+
+            try {
+                // Copy the file to the project folder
+                java.nio.file.Files.copy(file.toPath(), destinationFile.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+                // Save the relative path (relative to src)
+                imagePath = "src/Resources/images/" + file.getName();
+
+                // Show preview
+                ImageIcon icon = new ImageIcon(new ImageIcon(destinationFile.getAbsolutePath())
+                        .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
+                imagePreviewLabel.setIcon(icon);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error saving image.");
+            }
         }
     }
+
 
     private void addFieldsToFile(File f) {
         String name = nameField.getText();
@@ -119,7 +139,8 @@ public class AddForm extends JFrame {
         ArrayList<String> newLandmark = new ArrayList<>();
         newLandmark.add(name);
         newLandmark.add(location);
-
+        // If an image is selected, add its path; otherwise, save "No Image"
+        newLandmark.add(imagePath != null ? imagePath : "No Image");
         boolean success = DatabaseManager.addToFile(newLandmark, f);
         submissionReplyLabel.setText(success ? "Location successfully added!" : "Failed to add location.");
 
