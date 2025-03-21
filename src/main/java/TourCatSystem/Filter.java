@@ -1,5 +1,6 @@
 package TourCatSystem;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class Filter {
@@ -10,7 +11,7 @@ public class Filter {
     static String province;
     static String type;
 
-    private static final String filepath = String.valueOf(FileManager.getInstance().getResourceFile("database.csv"));;
+    private static final File database = FileManager.getInstance().getDatabaseFile();
 
 
 
@@ -45,7 +46,7 @@ public class Filter {
         Search searchObj = new Search();
         province = selectedProvince; // Dropdown input
         results.clear();
-        results = searchObj.search(filepath, province);
+        results = searchObj.search(database, province);
     }
 
 
@@ -55,7 +56,7 @@ public class Filter {
         Search searchObj = new Search();
         type = selectedType; // Dropdown input
         results.clear();
-        results = searchObj.search(filepath, type);
+        results = searchObj.search(database, type);
     }
 
     // User clicks 1 chosen province AND 1 chosen type
@@ -66,7 +67,7 @@ public class Filter {
         type = selectedType; // Dropdown input
         results.clear();
 
-        ArrayList<String> firstResults = searchObj.search(filepath, province);
+        ArrayList<String> firstResults = searchObj.search(database, province);
 
         for(String line : firstResults){
             if(line.toLowerCase().contains(type.toLowerCase())){

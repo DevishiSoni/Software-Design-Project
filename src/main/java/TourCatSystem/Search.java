@@ -1,16 +1,17 @@
 package TourCatSystem;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Search {
-    public static ArrayList<String> search(String filepath, String query) {
+    public static ArrayList<String> search(File file, String query) {
         ArrayList<String> results = new ArrayList<>();
         boolean found = false;
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
 
             String line;
 
@@ -37,6 +38,6 @@ public class Search {
         String input = scanner.nextLine();
         scanner.close();
 
-        search("database.csv", input);
+        search(FileManager.getInstance().getDatabaseFile(), input);
     }
 }
