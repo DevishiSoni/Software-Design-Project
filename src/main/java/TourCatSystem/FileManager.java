@@ -100,4 +100,9 @@ public class FileManager {
     {
         return getResourceFile("image" + File.separator + imageName);
     }
+
+    public File getDatabaseFile()
+    {
+        return getResourceFile("database.csv");
+    }
 }

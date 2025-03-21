@@ -18,7 +18,7 @@ public class AddForm extends JFrame {
     File saveFile;
 
     public AddForm(String username) {
-        saveFile = FileManager.getInstance().getResourceFile("test.csv");
+        saveFile = FileManager.getInstance().getDatabaseFile();
 
         setTitle("Add Form");
         setSize(500, 500);

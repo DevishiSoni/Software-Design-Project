@@ -6,6 +6,77 @@ import com.opencsv.exceptions.CsvValidationException;
 import java.io.*;
 import java.util.ArrayList;
 
+<<<<<<< Updated upstream
+=======
+/**
+ * The DatabaseManager class provides functionality to manage data stored in a CSV file.
+ * It includes methods to add and delete records related to landmarks.
+ *
+ * <p>
+ * Methods:
+ * <ul>
+ *     <li><b>deleteFromFile(String landmarkName, File file)</b> - Deletes a record from the
+ *         CSV file that matches the given landmark name. The operation ensures that
+ *         the original file is replaced only if a record is successfully removed.</li>
+ *     <li><b>addToFile(ArrayList<String> newLandmark, File file)</b> - Adds a new landmark
+ *         record to the CSV file. Appends the entry to the end of the file.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Usage:
+ * <ul>
+ *     <li>Use <b>deleteFromFile()</b> to search for and remove a landmark by name.</li>
+ *     <li>Use <b>addToFile()</b> to insert a new landmark record in the CSV.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * File Structure:
+ * <ul>
+ *     <li>Each row in the CSV file represents a landmark.</li>
+ *     <li>1st Column - Represents the landmark id - useful for pulling additional info from externals</li>
+ *     <li>2nd Column - Geographical name</li>
+ *     <li>3rc Column - City</li>
+ *     <li>4th Column - Province</li>
+ *     <li>5th Column - Category</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Dependencies:
+ * <ul>
+ *     <li>com.opencsv.CSVReader</li>
+ *     <li>com.opencsv.CSVWriter</li>
+ *     <li>com.opencsv.exceptions.CsvValidationException</li>
+ *     <li>FileManager for resolving file paths</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Error Handling:
+ * <ul>
+ *     <li>Logs warnings for malformed rows encountered in the CSV.</li>
+ *     <li>Logs errors encountered while reading or writing files.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Example Usage:
+ * <pre>
+ *     File database = new File(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "database.csv");
+ *     boolean result = deleteFromFile("landmarkName", database);
+ *     System.out.println("Delete successful: " + result);
+ * </pre>
+ * </p>
+ *
+ * <p>
+ * Author: Garrett
+ * Version: 1.0
+ * Date: 3-20-2025
+ * </p>
+ */
+>>>>>>> Stashed changes
 public class DatabaseManager {
 
     public static boolean deleteFromFile(String landmarkName, File file) {

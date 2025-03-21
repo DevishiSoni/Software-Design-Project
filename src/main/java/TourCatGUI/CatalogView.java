@@ -39,7 +39,7 @@ public class CatalogView {
 
     CatalogView(String username)
     {
-        this.dataBase = FileManager.getInstance().getResourceFile("test.csv");
+        this.dataBase = FileManager.getInstance().getDatabaseFile();
 
         LocationReader reader = new LocationReader(dataBase);
 

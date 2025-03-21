@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 ID,Geographical Name,City,Province,Category,Image
 00001,CN Tower,Toronto,Ontario,Landmark,k
 00002,Stanley Park,Vancouver,British Columbia,Park,k
@@ -20,3 +21,7 @@ ID,Geographical Name,City,Province,Category,Image
 00020,Canada's Wonderland,Vaughan,Ontario,Amusement Park,k
 00021,c,c,c,c,src/Resources/images/Burndown.png
 00022,a,a,a,a,src/Resources/images/Burndown.png
+=======
+a,b,No Image
+a,bbbbbbbbb,No Image
+>>>>>>> Stashed changes
