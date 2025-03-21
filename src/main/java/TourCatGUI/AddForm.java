@@ -2,6 +2,7 @@ package TourCatGUI;
 
 import TourCatSystem.DatabaseManager;
 import TourCatSystem.FileManager;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -101,7 +102,9 @@ public class AddForm extends JFrame {
 
         // Button Actions
         uploadImageButton.addActionListener(e -> selectImage());
-        submitButton.addActionListener(e -> addFieldsToFile(saveFile));
+        submitButton.addActionListener(e -> {
+            addFieldsToFile(saveFile);
+        });
         cancelButton.addActionListener(e -> {
             new HomePage(username);
             dispose();
@@ -123,35 +126,35 @@ public class AddForm extends JFrame {
                 .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
             imagePreviewLabel.setIcon(icon);
         }
+
+        System.out.println("Selected Image:");
+        System.out.println(selectedImage.getAbsolutePath());
     }
 
-    private void addImageToFolder(File image, String iD) {
+    private void addImageToResourceFolder(File image) {
         // Define the relative folder (inside src or another location)
         File destinationFolder = FileManager.getInstance().getResourceFile("image");
         File saveFile = FileManager.getInstance().getDatabaseFile();
 
 
         // Define the destination file inside the project folder
-        String id = String.valueOf(DatabaseManager.getMaxId(saveFile) + 1);
+        String id = String.format("%05d", DatabaseManager.getMaxId(saveFile));
+        id += "." + FilenameUtils.getExtension(image.getName());
 
 
         File destinationFile = new File(destinationFolder, id);
-
 
         try {
             // Copy the file to the project folder
             java.nio.file.Files.copy(image.toPath(), destinationFile.toPath(),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-            // Save the relative path (relative to src)
-
-
-            // Show preview
         }
         catch (Exception e)
         {
             throw new RuntimeException(e);
         }
+
+        System.out.println(id);
     }
 
     private void addFieldsToFile(File f) {
@@ -175,6 +178,8 @@ public class AddForm extends JFrame {
         newLandmark.add(category);
 
         boolean success = DatabaseManager.addToFile(newLandmark, f);
+
+        if(selectedImage != null) addImageToResourceFolder(selectedImage);
 
         if (!success) {
             submissionReplyLabel.setText("Failed to add location to the database");

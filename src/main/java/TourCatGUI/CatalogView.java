@@ -140,12 +140,13 @@ public class CatalogView {
 
                 System.out.println(imageFile.getAbsolutePath());
 
-                if (imagePath != null && !imagePath.equals("No Image")) {
+                if (imageFile.exists()) {
 
                     ImageIcon icon = new ImageIcon(imageFile.getAbsolutePath());
 
                     Image scaledImage = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
                     imageLabel.setIcon(new ImageIcon(scaledImage));
+
                 } else {
                     imageLabel.setText("No Image Available");
                     imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
