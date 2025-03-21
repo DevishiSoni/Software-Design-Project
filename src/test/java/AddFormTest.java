@@ -1,4 +1,5 @@
 import TourCatGUI.AddForm;
+import TourCatSystem.DatabaseManager;
 import TourCatSystem.FileManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -73,5 +74,24 @@ class AddFormTest {
         // Output success of add test.
         System.out.println("Test Passed: location was not added to the file.");
 
+    }
+
+    void newHighestIDTest()
+    {
+        File testFile = FileManager.getInstance(true).getResourceFile("test.csv");
+
+
+        int expHighestID = DatabaseManager.getMaxID(testFile) + 1; //Expect that the next ID added is one larger.
+
+
+        //TODO: Add code that adds in new location! EXPECT A FAIL!
+
+
+
+        int actHighestID = DatabaseManager.getMaxID(testFile);
+
+        Assertions.assertEquals(expHighestID, actHighestID, "The new ID Should Have been one larger than previous highest.");
+
+        System.out.println("Test Passed: Location was added to the file.");
     }
 }
