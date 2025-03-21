@@ -80,14 +80,12 @@ public class DatabaseManager {
         boolean success = false;
         int indexOfName = 0; // Make sure this matches your CSV structure
 
-        File fileToDeleteFrom = new File(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
+        System.out.println("Deleting from: " + file.getAbsolutePath());
 
-        System.out.println("Deleting from: " + fileToDeleteFrom.getAbsolutePath());
-
-        File tempFile = new File(fileToDeleteFrom.getParent() + File.separator + "tmp.csv");
+        File tempFile = new File(file.getParent() + File.separator + "tmp.csv");
 
         try (
-                CSVReader reader = new CSVReaderBuilder(new FileReader(fileToDeleteFrom))
+                CSVReader reader = new CSVReaderBuilder(new FileReader(file))
                         .withSkipLines(0)
                         .build();
                 CSVWriter writer = (CSVWriter) new CSVWriterBuilder(new FileWriter(tempFile))
@@ -131,7 +129,7 @@ public class DatabaseManager {
 
         // Replace original file with updated one only if we found and removed a record
         if (success) {
-            if (fileToDeleteFrom.delete() && tempFile.renameTo(fileToDeleteFrom)) {
+            if (file.delete() && tempFile.renameTo(file)) {
                 return true;
             } else {
                 System.err.println("Could not replace original file.");

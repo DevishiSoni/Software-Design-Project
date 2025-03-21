@@ -104,10 +104,14 @@ public class CatalogView {
         });
 
         viewButton.addActionListener(e -> {
+            //TODO: Replace this specific function with a class with these parameters.
+
             int selectedRow = table.getSelectedRow();
 
             if (selectedRow != -1) { // Ensure a row is selected
                 // Extract data from the selected row
+
+                String id = (String) table.getValueAt(selectedRow, 0);
                 String name = (String) table.getValueAt(selectedRow, 1);
                 String city = (String) table.getValueAt(selectedRow, 2);
                 String province = (String) table.getValueAt(selectedRow, 3);
@@ -130,10 +134,19 @@ public class CatalogView {
 
                 // Image Label
                 JLabel imageLabel = new JLabel();
-                if (imagePath != null && !imagePath.equals("No Image")) {
-                    ImageIcon icon = new ImageIcon(imagePath);
+
+                File imageFile = FileManager.getInstance().getImageFile(id + ".png");
+                if(!imageFile.exists()) imageFile = FileManager.getInstance().getImageFile(id + ".jpg");
+
+                System.out.println(imageFile.getAbsolutePath());
+
+                if (imageFile.exists()) {
+
+                    ImageIcon icon = new ImageIcon(imageFile.getAbsolutePath());
+
                     Image scaledImage = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
                     imageLabel.setIcon(new ImageIcon(scaledImage));
+
                 } else {
                     imageLabel.setText("No Image Available");
                     imageLabel.setHorizontalAlignment(SwingConstants.CENTER);

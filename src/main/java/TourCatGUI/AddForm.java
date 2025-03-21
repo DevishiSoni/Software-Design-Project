@@ -2,6 +2,7 @@ package TourCatGUI;
 
 import TourCatSystem.DatabaseManager;
 import TourCatSystem.FileManager;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +14,9 @@ public class AddForm extends JFrame {
     public JTextField nameField, cityField, provinceField, categoryField;
     public JButton submitButton, cancelButton, uploadImageButton;
     public JLabel submissionReplyLabel, imagePreviewLabel;
-    private String imagePath = null;
+    private File imageDestination = null;
+    private File selectedImage = null;
+
 
     public File saveFile;
 
@@ -99,7 +102,9 @@ public class AddForm extends JFrame {
 
         // Button Actions
         uploadImageButton.addActionListener(e -> selectImage());
-        submitButton.addActionListener(e -> addFieldsToFile(saveFile));
+        submitButton.addActionListener(e -> {
+            addFieldsToFile(saveFile);
+        });
         cancelButton.addActionListener(e -> {
             new HomePage(username);
             dispose();
@@ -114,29 +119,42 @@ public class AddForm extends JFrame {
 
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
+            selectedImage = file;
 
-            // Define the relative folder (inside src or another location)
-            File destinationFolder = new File("src/Resources/images");
 
-            // Define the destination file inside the project folder
-            File destinationFile = new File(destinationFolder, file.getName());
-
-            try {
-                // Copy the file to the project folder
-                java.nio.file.Files.copy(file.toPath(), destinationFile.toPath(),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-                // Save the relative path (relative to src)
-                imagePath = "src/Resources/images/" + file.getName();
-
-                // Show preview
-                ImageIcon icon = new ImageIcon(new ImageIcon(destinationFile.getAbsolutePath())
-                        .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
-                imagePreviewLabel.setIcon(icon);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error saving image.");
-            }
+            ImageIcon icon = new ImageIcon(new ImageIcon(selectedImage.getAbsolutePath())
+                .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
+            imagePreviewLabel.setIcon(icon);
         }
+
+        System.out.println("Selected Image:");
+        System.out.println(selectedImage.getAbsolutePath());
+    }
+
+    private void addImageToResourceFolder(File image) {
+        // Define the relative folder (inside src or another location)
+        File destinationFolder = FileManager.getInstance().getResourceFile("image");
+        File saveFile = FileManager.getInstance().getDatabaseFile();
+
+
+        // Define the destination file inside the project folder
+        String id = String.format("%05d", DatabaseManager.getMaxId(saveFile));
+        id += "." + FilenameUtils.getExtension(image.getName());
+
+
+        File destinationFile = new File(destinationFolder, id);
+
+        try {
+            // Copy the file to the project folder
+            java.nio.file.Files.copy(image.toPath(), destinationFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println(id);
     }
 
     private void addFieldsToFile(File f) {
@@ -158,9 +176,10 @@ public class AddForm extends JFrame {
         newLandmark.add(location);
         newLandmark.add(province);
         newLandmark.add(category);
-        newLandmark.add(imagePath != null ? imagePath : "No Image");
 
         boolean success = DatabaseManager.addToFile(newLandmark, f);
+
+        if(selectedImage != null) addImageToResourceFolder(selectedImage);
 
         if (!success) {
             submissionReplyLabel.setText("Failed to add location to the database");
@@ -173,7 +192,7 @@ public class AddForm extends JFrame {
         provinceField.setText("");
         categoryField.setText("");
         imagePreviewLabel.setIcon(null);
-        imagePath = null; // Reset image path
+        selectedImage = null;
     }
 
     boolean isInputValid() {
