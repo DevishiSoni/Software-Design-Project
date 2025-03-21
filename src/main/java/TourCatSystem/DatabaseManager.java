@@ -6,8 +6,6 @@ import com.opencsv.exceptions.CsvValidationException;
 import java.io.*;
 import java.util.ArrayList;
 
-<<<<<<< Updated upstream
-=======
 /**
  * The DatabaseManager class provides functionality to manage data stored in a CSV file.
  * It includes methods to add and delete records related to landmarks.
@@ -76,7 +74,6 @@ import java.util.ArrayList;
  * Date: 3-20-2025
  * </p>
  */
->>>>>>> Stashed changes
 public class DatabaseManager {
 
     public static boolean deleteFromFile(String landmarkName, File file) {
