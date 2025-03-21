@@ -12,7 +12,7 @@ public class LoginGUI extends JFrame {
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton registerButton;
-//    private JButton logoutButton;
+    //    private JButton logoutButton;
     private String loggedInUser = null; // Track the logged-in user
 
     public LoginGUI() {
@@ -68,12 +68,13 @@ public class LoginGUI extends JFrame {
                         JOptionPane.showMessageDialog(LoginGUI.this, "Login Successful!");
                         loginButton.setEnabled(false);
                         registerButton.setEnabled(false);
-//                        logoutButton.setEnabled(true);
-
+                        loggedInUser = username;
                         SwingUtilities.invokeLater(() -> {
-                            new HomePage(username); // Open home screen
+                            HomePage homePage = new HomePage(username);  // Open home screen
+                            homePage.updateLoginLogoutUI(); // Update buttons on the homepage
                             dispose(); // Close login window
                         });
+
 
                     } else {
                         JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
@@ -105,8 +106,10 @@ public class LoginGUI extends JFrame {
                     if ("REGISTRATION_SUCCESS".equals(response)) {
                         JOptionPane.showMessageDialog(LoginGUI.this, "Registration Successful!");
 
+                        loggedInUser = username;
                         SwingUtilities.invokeLater(() -> {
-                            new HomePage(username); // Open home screen
+                            HomePage homePage = new HomePage(username);  // Open home screen
+                            homePage.updateLoginLogoutUI(); // Update buttons on the homepage
                             dispose(); // Close login window
                         });
 
@@ -158,9 +161,10 @@ public class LoginGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            LoginGUI loginGUI = new LoginGUI();
-            loginGUI.setVisible(true);
-        });
+        HomePage homePage = new HomePage(null);
+//        SwingUtilities.invokeLater(() -> {
+//            LoginGUI loginGUI = new LoginGUI();
+//            loginGUI.setVisible(true);
+//        });
     }
 }
