@@ -62,7 +62,7 @@ import java.util.ArrayList;
  * <p>
  * Example Usage:
  * <pre>
- *     File database = new File(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "test.csv");
+ *     File database = new File(FileManager.getInstance().getResourceDirectoryPath() + File.separator + "database.csv");
  *     boolean result = deleteFromFile("landmarkName", database);
  *     System.out.println("Delete successful: " + result);
  * </pre>
@@ -76,14 +76,7 @@ import java.util.ArrayList;
  */
 public class DatabaseManager {
 
-
-    /**
-     *
-     * @param landmarkID - 1st column in the database
-     * @param file - database file to use
-     * @return a success boolean
-     */
-    public static boolean deleteFromFile(String landmarkID, File file) {
+    public static boolean deleteFromFile(String landmarkName, File file) {
         boolean success = false;
         int indexOfName = 0; // Make sure this matches your CSV structure
 
@@ -111,7 +104,7 @@ public class DatabaseManager {
                 // Make sure we're not trying to access beyond array bounds
                 System.out.println(nextLine[0]);
                 if (nextLine.length > indexOfName) {
-                    if (!found && landmarkID.equals(nextLine[indexOfName])) {
+                    if (!found && landmarkName.equals(nextLine[indexOfName])) {
                         found = true; // Skip writing this line
                         success = true; // Mark that we found and deleted the record
                     } else {
@@ -125,7 +118,7 @@ public class DatabaseManager {
             }
 
             if (!found) {
-                System.out.println("Landmark not found: " + landmarkID);
+                System.out.println("Landmark not found: " + landmarkName);
                 // No changes needed to original file
                 return false;
             }
@@ -151,11 +144,6 @@ public class DatabaseManager {
         }
     }
 
-    /**
-     * @param newLandmark - pass an array of strings to input as a new landmark.
-     * @param file - database file to input into
-     * @return - returns a success boolean
-     */
     public static boolean addToFile(ArrayList<String> newLandmark, File file) {
         if (newLandmark == null || newLandmark.isEmpty()) {
             System.err.println("Error: Empty landmark data.");
@@ -183,41 +171,28 @@ public class DatabaseManager {
         return success;
     }
 
-    /**
-     * Get Maximum ID from the file: makes saving far easier.
-     * @param file - File Chosen to be database.
-     * @return - Returns the highest iD in the database.
-     */
-    public static int getMaxID(File file) {
-        int maxID = -1; // Default value if no valid IDs are found
-
-        try (CSVReader csvReader = new CSVReader(new FileReader(file))) {
-            String[] nextLine;
-
-            //Skip header line.
-            csvReader.readNext();
-
-            while ((nextLine = csvReader.readNext()) != null) {
-                if (nextLine.length > 0) {
-                    try {
-                        int currentID = Integer.parseInt(nextLine[0]);
-                        if (currentID > maxID) {
-                            maxID = currentID;
-                        }
-                    } catch (NumberFormatException e) {
-                        System.err.println("Warning: Invalid ID format in row. Skipping...");
+    public static int getMaxId(File file) {
+        try(CSVReader reader = new CSVReaderBuilder(new FileReader(file))
+                .withSkipLines(0)
+                .build();)
+        {
+            String[] nextLine = reader.readNext();
+            int maxId = -1;
+            while ((nextLine = reader.readNext()) != null) {
+                // Make sure we're not trying to access beyond array bounds
+                if (nextLine.length > 1) {
+                    int id = Integer.parseInt(nextLine[0]);
+                    if(id > maxId){
+                        maxId = id;
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Error: File not found - " + e.getMessage());
-        } catch (IOException | CsvValidationException e) {
-            System.err.println("Error reading the file: " + e.getMessage());
+            return maxId;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
         }
-
-        return maxID;
+        return -1;
     }
-
 
     public static void main(String[] args) {
         String fileName = "test.csv";
@@ -226,10 +201,7 @@ public class DatabaseManager {
 
         boolean result = deleteFromFile("newN", database);
 
-        int number = getMaxID(database);
-
         System.out.println("Delete successful: " + result);
-        System.out.println("Next Number: " + number);
     }
 
 }

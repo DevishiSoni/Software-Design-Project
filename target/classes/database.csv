@@ -1,0 +1,20 @@
+ID,Geographical Name,City,Province,Category,Image
+1,CN Tower,Toronto,Ontario,Landmark,k
+2,Stanley Park,Vancouver,British Columbia,Park,k
+3,Old Quebec,Quebec City,Quebec,Historic Site,k
+4,Niagara Falls,Niagara Falls,Ontario,Natural Wonder,k
+5,The Forks,Winnipeg,Manitoba,Cultural Site,k
+6,Parliament Hill,Ottawa,Ontario,Government Building,k
+7,Peggy's Cove Lighthouse,Peggy's Cove,Nova Scotia,Lighthouse,k
+9,Whistler Blackcomb,Whistler,British Columbia,Ski Resort,k
+10,Hopewell Rocks,Hopewell Cape,New Brunswick,Natural Attraction,k
+11,Gros Morne National Park,Rocky Harbour,Newfoundland and Labrador,National Park,k
+12,Confederation Bridge,Borden-Carleton,Prince Edward Island,Bridge,k
+13,Capilano Suspension Bridge,Vancouver,British Columbia,Bridge,k
+14,West Edmonton Mall,Edmonton,Alberta,Shopping Mall,k
+15,Rideau Canal,Ottawa,Ontario,Waterway,k
+16,Montmorency Falls,Quebec City,Quebec,Waterfall,k
+17,Science World,Vancouver,British Columbia,Museum,k
+18,Signal Hill,St. John's,Newfoundland and Labrador,Historic Site,k
+19,Reversing Falls,Saint John,New Brunswick,Natural Phenomenon,k
+00020,aaa,bbb,ccc,ddd,src/Resources/images/img.jpg
