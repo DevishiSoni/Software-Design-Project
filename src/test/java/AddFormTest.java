@@ -18,8 +18,7 @@ class AddFormTest {
     public static void setup() {
         testAddForm = new AddForm("test");
 
-        testAddForm.setSaveFile(FileManager.getInstance(true).getResourceFile("test.csv"));
-
+        
         FileManager.getInstance(true);
 
 
