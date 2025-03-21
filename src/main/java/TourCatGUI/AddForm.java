@@ -10,8 +10,7 @@ import java.util.ArrayList;
 
 public class AddForm extends JFrame {
 
-    public JTextField nameField;
-    public JTextField locationField;
+    public JTextField nameField, cityField, provinceField, categoryField;
     public JButton submitButton, cancelButton, uploadImageButton;
     public JLabel submissionReplyLabel, imagePreviewLabel;
     private String imagePath = null;
@@ -36,7 +35,9 @@ public class AddForm extends JFrame {
         intro.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
 
         nameField = new JTextField(20);
-        locationField = new JTextField(20);
+        cityField = new JTextField(20);
+        provinceField = new JTextField(20);
+        categoryField = new JTextField(20);
         submitButton = new JButton("Submit");
         cancelButton = new JButton("Cancel");
         uploadImageButton = new JButton("Choose Image");
@@ -60,26 +61,38 @@ public class AddForm extends JFrame {
 
         // Row 2: Landmark Location Label & Field
         gbc.gridx = 0; gbc.gridy = 2;
-        add(new JLabel("Landmark location:"), gbc);
+        add(new JLabel("Landmark city:"), gbc);
         gbc.gridx = 1;
-        add(locationField, gbc);
+        add(cityField, gbc);
+
+        // Row 2: Landmark Location Label & Field
+        gbc.gridx = 0; gbc.gridy = 3;
+        add(new JLabel("Landmark province:"), gbc);
+        gbc.gridx = 1;
+        add(provinceField, gbc);
+
+        // Row 2: Landmark Location Label & Field
+        gbc.gridx = 0; gbc.gridy = 4;
+        add(new JLabel("Landmark category:"), gbc);
+        gbc.gridx = 1;
+        add(categoryField, gbc);
 
         // Row 3: Image Label & Preview
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 5;
         add(new JLabel("Selected Image:"), gbc);
         gbc.gridx = 1;
         add(imagePreviewLabel, gbc);
 
         // Row 4: Upload Image Button
-        gbc.gridx = 1; gbc.gridy = 4;
+        gbc.gridx = 1; gbc.gridy = 6;
         add(uploadImageButton, gbc);
 
         // Row 5: Submission Reply Label
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
         add(submissionReplyLabel, gbc);
 
         // Row 6: Submit & Cancel Buttons
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 1;
         add(submitButton, gbc);
         gbc.gridx = 1;
         add(cancelButton, gbc);
@@ -126,35 +139,45 @@ public class AddForm extends JFrame {
         }
     }
 
-
     private void addFieldsToFile(File f) {
-        String name = nameField.getText();
-        String location = locationField.getText();
 
-        if (!isNameLocationValid()) {
-            submissionReplyLabel.setText("Please enter the name and location of the landmark.");
+        String id = String.format("%05d",DatabaseManager.getMaxId(f) + 1);
+        String name = nameField.getText();
+        String location = cityField.getText();
+        String province = provinceField.getText();
+        String category = categoryField.getText();
+
+        if (!isInputValid()){
+            submissionReplyLabel.setText("Please enter the requested information of the landmark");
             return;
         }
 
-        ArrayList<String> newLandmark = new ArrayList<>();
+        ArrayList<String> newLandmark = new ArrayList<String>();
+        newLandmark.add(id);
         newLandmark.add(name);
         newLandmark.add(location);
-        // If an image is selected, add its path; otherwise, save "No Image"
+        newLandmark.add(province);
+        newLandmark.add(category);
         newLandmark.add(imagePath != null ? imagePath : "No Image");
-        boolean success = DatabaseManager.addToFile(newLandmark, f);
-        submissionReplyLabel.setText(success ? "Location successfully added!" : "Failed to add location.");
 
-        if (success) {
-            nameField.setText("");
-            locationField.setText("");
-            // Clear image preview
-            imagePreviewLabel.setIcon(null);
-            imagePath = null; // Reset image path
+        boolean success = DatabaseManager.addToFile(newLandmark, f);
+
+        if (!success) {
+            submissionReplyLabel.setText("Failed to add location to the database");
+            return;
         }
+
+        submissionReplyLabel.setText("Location successfully added to the database");
+        nameField.setText("");
+        cityField.setText("");
+        provinceField.setText("");
+        categoryField.setText("");
+        imagePreviewLabel.setIcon(null);
+        imagePath = null; // Reset image path
     }
 
-    boolean isNameLocationValid() {
-        return !nameField.getText().isBlank() && !locationField.getText().isBlank();
+    boolean isInputValid() {
+        return !nameField.getText().isBlank() && !provinceField.getText().isBlank() && !categoryField.getText().isBlank();
     }
 
     public static void main(String[] args) {
