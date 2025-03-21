@@ -51,7 +51,7 @@ public class CatalogView {
 
         TableColumnModel columnModel = table.getColumnModel();
 
-        LocationReader.hideColumns(columnModel, new int[]{0});
+        LocationReader.hideColumns(columnModel, new int[]{0, 4});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);
@@ -107,14 +107,44 @@ public class CatalogView {
             int selectedRow = table.getSelectedRow();
 
             if (selectedRow != -1) { // Ensure a row is selected
-                int columnCount = table.getColumnCount();
-                StringBuilder rowData = new StringBuilder();
+                // Extract data from the selected row
+                String name = (String) table.getValueAt(selectedRow, 1);
+                String city = (String) table.getValueAt(selectedRow, 2);
+                String province = (String) table.getValueAt(selectedRow, 3);
+                String category = (String) table.getValueAt(selectedRow, 4);
+                String imagePath = (String) table.getValueAt(selectedRow, 5);
 
-                for (int i = 0; i < columnCount; i++) {
-                    rowData.append(table.getValueAt(selectedRow, i)).append("\t");
+                // Create a new JFrame to display details
+                JFrame detailsFrame = new JFrame("Location Details");
+                detailsFrame.setSize(400, 400);
+                detailsFrame.setLayout(new BorderLayout());
+
+                // Create a panel for text details
+                JPanel textPanel = new JPanel();
+                textPanel.setLayout(new GridLayout(5, 1)); // 5 rows for different fields
+
+                textPanel.add(new JLabel("Name: " + name));
+                textPanel.add(new JLabel("City: " + city));
+                textPanel.add(new JLabel("Province: " + province));
+                textPanel.add(new JLabel("Category: " + category));
+
+                // Image Label
+                JLabel imageLabel = new JLabel();
+                if (imagePath != null && !imagePath.equals("No Image")) {
+                    ImageIcon icon = new ImageIcon(imagePath);
+                    Image scaledImage = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+                    imageLabel.setIcon(new ImageIcon(scaledImage));
+                } else {
+                    imageLabel.setText("No Image Available");
+                    imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 }
 
-                System.out.println(rowData.toString().trim());
+                // Add components to frame
+                detailsFrame.add(textPanel, BorderLayout.NORTH);
+                detailsFrame.add(imageLabel, BorderLayout.CENTER);
+
+                detailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                detailsFrame.setVisible(true);
             } else {
                 System.out.println("No row selected.");
             }

@@ -15,7 +15,7 @@ public class AddForm extends JFrame {
     public JLabel submissionReplyLabel, imagePreviewLabel;
     private String imagePath = null;
 
-    File saveFile;
+    public File saveFile;
 
     public AddForm(String username) {
         saveFile = FileManager.getInstance().getDatabaseFile();
