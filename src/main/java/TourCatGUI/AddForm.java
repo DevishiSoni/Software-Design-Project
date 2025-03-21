@@ -16,7 +16,7 @@ public class AddForm extends JFrame {
     public JLabel submissionReplyLabel, imagePreviewLabel;
     private String imagePath = null;
 
-    File saveFile;
+    public File saveFile;
 
     public AddForm(String username) {
         saveFile = FileManager.getInstance().getResourceFile("test.csv");
@@ -141,7 +141,9 @@ public class AddForm extends JFrame {
         newLandmark.add(location);
         // If an image is selected, add its path; otherwise, save "No Image"
         newLandmark.add(imagePath != null ? imagePath : "No Image");
+
         boolean success = DatabaseManager.addToFile(newLandmark, f);
+
         submissionReplyLabel.setText(success ? "Location successfully added!" : "Failed to add location.");
 
         if (success) {

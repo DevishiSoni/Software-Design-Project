@@ -74,8 +74,6 @@ import java.util.ArrayList;
  * Date: 3-20-2025
  * </p>
  */
-
-
 public class DatabaseManager {
 
 
@@ -185,6 +183,11 @@ public class DatabaseManager {
         return success;
     }
 
+    /**
+     * Get Maximum ID from the file: makes saving far easier.
+     * @param file - File Chosen to be database.
+     * @return - Returns the highest iD in the database.
+     */
     public static int getMaxID(File file) {
         int maxID = -1; // Default value if no valid IDs are found
 
@@ -215,9 +218,7 @@ public class DatabaseManager {
         return maxID;
     }
 
-
-
-
+    
     public static void main(String[] args) {
         String fileName = "test.csv";
 

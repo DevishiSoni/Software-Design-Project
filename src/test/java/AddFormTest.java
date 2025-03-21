@@ -18,7 +18,9 @@ class AddFormTest {
     public static void setup() {
         testAddForm = new AddForm("test");
 
-        
+        testAddForm.saveFile = FileManager.getInstance(true).getResourceFile("test.csv");
+
+
         FileManager.getInstance(true);
 
 
@@ -31,7 +33,7 @@ class AddFormTest {
     @Test
     void newCsvLineTest() throws IOException {
         // Count lines before submitting
-        File testFile = FileManager.getInstance(true).getResourceFile("test.csv");
+        File testFile = testAddForm.saveFile;
         long initialLineCount = countLines(testFile);
 
         // Set input fields
@@ -53,7 +55,7 @@ class AddFormTest {
     @Test
     void incompleteFormTest() throws IOException {
 
-        File testFile = FileManager.getInstance(true).getResourceFile("test.csv");
+        File testFile = testAddForm.saveFile;
         // Count lines after submitting
         long initialLineCount = countLines(testFile);
 
@@ -77,7 +79,7 @@ class AddFormTest {
 
     void newHighestIDTest()
     {
-        File testFile = FileManager.getInstance(true).getResourceFile("test.csv");
+        File testFile = testAddForm.saveFile;
 
 
         int expHighestID = DatabaseManager.getMaxID(testFile) + 1; //Expect that the next ID added is one larger.
