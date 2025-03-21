@@ -253,8 +253,13 @@ public class CatalogView {
             ArrayList<String> allResults = new ArrayList<>();
             try (BufferedReader br = new BufferedReader(new FileReader(dataBase))) {
                 String line;
+                boolean isFirstLine = true;
                 while ((line = br.readLine()) != null) {
-                    allResults.add(line);  // Read each line and add to the results
+                    if (isFirstLine) {
+                        isFirstLine = false;
+                        continue;  // Skip the header line
+                    }
+                    allResults.add(line); // Read each line and add to the results
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
