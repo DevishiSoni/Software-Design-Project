@@ -13,7 +13,9 @@ public class AddForm extends JFrame {
     public JTextField nameField, cityField, provinceField, categoryField;
     public JButton submitButton, cancelButton, uploadImageButton;
     public JLabel submissionReplyLabel, imagePreviewLabel;
-    private String imagePath = null;
+    private File imageDestination = null;
+    private File selectedImage = null;
+
 
     public File saveFile;
 
@@ -114,28 +116,41 @@ public class AddForm extends JFrame {
 
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
+            selectedImage = file;
 
-            // Define the relative folder (inside src or another location)
-            File destinationFolder = new File("src/Resources/images");
 
-            // Define the destination file inside the project folder
-            File destinationFile = new File(destinationFolder, file.getName());
+            ImageIcon icon = new ImageIcon(new ImageIcon(selectedImage.getAbsolutePath())
+                .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
+            imagePreviewLabel.setIcon(icon);
+        }
+    }
 
-            try {
-                // Copy the file to the project folder
-                java.nio.file.Files.copy(file.toPath(), destinationFile.toPath(),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    private void addImageToFolder(File image, String iD) {
+        // Define the relative folder (inside src or another location)
+        File destinationFolder = FileManager.getInstance().getResourceFile("image");
+        File saveFile = FileManager.getInstance().getDatabaseFile();
 
-                // Save the relative path (relative to src)
-                imagePath = "src/Resources/images/" + file.getName();
 
-                // Show preview
-                ImageIcon icon = new ImageIcon(new ImageIcon(destinationFile.getAbsolutePath())
-                        .getImage().getScaledInstance(150, 120, Image.SCALE_SMOOTH));
-                imagePreviewLabel.setIcon(icon);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error saving image.");
-            }
+        // Define the destination file inside the project folder
+        String id = String.valueOf(DatabaseManager.getMaxId(saveFile) + 1);
+
+
+        File destinationFile = new File(destinationFolder, id);
+
+
+        try {
+            // Copy the file to the project folder
+            java.nio.file.Files.copy(image.toPath(), destinationFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // Save the relative path (relative to src)
+
+
+            // Show preview
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
         }
     }
 
@@ -158,7 +173,6 @@ public class AddForm extends JFrame {
         newLandmark.add(location);
         newLandmark.add(province);
         newLandmark.add(category);
-        newLandmark.add(imagePath != null ? imagePath : "No Image");
 
         boolean success = DatabaseManager.addToFile(newLandmark, f);
 
@@ -173,7 +187,7 @@ public class AddForm extends JFrame {
         provinceField.setText("");
         categoryField.setText("");
         imagePreviewLabel.setIcon(null);
-        imagePath = null; // Reset image path
+        selectedImage = null;
     }
 
     boolean isInputValid() {
