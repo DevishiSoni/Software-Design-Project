@@ -12,7 +12,7 @@ public class LoginGUI extends JFrame {
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton registerButton;
-//    private JButton logoutButton;
+    //    private JButton logoutButton;
     private String loggedInUser = null; // Track the logged-in user
 
     public LoginGUI() {

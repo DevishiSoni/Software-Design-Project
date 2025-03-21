@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
 
-
 public class HomePage extends JFrame {
    private String loggedInUser;
    JButton homeButton = new JButton("Home");
@@ -56,8 +55,6 @@ public class HomePage extends JFrame {
       JPanel topPanel = new JPanel(new BorderLayout());
       JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-
-
       Dimension buttonSize = new Dimension(120, 40);
       homeButton.setPreferredSize(new Dimension(100, 40));
       login.setPreferredSize(buttonSize);
@@ -80,21 +77,18 @@ public class HomePage extends JFrame {
          SwingUtilities.invokeLater(() -> {
             LoginGUI loginGUI = new LoginGUI();
             loginGUI.setVisible(true);
-        });
+         });
          dispose();
          welcomeLabel.setText(getWelcomeMessage());
       });
-
 
       JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
       JButton searchButton = new JButton("Search");
       searchPanel.add(searchBar);
       searchPanel.add(searchButton);
 
-
       topPanel.add(buttonPanel, BorderLayout.WEST);
       topPanel.add(searchPanel, BorderLayout.EAST);
-
 
       frame.add(topPanel, BorderLayout.NORTH);
       frame.add(bgPanel, BorderLayout.CENTER);
@@ -141,14 +135,13 @@ public class HomePage extends JFrame {
          new AddForm(username).setVisible(true);
       });
 
-
       catalogue.addActionListener( e -> {
          frame.setVisible(false);
          dispose();
          new CatalogView(username);
-
       });
    }
+
    public void updateLoginLogoutUI() {
       if (loggedInUser == null) {
          login.setVisible(true);
