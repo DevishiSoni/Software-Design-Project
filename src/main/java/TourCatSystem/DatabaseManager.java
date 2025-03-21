@@ -81,6 +81,27 @@ public class DatabaseManager {
             System.err.println("Error: Empty landmark data.");
             return false;
         }
+        int newId = 1; // Default ID if file is empty
+
+        // Step 1: Find the next available ID
+        try (CSVReader reader = new CSVReader(new FileReader(file))) {
+            String[] nextLine;
+            while ((nextLine = reader.readNext()) != null) {
+                if (!nextLine[0].equals("ID")) { // Ignore the header row
+                    try {
+                        int currentId = Integer.parseInt(nextLine[0]);
+                        if (currentId >= newId) {
+                            newId = currentId + 1; // Get the next available ID
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Warning: Non-numeric ID found in CSV.");
+                    }
+                }
+            }
+        } catch (IOException | CsvValidationException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return false;
+        }
 
         boolean success = false;
 
@@ -92,7 +113,15 @@ public class DatabaseManager {
                         .withLineEnd(CSVWriter.DEFAULT_LINE_END)
                         .build()
         ) {
-            String[] newEntry = newLandmark.toArray(new String[0]);
+            String[] newEntry = {
+                    String.valueOf(newId),   // Auto-generated ID
+                    newLandmark.get(0),      // Geographical Name
+                    newLandmark.get(1),      // City
+                    newLandmark.get(2),      // Province
+                    newLandmark.get(3),      // Category
+                    (newLandmark.size() > 4 ? newLandmark.get(4) : "No Image")  // Image (relative path)
+            };
+
             writer.writeNext(newEntry);
             writer.flush();
             success = true;

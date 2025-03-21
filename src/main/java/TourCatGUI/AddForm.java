@@ -10,8 +10,7 @@ import java.util.ArrayList;
 
 public class AddForm extends JFrame {
 
-    public JTextField nameField;
-    public JTextField locationField;
+    public JTextField nameField,cityField, provinceField, categoryField;
     public JButton submitButton, cancelButton, uploadImageButton;
     public JLabel submissionReplyLabel, imagePreviewLabel;
     private String imagePath = null;
@@ -36,7 +35,9 @@ public class AddForm extends JFrame {
         intro.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
 
         nameField = new JTextField(20);
-        locationField = new JTextField(20);
+        cityField = new JTextField();
+        provinceField = new JTextField();
+        categoryField = new JTextField();
         submitButton = new JButton("Submit");
         cancelButton = new JButton("Cancel");
         uploadImageButton = new JButton("Choose Image");
@@ -58,28 +59,39 @@ public class AddForm extends JFrame {
         gbc.gridx = 1;
         add(nameField, gbc);
 
-        // Row 2: Landmark Location Label & Field
-        gbc.gridx = 0; gbc.gridy = 2;
-        add(new JLabel("Landmark location:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
+        add(new JLabel("Landmark City:"), gbc);
         gbc.gridx = 1;
-        add(locationField, gbc);
+        add(cityField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
+        add(new JLabel("Landmark Province:"), gbc);
+        gbc.gridx = 1;
+        add(provinceField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
+        add(new JLabel("Landmark Category:"), gbc);
+        gbc.gridx = 1;
+        add(categoryField, gbc);
+
+
 
         // Row 3: Image Label & Preview
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 5;
         add(new JLabel("Selected Image:"), gbc);
         gbc.gridx = 1;
         add(imagePreviewLabel, gbc);
 
         // Row 4: Upload Image Button
-        gbc.gridx = 1; gbc.gridy = 4;
+        gbc.gridx = 1; gbc.gridy = 6;
         add(uploadImageButton, gbc);
 
         // Row 5: Submission Reply Label
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
         add(submissionReplyLabel, gbc);
 
         // Row 6: Submit & Cancel Buttons
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 1;
         add(submitButton, gbc);
         gbc.gridx = 1;
         add(cancelButton, gbc);
@@ -129,16 +141,21 @@ public class AddForm extends JFrame {
 
     private void addFieldsToFile(File f) {
         String name = nameField.getText();
-        String location = locationField.getText();
+        String city = cityField.getText();
+        String province = provinceField.getText();
+        String category = categoryField.getText();
+
 
         if (!isNameLocationValid()) {
-            submissionReplyLabel.setText("Please enter the name and location of the landmark.");
+            submissionReplyLabel.setText("Please enter all fields!");
             return;
         }
 
         ArrayList<String> newLandmark = new ArrayList<>();
         newLandmark.add(name);
-        newLandmark.add(location);
+        newLandmark.add(city);
+        newLandmark.add(province);
+        newLandmark.add(category);
         // If an image is selected, add its path; otherwise, save "No Image"
         newLandmark.add(imagePath != null ? imagePath : "No Image");
         boolean success = DatabaseManager.addToFile(newLandmark, f);
@@ -146,7 +163,9 @@ public class AddForm extends JFrame {
 
         if (success) {
             nameField.setText("");
-            locationField.setText("");
+            cityField.setText("");
+            provinceField.setText("");
+            categoryField.setText("");
             // Clear image preview
             imagePreviewLabel.setIcon(null);
             imagePath = null; // Reset image path
@@ -154,7 +173,7 @@ public class AddForm extends JFrame {
     }
 
     boolean isNameLocationValid() {
-        return !nameField.getText().isBlank() && !locationField.getText().isBlank();
+        return !nameField.getText().isBlank() && !cityField.getText().isBlank() && !provinceField.getText().isBlank() && !categoryField.getText().isBlank();
     }
 
     public static void main(String[] args) {
