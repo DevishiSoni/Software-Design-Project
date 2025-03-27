@@ -51,7 +51,7 @@ public class CatalogView {
 
         TableColumnModel columnModel = table.getColumnModel();
 
-        LocationReader.hideColumns(columnModel, new int[]{0, 5});
+        LocationReader.hideColumns(columnModel, new int[]{0});
 
         // Create a JScrollPane for scrolling functionality
         JScrollPane scrollPane = new JScrollPane(table);
@@ -116,7 +116,7 @@ public class CatalogView {
                 String city = (String) table.getValueAt(selectedRow, 2);
                 String province = (String) table.getValueAt(selectedRow, 3);
                 String category = (String) table.getValueAt(selectedRow, 4);
-                String imagePath = (String) table.getValueAt(selectedRow, 5);
+                //String imagePath = (String) table.getValueAt(selectedRow, 5);
 
                 // Create a new JFrame to display details
                 JFrame detailsFrame = new JFrame("Location Details");

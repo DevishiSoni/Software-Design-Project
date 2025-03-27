@@ -1,21 +1,24 @@
-ID,Geographical Name,City,Province,Category,Image
-1,CN Tower,Toronto,Ontario,Landmark,src/Resources/images/CN Tower.png
-2,Stanley Park,Vancouver,British Columbia,Park,src/Resources/images/Stanley Park.jpg
-3,Old Quebec,Quebec City,Quebec,Historic Site,src/Resources/images/Old Quebec.jpg
-4,Niagara Falls,Niagara Falls,Ontario,Natural Wonder,src/Resources/images/Niagara Falls.jpg
-5,The Forks,Winnipeg,Manitoba,Cultural Site,src/Resources/images/The Forks.jpg
-6,Parliament Hill,Ottawa,Ontario,Government Building,src/Resources/images/Parliament Hill.jpg
-7,Peggy's Cove Lighthouse,Peggy's Cove,Nova Scotia,Lighthouse,src/Resources/images/Peggys-Cove-Nova-Scotia-FB.jpg
-9,Whistler Blackcomb,Whistler,British Columbia,Ski Resort,src/Resources/images/Whistler Blackcomb.jpg
-10,Hopewell Rocks,Hopewell Cape,New Brunswick,Natural Attraction,src/Resources/images/74787-New-Brunswick.jpg
-11,Gros Morne National Park,Rocky Harbour,Newfoundland and Labrador,National Park,src/Resources/images/Gros morne.jpg
-12,Confederation Bridge,Borden-Carleton,Prince Edward Island,Bridge,src/Resources/images/confederation-bridge-1920w.jpg
-13,Capilano Suspension Bridge,Vancouver,British Columbia,Bridge,src/Resources/images/Suspension-Gallery07-856x482.jpg
-14,West Edmonton Mall,Edmonton,Alberta,Shopping Mall,src/Resources/images/west edmonton mall.jpg
-15,Rideau Canal,Ottawa,Ontario,Waterway,src/Resources/images/rideau-canal.jpg
-16,Montmorency Falls,Quebec City,Quebec,Waterfall,src/Resources/images/Montmorency falls.jpg
-17,Science World,Vancouver,British Columbia,Museum,src/Resources/images/Science-World_2015Apr_SW_1.jpg
-18,Signal Hill,St. John's,Newfoundland and Labrador,Historic Site,src/Resources/images/signal hill.jpg
-19,Reversing Falls,Saint John,New Brunswick,Natural Phenomenon,src/Resources/images/Reversing Falls Rapids Header.jpg
+ID,Geographical Name,City,Province,Category
+0001,CN Tower,Toronto,Ontario,Landmark
+0002,Stanley Park,Vancouver,British Columbia,Park
+0003,Old Quebec,Quebec City,Quebec,Historic Site
+0004,Niagara Falls,Niagara Falls,Ontario,Natural Wonder
+0005,The Forks,Winnipeg,Manitoba,Cultural Site
+0006,Parliament Hill,Ottawa,Ontario,Government Building
+0007,Peggy's Cove Lighthouse,Peggy's Cove,Nova Scotia,Lighthouse
+0009,Whistler Blackcomb,Whistler,British Columbia,Ski Resort
+0010,Hopewell Rocks,Hopewell Cape,New Brunswick,Natural Attraction
+0011,Gros Morne National Park,Rocky Harbour,Newfoundland and Labrador,National Park
+0012,Confederation Bridge,Borden-Carleton,Prince Edward Island,Bridge
+0013,Capilano Suspension Bridge,Vancouver,British Columbia,Bridge
+0014,West Edmonton Mall,Edmonton,Alberta,Shopping Mall
+0015,Rideau Canal,Ottawa,Ontario,Waterway
+0016,Montmorency Falls,Quebec City,Quebec,Waterfall
+0017,Science World,Vancouver,British Columbia,Museum
+0018,Signal Hill,St. John's,Newfoundland and Labrador,Historic Site
+0019,Reversing Falls,Saint John,New Brunswick,Natural Phenomenon
 00020,aaa,aaa,aaa,aaa
 00021,aa,aa,ac,ac
+00022,1,2,3,4
+00023,2,34,4,5
+00024,4,5,6,1
