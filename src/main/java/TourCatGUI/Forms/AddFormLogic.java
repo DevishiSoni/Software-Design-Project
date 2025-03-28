@@ -151,7 +151,7 @@ public class AddFormLogic {
      * @param category Category input
      * @return true if the essential input is valid, false otherwise.
      */
-    private boolean isInputValid(String name, String city, String province, String category) {
+    public boolean isInputValid(String name, String city, String province, String category) {
         // City is often optional, main requirement here is Name, Province, Category
         return name != null && !name.isBlank() &&
                 province != null && !province.isBlank() &&
