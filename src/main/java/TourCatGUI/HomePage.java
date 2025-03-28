@@ -21,6 +21,9 @@ public class HomePage extends JFrame {
    JButton logout = new JButton("Logout");
 
    public HomePage(String username) {
+
+
+
       loggedInUser = username;
 
       JFrame frame = new JFrame("TourCat");
@@ -138,7 +141,7 @@ public class HomePage extends JFrame {
       catalogue.addActionListener( e -> {
          frame.setVisible(false);
          dispose();
-         new CatalogView(username);
+         CataLogic cataLogic = new CataLogic(username);
       });
    }
 
