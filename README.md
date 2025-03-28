@@ -16,11 +16,11 @@ This project aims to provide users with relevant information on Canadian landmar
 3. Run the TourCatServer.LoginServer.java file first and then run the TourCatGUI.LoginGUI.java file to launch the application!
 
 #### Through the build file: ####
-1. Make sure you have Maven installed on your local device and the repo cloned 
+1. Make sure you have Maven and Launch4J installed on your local device and the repo cloned 
 2. Open up the terminal and navigate to the directory where you've clone the github
 3. Run the following comands:
-- chmod +x build.sh
-- ./build.sh
+- .\target\TourCat.exe
+- ./build.ps1
 4. Give the applications a few seconds to load and then you're good to go!
 
 
