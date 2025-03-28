@@ -1,5 +1,6 @@
 package TourCatGUI;
 
+import TourCatGUI.Catalog.CataLogic;
 import TourCatSystem.FileManager;
 
 import javax.swing.*;
