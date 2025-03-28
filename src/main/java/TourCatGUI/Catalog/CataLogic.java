@@ -1,11 +1,11 @@
 package TourCatGUI.Catalog;
 
-import TourCatGUI.FuzzyFinder;
 import TourCatGUI.HomePage;
 import TourCatSystem.DatabaseManager;
 import TourCatSystem.FileManager;
 import TourCatSystem.Filter;
 import TourCatSystem.LocationReader;
+import com.opencsv.exceptions.CsvException;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -175,7 +175,20 @@ public class CataLogic {
                 int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
                 String selectedRowID = (String) tableModel.getValueAt(modelRow, 0); // Assumes ID is column 0
 
-                boolean success = DatabaseManager.deleteFromFile(selectedRowID, dataBaseFile);
+
+                DatabaseManager databaseManager = null;
+                try {
+                    databaseManager = new DatabaseManager(dataBaseFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                boolean success = false;
+                try {
+                    databaseManager.deleteById(selectedRowID);
+                } catch (IOException | DatabaseManager.RecordNotFoundException | CsvException e) {
+                    throw new RuntimeException(e);
+                }
 
                 if (success) {
                     // Remove row from the model (this will update the JTable)

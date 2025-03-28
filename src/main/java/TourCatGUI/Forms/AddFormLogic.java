@@ -20,9 +20,17 @@ public class AddFormLogic {
     private final File databaseFile;
     private File selectedImage = null; // Holds the currently selected image file
 
+    private DatabaseManager databaseManager;
+
     public AddFormLogic(String username) {
         this.username = username;
         this.databaseFile = FileManager.getInstance().getDatabaseFile();
+
+        try {
+            this.databaseManager = new DatabaseManager(databaseFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // Create the GUI, passing this logic instance
         this.gui = new AddFormGUI(username, this);
@@ -77,21 +85,23 @@ public class AddFormLogic {
 
         // 3. Prepare data for storage
         String nextIdStr = generateNextId();
-        ArrayList<String> newLocationData = new ArrayList<>();
-        newLocationData.add(nextIdStr);
-        newLocationData.add(name);
-        newLocationData.add(city); // Add city even if blank, handle in DB/display if needed
-        newLocationData.add(province);
-        newLocationData.add(category);
+        String[] newLocationData = new String[5];
+        newLocationData[0] = (nextIdStr);
+        newLocationData[1] = (name);
+        newLocationData[2] = (city); // Add city even if blank, handle in DB/display if needed
+        newLocationData[3] = (province);
+        newLocationData[4] = (category);
         // Add other fields if your CSV structure requires them
 
-        // 4. Attempt to add data to the file
-        boolean dataAddSuccess = DatabaseManager.addToFile(newLocationData, databaseFile);
 
-        if (!dataAddSuccess) {
-            gui.setSubmissionReply("Error: Failed to add location data to the database file.", true);
-            return; // Stop if data saving failed
+        // 4. Attempt to add data to the file
+        try {
+            DatabaseManager databaseManager = new DatabaseManager(databaseFile);
+            databaseManager.addRecord(newLocationData);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+
 
         // 5. Attempt to save the image (if selected)
         boolean imageSaveSuccess = true; // Assume success if no image selected
@@ -105,7 +115,7 @@ public class AddFormLogic {
         }
 
         // 6. Final success handling (if data and image saved)
-        if (dataAddSuccess && imageSaveSuccess) {
+        if (imageSaveSuccess) {
             gui.setSubmissionReply("Success: Location added to the database!", false);
             gui.clearForm(); // Clear the form on full success
             this.selectedImage = null; // Reset selected image state
@@ -127,7 +137,7 @@ public class AddFormLogic {
      * @return The formatted ID string (e.g., "00015").
      */
     private String generateNextId() {
-        int maxId = DatabaseManager.getMaxId(databaseFile);
+        int maxId = this.databaseManager.getMaxId().getAsInt();
         int nextId = maxId + 1;
         return String.format("%05d", nextId); // Formats with leading zeros up to 5 digits
     }

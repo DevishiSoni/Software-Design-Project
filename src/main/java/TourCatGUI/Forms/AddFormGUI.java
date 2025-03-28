@@ -27,7 +27,6 @@ public class AddFormGUI extends JFrame {
 
         // Frame setup
         setTitle("Add New Location");
-        // setSize(500, 500); // Let pack() determine size initially
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Dispose instead of Exit
         setLocationRelativeTo(null); // Center on screen
         pack(); // Adjusts size to fit components
@@ -38,7 +37,7 @@ public class AddFormGUI extends JFrame {
         introLabel = new JLabel("Enter details for the new location:");
         introLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
 
-        nameField = new JTextField(25); // Slightly wider fields
+        nameField = new JTextField(25);
         cityField = new JTextField(25);
         provinceField = new JTextField(25);
         categoryField = new JTextField(25);

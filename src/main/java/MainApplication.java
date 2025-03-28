@@ -13,7 +13,6 @@ public class MainApplication {
             ex.printStackTrace();
         }
 
-
         SwingUtilities.invokeLater(() -> {
             new HomePage("DefaultUser"); // Or LoginWindow, etc.
        });

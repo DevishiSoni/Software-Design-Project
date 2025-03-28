@@ -1,6 +1,7 @@
 package TourCatGUI;
 
 import TourCatGUI.Catalog.CataLogic;
+import TourCatGUI.Forms.AddFormLogic;
 import TourCatSystem.FileManager;
 
 import javax.swing.*;
@@ -136,7 +137,7 @@ public class HomePage extends JFrame {
       add.addActionListener(e -> {
          frame.setVisible(false);
          dispose();
-         new AddForm(username).setVisible(true);
+         new AddFormLogic(username);
       });
 
       catalogue.addActionListener( e -> {

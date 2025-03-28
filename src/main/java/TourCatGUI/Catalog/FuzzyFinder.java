@@ -1,14 +1,10 @@
-package TourCatGUI;
+package TourCatGUI.Catalog;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class FuzzyFinder { // Renaming might be good later if not using fuzzy logic
