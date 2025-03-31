@@ -16,7 +16,7 @@ import javax.imageio.ImageIO;
 
 public class HomePage extends JFrame {
 
-   //Keep track of the user..
+   //Keep track of the user.
    private String loggedInUser;
 
    //Function Buttons.
