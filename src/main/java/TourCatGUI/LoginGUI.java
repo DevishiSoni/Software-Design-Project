@@ -23,7 +23,12 @@ public class LoginGUI extends JFrame {
     public LoginGUI() {
 
         FileManager fileManager = FileManager.getInstance(true);
-        DatabaseManager databaseManager = new DatabaseManager();
+        DatabaseManager databaseManager = null;
+        try {
+            databaseManager = new DatabaseManager(fileManager.getDatabaseFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         this.locationService = new LocationService(databaseManager, fileManager);
         // Set up the GUI
@@ -175,13 +180,13 @@ public class LoginGUI extends JFrame {
 
 
         FileManager fileManager = FileManager.getInstance(true);
-        DatabaseManager databaseManager = new DatabaseManager();
-
-        LocationService locationService = new LocationService(databaseManager, fileManager);
-        HomePage homePage = new HomePage(null, locationService);
-//        SwingUtilities.invokeLater(() -> {
-//            LoginGUI loginGUI = new LoginGUI();
-//            loginGUI.setVisible(true);
-//        });
+        DatabaseManager databaseManager = null;
+        try {
+            databaseManager = new DatabaseManager(fileManager.getDatabaseFile());
+            LocationService service = new LocationService(databaseManager, fileManager);
+            HomePage homePage = new HomePage("Username", service);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -173,15 +173,4 @@ public class AddForm extends JFrame {
     boolean isInputValid() {
         return !nameField.getText().isBlank() && !provinceField.getText().isBlank() && !categoryField.getText().isBlank();
     }
-
-    public static void main(String[] args) {
-
-
-        FileManager fileManager = FileManager.getInstance(true);
-        DatabaseManager databaseManager = new DatabaseManager();
-
-        LocationService locationService = new LocationService(databaseManager, fileManager);
-
-        new AddForm("tester", locationService);
-    }
 }

@@ -4,6 +4,7 @@ import TourCatData.DatabaseManager;
 import TourCatData.FileManager;
 import TourCatData.LocationData;
 import TourCatSystem.LocationReader;
+import com.opencsv.exceptions.CsvException;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -54,7 +55,13 @@ public class LocationService {
 
         // 5. Persist the location data (using the injected dependency)
         File dbFile = fileManager.getDatabaseFile();
-        boolean dataSaved = DatabaseManager.addToFile(dataRow, dbFile); // Use static method for now
+
+
+        try {
+            databaseManager.addRecord(dataRow.toArray(String[]::new)); // Use static method for now
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         if (imageFile != null) {
             try {
@@ -107,7 +114,12 @@ public class LocationService {
         // DatabaseManager deletes by name currently - this needs to be changed to ID!
         // For now, we'd need to first find the name by ID (inefficient) or modify DatabaseManager.
         // Assuming DatabaseManager.deleteFromFile is modified to take ID (index 0):
-        boolean deleted = DatabaseManager.deleteFromFile(locationId, dbFile); // Use static method for now
+
+        try {
+            databaseManager.deleteById(locationId);
+        } catch (IOException | DatabaseManager.RecordNotFoundException | CsvException e) {
+            throw new RuntimeException(e);
+        }
 
 
         // Attempt to delete associated images (png/jpg)
