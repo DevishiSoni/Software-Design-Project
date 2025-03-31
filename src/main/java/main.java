@@ -3,11 +3,18 @@ import TourCatData.FileManager;
 import TourCatGUI.HomePage;
 import TourCatService.LocationService;
 
+import java.io.IOException;
+
 public class main {
     public static void main(String[] args) {
 
         FileManager fileManager = FileManager.getInstance();
-        DatabaseManager databaseManager = new DatabaseManager();
+        DatabaseManager databaseManager = null;
+        try {
+            databaseManager = new DatabaseManager(fileManager.getDatabaseFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         LocationService service = new LocationService(databaseManager, fileManager);
 
