@@ -1,14 +1,13 @@
 package TourCatGUI;
 
+import TourCatData.LocationData;
 import TourCatService.LocationService;
 import TourCatData.DatabaseManager;
 import TourCatData.FileManager;
-import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
 
 public class AddForm extends JFrame {
 
@@ -24,6 +23,8 @@ public class AddForm extends JFrame {
 
     public AddForm(String username, LocationService locationService) {
         saveFile = FileManager.getInstance().getDatabaseFile();
+
+        this.locationService = locationService;
 
         setTitle("Add Form");
         setSize(500, 500);
@@ -105,7 +106,7 @@ public class AddForm extends JFrame {
         // Button Actions
         uploadImageButton.addActionListener(e -> selectImage());
         submitButton.addActionListener(e -> {
-            addFieldsToFile(saveFile);
+            submitForm();
         });
         cancelButton.addActionListener(e -> {
             new HomePage(username, locationService);
@@ -136,32 +137,10 @@ public class AddForm extends JFrame {
     private void addImageToResourceFolder(File image) {
         // Define the relative folder (inside src or another location)
         File destinationFolder = FileManager.getInstance().getResourceFile("image");
-        File saveFile = FileManager.getInstance().getDatabaseFile();
-
-
-        // Define the destination file inside the project folder
-        String id = String.format("%05d", DatabaseManager.getMaxId(saveFile));
-        id += "." + FilenameUtils.getExtension(image.getName());
-
-
-        File destinationFile = new File(destinationFolder, id);
-
-        try {
-            // Copy the file to the project folder
-            java.nio.file.Files.copy(image.toPath(), destinationFile.toPath(),
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-        }
-
-        System.out.println(id);
     }
 
-    private void addFieldsToFile(File f) {
+    private void submitForm() {
 
-        String id = String.format("%05d",DatabaseManager.getMaxId(f) + 1);
         String name = nameField.getText();
         String location = cityField.getText();
         String province = provinceField.getText();
@@ -172,18 +151,12 @@ public class AddForm extends JFrame {
             return;
         }
 
-        ArrayList<String> newLandmark = new ArrayList<String>();
-        newLandmark.add(id);
-        newLandmark.add(name);
-        newLandmark.add(location);
-        newLandmark.add(province);
-        newLandmark.add(category);
 
-        boolean success = DatabaseManager.addToFile(newLandmark, f);
+        LocationData newLocationData = locationService.addLocation(name, location, province, category, this.selectedImage);
 
         if(selectedImage != null) addImageToResourceFolder(selectedImage);
 
-        if (!success) {
+        if (newLocationData == null) {
             submissionReplyLabel.setText("Failed to add location to the database");
             return;
         }
