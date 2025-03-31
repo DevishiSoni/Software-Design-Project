@@ -22,7 +22,21 @@ public class MainApplication {
 
         LocationService service = new LocationService(databaseManager, fileManager);
 
-        HomePage homePage = new HomePage(null, service);
+
+
+
+        try {
+            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatLightLaf");
+            System.out.println("FlatLaf Light theme applied successfully.");
+        } catch (Exception ex) { // Catch broader Exception is okay here for setup
+            System.err.println("Failed to initialize Flat LaF Dark theme:");
+            ex.printStackTrace();
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            HomePage homePage = new HomePage(null, service);
+        });
+
 
         System.out.println("Startup!!!!");
     }
