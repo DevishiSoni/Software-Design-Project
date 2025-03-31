@@ -8,10 +8,8 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Software-Design-Project" />
         <module name="tourcat" />
+        <module name="lab04" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="lab04" target="21" />
-    </bytecodeTargetLevel>
   </component>
 </project>

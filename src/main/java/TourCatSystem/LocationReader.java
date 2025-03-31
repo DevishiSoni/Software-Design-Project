@@ -48,9 +48,9 @@ public class LocationReader {
     }
 
     static void hideColumn(TableColumnModel tableColumnModel, int i){
-        tableColumnModel.getColumn(i).setMinWidth(0);
-        tableColumnModel.getColumn(i).setMaxWidth(0);
-        tableColumnModel.getColumn(i).setPreferredWidth(0);
+        //tableColumnModel.getColumn(i).setMinWidth(0);
+        //tableColumnModel.getColumn(i).setMaxWidth(0);
+        //tableColumnModel.getColumn(i).setPreferredWidth(0);
     }
 
     public static void hideColumns(TableColumnModel tcm, int[] vals)
