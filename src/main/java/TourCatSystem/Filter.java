@@ -1,141 +1,148 @@
 package TourCatSystem;
 
-import java.io.*; // Import necessary IO classes
+import TourCatData.LocationData; // Import the DTO
+import TourCatService.LocationService;
+// No longer need FileManager here if LocationService handles everything
+// No longer need Search class
+
+import TourCatData.DatabaseManager; // Needed for main method example setup
+import TourCatData.FileManager;     // Needed for main method example setup
+import java.io.IOException;       // Needed for main method example setup
+
+
 import java.util.ArrayList;
 import java.util.List; // Use List interface
 
 public class Filter {
-    private final File databaseFile; // Make final, set in constructor
-    private ArrayList<String> results; // Store results here
 
-    // Define column indices (adjust if your CSV is different)
-    private static final int PROVINCE_COLUMN_INDEX = 3;
-    private static final int TYPE_COLUMN_INDEX = 4;
+    // Store LocationData objects, use List interface
+    private List<LocationData> results;
+    // Keep hardcoded lists for now, but they could come from service/data later
+    private final List<String> provinces;
+    private final List<String> types;
 
-    // Constructor takes the database file
-    public Filter(File databaseFile) {
-        if (databaseFile == null || !databaseFile.exists()) {
-            throw new IllegalArgumentException("Database file must exist and not be null.");
+    // Remove static province and type variables - they are incorrect
+    // static String province;
+    // static String type;
+
+    private final LocationService locationService; // Make final
+
+    public Filter(LocationService locationService){
+        if (locationService == null) {
+            throw new IllegalArgumentException("LocationService cannot be null");
         }
-        this.databaseFile = databaseFile;
-        this.results = new ArrayList<>();
+        this.locationService = locationService;
+
+        // Initialize lists
+        provinces = new ArrayList<>();
+        types = new ArrayList<>();
+        results = new ArrayList<>(); // Initialize as empty List<LocationData>
+
+        // Populate hardcoded types and provinces
+        types.add("Park");
+        types.add("Historic Site");
+        types.add("Bridge");
+        types.add("Waterfall");
+        types.add("Landmark"); // Add any others used
+        types.add("Lake");
+
+        provinces.add("Ontario");
+        provinces.add("Quebec");
+        provinces.add("British Columbia");
+        provinces.add("Alberta");
+        provinces.add("Manitoba");
+        provinces.add("Saskatchewan");
+        provinces.add("Nova Scotia");
+        provinces.add("New Brunswick");
+        provinces.add("Prince Edward Island");
+        provinces.add("Newfoundland and Labrador");
     }
 
-    // Method to read all relevant lines (excluding header)
-    private List<String> readAllLines() {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(databaseFile))) {
-            String line;
-            boolean isFirstLine = true;
-            while ((line = br.readLine()) != null) {
-                if (isFirstLine) {
-                    isFirstLine = false; // Skip header
-                    continue;
-                }
-                if (!line.trim().isEmpty()) {
-                    lines.add(line);
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading database file in Filter: " + e.getMessage());
-            // Consider throwing a custom exception or returning empty list
-        }
-        return lines;
-    }
-
-    // Helper to safely get column data
-    private String getColumnData(String line, int columnIndex) {
-        if (line == null) return null;
-        String[] parts = line.split(","); // Simple CSV split
-        if (columnIndex >= 0 && columnIndex < parts.length) {
-            return parts[columnIndex].trim(); // Trim whitespace
-        }
-        return null; // Index out of bounds or bad split
-    }
-
-
-    // --- Filtering Methods ---
-
-    // Filter by Province only
+    /**
+     * Filters locations by the selected province using the LocationService.
+     * Updates the internal results list.
+     * @param selectedProvince The province to filter by.
+     */
     public void filterProvince(String selectedProvince) {
+        // province = selectedProvince; // REMOVE - was static and incorrect
         results.clear();
-        if (selectedProvince == null || selectedProvince.trim().isEmpty()) {
-            return; // No filter applied if province is null/empty
-        }
-        List<String> allLines = readAllLines();
-        for (String line : allLines) {
-            String provinceInLine = getColumnData(line, PROVINCE_COLUMN_INDEX);
-            if (provinceInLine != null && provinceInLine.equalsIgnoreCase(selectedProvince.trim())) {
-                results.add(line);
-            }
-        }
+        // Use the service, passing null for parameters not being filtered
+        results = locationService.findLocations(null, selectedProvince, null);
     }
 
-    // Filter by Type only
+
+    /**
+     * Filters locations by the selected type (category) using the LocationService.
+     * Updates the internal results list.
+     * @param selectedType The category/type to filter by.
+     */
     public void filterType(String selectedType) {
+        // Search searchObj = new Search(); // REMOVE Search dependency
+        // type = selectedType; // REMOVE - was static and incorrect
         results.clear();
-        if (selectedType == null || selectedType.trim().isEmpty()) {
-            return; // No filter applied if type is null/empty
-        }
-        List<String> allLines = readAllLines();
-        for (String line : allLines) {
-            String typeInLine = getColumnData(line, TYPE_COLUMN_INDEX);
-            // Special handling for "Historic Site" possibly containing a comma
-            // A more robust CSV parser would be better here.
-            // Let's assume for now the simple split works or the data is clean.
-            if (typeInLine != null && typeInLine.equalsIgnoreCase(selectedType.trim())) {
-                results.add(line);
-            }
-        }
+        // results = searchObj.search(database, type); // REMOVE Search dependency
+        // Use the service, passing null for parameters not being filtered
+        results = locationService.findLocations(null, null, selectedType);
     }
 
-    // Filter by Both Province and Type
+    /**
+     * Filters locations by both province and type (category) using the LocationService.
+     * Updates the internal results list.
+     * @param selectedProvince The province to filter by.
+     * @param selectedType The category/type to filter by.
+     */
     public void filterBoth(String selectedProvince, String selectedType) {
+        // Search searchObj = new Search(); // REMOVE Search dependency
+        // province = selectedProvince; // REMOVE - was static and incorrect
+        // type = selectedType; // REMOVE - was static and incorrect
         results.clear();
-        if (selectedProvince == null || selectedProvince.trim().isEmpty() ||
-                selectedType == null || selectedType.trim().isEmpty()) {
-            // Maybe filter by the one that IS provided? Or require both?
-            // Current logic requires both. If only one provided, result is empty.
-            return;
-        }
 
-        List<String> allLines = readAllLines();
-        String targetProvince = selectedProvince.trim();
-        String targetType = selectedType.trim();
-
-        for (String line : allLines) {
-            String provinceInLine = getColumnData(line, PROVINCE_COLUMN_INDEX);
-            String typeInLine = getColumnData(line, TYPE_COLUMN_INDEX);
-
-            if (provinceInLine != null && provinceInLine.equalsIgnoreCase(targetProvince) &&
-                    typeInLine != null && typeInLine.equalsIgnoreCase(targetType)) {
-                results.add(line);
-            }
-        }
+        // Remove manual filtering - let the service handle it
+        // ArrayList<String> firstResults = searchObj.search(database, province);
+        // for(String line : firstResults){
+        //     if(line.toLowerCase().contains(type.toLowerCase())){
+        //         results.add(line); // This was adding String, but results should be LocationData
+        //     }
+        // }
+        // Use the service, passing both filters
+        results = locationService.findLocations(null, selectedProvince, selectedType);
     }
 
-    // Get results
-    public ArrayList<String> getResults() {
-        // Return a copy to prevent external modification? Optional.
+    /**
+     * Gets the list of LocationData objects from the last filter operation.
+     * @return A List of LocationData objects.
+     */
+    public List<LocationData> getResults() { // Return type changed to List<LocationData>
+        // Return a defensive copy if modification outside this class is a concern
         // return new ArrayList<>(results);
         return results;
     }
 
-    // Reset filter results
-    public void reset() {
-        results.clear();
-        // Maybe also reset internal province/type state if they were instance vars
+    /**
+     * Prints the details of the locations in the results list to the console.
+     */
+    public void printResults() {
+        if (results == null || results.isEmpty()) { // Check for null too
+            System.out.println("No matching results found.");
+        } else {
+            System.out.println("Found " + results.size() + " results:");
+            // Iterate through LocationData objects and print details
+            for (LocationData loc : results) {
+                System.out.println("  - " + loc.getName() + " (" + loc.getCategory() + ") in " +
+                        (loc.getCity() != null ? loc.getCity() + ", " : "") + loc.getProvince() +
+                        " [ID: " + loc.getId() + "]");
+                // Or use a well-defined toString() in LocationData:
+                // System.out.println("  " + loc.toString());
+            }
+        }
     }
 
-    // Simple print method (mainly for testing)
-    public void printResults() {
-        if (results.isEmpty()) {
-            System.out.println("No matching results found for the last filter operation.");
-        } else {
-            System.out.println("Filter Results (" + results.size() + " items):");
-            for (String result : results) {
-                System.out.println(result);
-            }
+    /**
+     * Clears the internal results list.
+     */
+    public void reset() {
+        if (results != null) {
+            results.clear();
         }
     }
 }

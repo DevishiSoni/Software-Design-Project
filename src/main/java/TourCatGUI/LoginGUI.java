@@ -1,5 +1,9 @@
 package TourCatGUI;
 
+import TourCatData.DatabaseManager;
+import TourCatData.FileManager;
+import TourCatService.LocationService;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,13 +18,25 @@ public class LoginGUI extends JFrame {
     private JButton registerButton;
     //    private JButton logoutButton;
     private String loggedInUser = null; // Track the logged-in user
+    private LocationService locationService;
 
     public LoginGUI() {
+
+        FileManager fileManager = FileManager.getInstance(true);
+        DatabaseManager databaseManager = null;
+        try {
+            databaseManager = new DatabaseManager(fileManager.getDatabaseFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        this.locationService = new LocationService(databaseManager, fileManager);
         // Set up the GUI
         setTitle("TourCat - Login");
         setSize(500, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBackground(Color.CYAN);
+
 
 
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
@@ -70,7 +86,7 @@ public class LoginGUI extends JFrame {
                         registerButton.setEnabled(false);
                         loggedInUser = username;
                         SwingUtilities.invokeLater(() -> {
-                            HomePage homePage = new HomePage(username);  // Open home screen
+                            HomePage homePage = new HomePage(username, locationService);  // Open home screen
                             homePage.updateLoginLogoutUI(); // Update buttons on the homepage
                             dispose(); // Close login window
                         });
@@ -108,7 +124,7 @@ public class LoginGUI extends JFrame {
 
                         loggedInUser = username;
                         SwingUtilities.invokeLater(() -> {
-                            HomePage homePage = new HomePage(username);  // Open home screen
+                            HomePage homePage = new HomePage(username, locationService);  // Open home screen
                             homePage.updateLoginLogoutUI(); // Update buttons on the homepage
                             dispose(); // Close login window
                         });
@@ -161,10 +177,16 @@ public class LoginGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        HomePage homePage = new HomePage(null);
-//        SwingUtilities.invokeLater(() -> {
-//            LoginGUI loginGUI = new LoginGUI();
-//            loginGUI.setVisible(true);
-//        });
+
+
+        FileManager fileManager = FileManager.getInstance(true);
+        DatabaseManager databaseManager = null;
+        try {
+            databaseManager = new DatabaseManager(fileManager.getDatabaseFile());
+            LocationService service = new LocationService(databaseManager, fileManager);
+            HomePage homePage = new HomePage("Username", service);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

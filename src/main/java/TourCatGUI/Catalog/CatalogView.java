@@ -9,9 +9,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-public class CataView {
+public class CatalogView {
 
-    private CataLogic logic; // Reference to the logic class
+    private CatalogModel logic; // Reference to the logic class
     private String username;
 
     // --- GUI Components ---
@@ -33,7 +33,7 @@ public class CataView {
     JLabel filterBy;
 
     // Constructor takes username, logic instance, and the table model
-    CataView(String username, CataLogic logic, DefaultTableModel tableModel) {
+    CatalogView(String username, CatalogModel logic, DefaultTableModel tableModel) {
         this.username = username;
         this.logic = logic;
         this.tableModel = tableModel; // Use the model created by logic
@@ -44,7 +44,6 @@ public class CataView {
 
         // Initial setup
         searchField.setText("Search here:"); // Initial placeholder
-        logic.hideIdColumn(table.getColumnModel()); // Ask logic to hide column
     }
 
     // --- Initialization Helper ---
@@ -300,4 +299,12 @@ public class CataView {
         detailsFrame.setLocationRelativeTo(frame); // Center relative to main window
         detailsFrame.setVisible(true);
     }
+
+    public void hideIdColumn() {
+        // Hide column at index 0 (ID column)
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+    }
+
 }
