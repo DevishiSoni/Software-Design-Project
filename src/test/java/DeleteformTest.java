@@ -1,7 +1,8 @@
+import TourCatData.DatabaseManager;
 import TourCatGUI.DeleteForm;
-import TourCatSystem.FileManager;
+import TourCatService.LocationService;
+import TourCatData.FileManager;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -14,11 +15,17 @@ class DeleteFormTest {
 
     static DeleteForm testDelForm;
     static File testingDatabase;
+    public static LocationService locationService;
 
     @BeforeAll
     public static void setup() {
-        testDelForm = new DeleteForm("test");
         testingDatabase = FileManager.getInstance(true).getResourceFile("testDB.csv");
+        FileManager fileManager = FileManager.getInstance(true);
+        DatabaseManager databaseManager = new DatabaseManager();
+
+
+        locationService = new LocationService(databaseManager, fileManager);
+        testDelForm = new DeleteForm("test", locationService);
 
         testDelForm.setDatabaseFile(testingDatabase);
     }

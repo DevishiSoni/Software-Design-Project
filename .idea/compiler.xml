@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Software-Design-Project" />
+        <module name="tourcat" />
         <module name="lab04" />
       </profile>
     </annotationProcessing>

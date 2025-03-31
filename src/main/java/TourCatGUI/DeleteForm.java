@@ -1,6 +1,7 @@
 package TourCatGUI;
 
-import TourCatSystem.DatabaseManager;
+import TourCatService.LocationService;
+import TourCatData.DatabaseManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +15,9 @@ public class DeleteForm extends JFrame {
 
     private File databaseFile;
 
-    public DeleteForm(String username) {
+    LocationService service;
+
+    public DeleteForm(String username, LocationService locationService) {
         setTitle("Delete Form");
         setSize(500, 185);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -58,7 +61,7 @@ public class DeleteForm extends JFrame {
         });
 
         cancelButton.addActionListener(e->{
-            new HomePage(username);
+            new HomePage(username, locationService);
             dispose();
         });
     }

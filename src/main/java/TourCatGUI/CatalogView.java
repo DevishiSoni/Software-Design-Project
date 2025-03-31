@@ -1,320 +1,417 @@
 package TourCatGUI;
 
-import TourCatSystem.DatabaseManager;
-import TourCatSystem.FileManager;
-import TourCatSystem.Filter;
-import TourCatSystem.LocationReader;
+import TourCatData.LocationData;
+import TourCatService.LocationService;
+import TourCatSystem.LocationReader; // Keep for hideColumns helper
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter; // Import the sorter
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.ArrayList; // Needed for RowFilter list
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException; // For regex errors
+
+// Import Levenshtein distance if you want true fuzzy filtering in RowFilter
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 
 public class CatalogView {
 
-    public JButton viewButton;
+    //Ui componentes.
+    private JFrame frame;
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private TableRowSorter<TableModel> sorter; // Add the sorter
+    private JTextField searchField;
+    private JButton viewButton;
+    private JButton returnButton;
+    private JButton deleteButton;
+    private JButton filterButton; // Can likely remove this now
+    private JButton resetButton;
+    private JComboBox<String> provinceComboBox;
+    private JComboBox<String> typeComboBox;
 
-    JTable table;
-    File dataBase;
-    DefaultTableModel model;
+    // --- Service Layer ---
+    private final LocationService locationService;
 
-    JTextField searchField;
+    // --- State ---
+    // No longer need selectedProvince/Type state here if reading directly from combo boxes
+    private final String username;
 
+    // Levenshtein distance instance for fuzzy filter
+    private static final LevenshteinDistance levenshteinDistance = new LevenshteinDistance(2); // Allow distance up to 2
 
-    String selectedProvince = null;
-    String selectedType = null;
+    public CatalogView(String username, LocationService locationService) {
+        if (locationService == null) {
+            throw new IllegalArgumentException("LocationService cannot be null");
+        }
+        this.locationService = locationService;
+        this.username = username;
 
+        initComponents();
+        layoutComponents();
+        loadInitialData();
 
-
-    CatalogView(String username)
-    {
-        this.dataBase = FileManager.getInstance().getDatabaseFile();
-
-        LocationReader reader = new LocationReader(dataBase);
-
-        this.model = reader.getTableModel();
-
-        // Create the JTable with the model
-        this.table = new JTable(model);
-
-
-        TableColumnModel columnModel = table.getColumnModel();
-
-        LocationReader.hideColumns(columnModel, new int[]{0});
-
-        // Create a JScrollPane for scrolling functionality
-        JScrollPane scrollPane = new JScrollPane(table);
-
-        // Set up JFrame
-        JFrame frame = new JFrame("GeoNames Data");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600); // Set window size
-        frame.setLayout(new BorderLayout());
-        frame.add(scrollPane, BorderLayout.CENTER); // Add JScrollPane containing the table to the frame
-
-        // Make the frame visible
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
 
-        FuzzyFinder fuzzyFinder = new FuzzyFinder(table);
+    private void initComponents() {
+        frame = new JFrame("TourCat Locations");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
 
-        // Search field
+        String[] columnNames = {"ID", "Name", "City", "Province", "Category"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+
+        table = new JTable(tableModel);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // --- Setup TableRowSorter ---
+        sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter); // Attach sorter to the table
+
+        hideTableColumns(new int[]{0});
+
         searchField = new JTextField();
+        searchField.setToolTipText("Type to search (fuzzy match)...");
+        setupSearchFieldPlaceholder(); // Use helper method
+
+        // Key listener for live filtering using the sorter
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                applyCombinedFilters(); // Apply filters on key release
+            }
+        });
+
+        viewButton = new JButton("View Details");
+        returnButton = new JButton("Return To Homepage");
+        deleteButton = new JButton("Delete Selected");
+        // filterButton = new JButton("Apply Filters"); // No longer needed if combo boxes filter live
+        resetButton = new JButton("Reset Filters/Search");
+
+        provinceComboBox = createProvinceComboBox();
+        typeComboBox = createTypeComboBox();
+
+        // Add Action Listeners (Listeners for ComboBoxes now trigger filtering)
+        addActionListeners();
+    }
+
+    private void setupSearchFieldPlaceholder() {
+        final String placeholder = "Search name, city, category...";
+        searchField.setForeground(Color.GRAY);
+        searchField.setText(placeholder);
 
         searchField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                searchField.setText("");
+                if (searchField.getText().equals(placeholder)) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK);
+                }
             }
-
             @Override
             public void focusLost(FocusEvent e) {
-                searchField.setText("Search here:");
+                if (searchField.getText().isEmpty()) {
+                    searchField.setForeground(Color.GRAY);
+                    searchField.setText(placeholder);
+                }
             }
         });
+    }
 
-        searchField.setToolTipText("Type to search...");
 
-        // Key listener for search field
-        searchField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                fuzzyFinder.performFuzzySearch(searchField.getText());
+    private void hideTableColumns(int[] columnsToHide) {
+        TableColumnModel columnModel = table.getColumnModel();
+        for (int colIndex : columnsToHide) {
+            if (colIndex >= 0 && colIndex < columnModel.getColumnCount()) {
+                // Using the existing static helper method from LocationReader
+                LocationReader.hideColumns(columnModel, new int[]{colIndex});
+            } else {
+                System.err.println("Warning: Cannot hide column index " + colIndex + ". Index out of bounds.");
             }
-        });
+        }
+    }
 
-        viewButton = new JButton("View");
+    private JComboBox<String> createProvinceComboBox() {
+        JComboBox<String> comboBox = new JComboBox<>();
+        comboBox.addItem("All Provinces"); // Changed default text
+        String[] provinces = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba", "Saskatchewan", "Nova Scotia", "New Brunswick", "Prince Edward Island", "Newfoundland and Labrador"};
+        for (String p : provinces) {
+            comboBox.addItem(p);
+        }
+        // Add listener to trigger filtering when selection changes
+        comboBox.addActionListener(e -> applyCombinedFilters());
+        return comboBox;
+    }
 
+    private JComboBox<String> createTypeComboBox() {
+        JComboBox<String> comboBox = new JComboBox<>();
+        comboBox.addItem("All Types"); // Changed default text
+        String[] types = {"Park", "Waterfall", "Historic Site", "Landmark", "Bridge", "Lake"};
+        for (String t : types) {
+            comboBox.addItem(t);
+        }
+        // Add listener to trigger filtering when selection changes
+        comboBox.addActionListener(e -> applyCombinedFilters());
+        return comboBox;
+    }
 
-        JButton returnButton = new JButton("Return To Homepage");
+    private void addActionListeners() {
+        viewButton.addActionListener(e -> viewSelectedLocation());
+        deleteButton.addActionListener(e -> deleteSelectedLocation());
+        // filterButton.addActionListener(e -> applyCombinedFilters()); // Not needed now
+        resetButton.addActionListener(e -> resetView());
 
         returnButton.addActionListener(e -> {
-            new HomePage(username);
+            new HomePage(username, locationService).setVisible(true);
             frame.dispose();
         });
+    }
 
-        viewButton.addActionListener(e -> {
-            //TODO: Replace this specific function with a class with these parameters.
-
-            int selectedRow = table.getSelectedRow();
-
-            if (selectedRow != -1) { // Ensure a row is selected
-                // Extract data from the selected row
-
-                String id = (String) table.getValueAt(selectedRow, 0);
-                String name = (String) table.getValueAt(selectedRow, 1);
-                String city = (String) table.getValueAt(selectedRow, 2);
-                String province = (String) table.getValueAt(selectedRow, 3);
-                String category = (String) table.getValueAt(selectedRow, 4);
-                //String imagePath = (String) table.getValueAt(selectedRow, 5);
-
-                // Create a new JFrame to display details
-                JFrame detailsFrame = new JFrame("Location Details");
-                detailsFrame.setSize(400, 400);
-                detailsFrame.setLayout(new BorderLayout());
-
-                // Create a panel for text details
-                JPanel textPanel = new JPanel();
-                textPanel.setLayout(new GridLayout(5, 1)); // 5 rows for different fields
-
-                textPanel.add(new JLabel("Name: " + name));
-                textPanel.add(new JLabel("City: " + city));
-                textPanel.add(new JLabel("Province: " + province));
-                textPanel.add(new JLabel("Category: " + category));
-
-                // Image Label
-                JLabel imageLabel = new JLabel();
-
-                File imageFile = FileManager.getInstance().getImageFile(id + ".png");
-                if(!imageFile.exists()) imageFile = FileManager.getInstance().getImageFile(id + ".jpg");
-
-                System.out.println(imageFile.getAbsolutePath());
-
-                if (imageFile.exists()) {
-
-                    ImageIcon icon = new ImageIcon(imageFile.getAbsolutePath());
-
-                    Image scaledImage = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
-                    imageLabel.setIcon(new ImageIcon(scaledImage));
-
-                } else {
-                    imageLabel.setText("No Image Available");
-                    imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                }
-
-                // Add components to frame
-                detailsFrame.add(textPanel, BorderLayout.NORTH);
-                detailsFrame.add(imageLabel, BorderLayout.CENTER);
-
-                detailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                detailsFrame.setVisible(true);
-            } else {
-                System.out.println("No row selected.");
-            }
-        });
-
-
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new GridLayout(4, 1));
-
-
-        rightPanel.add(returnButton);
-
-        rightPanel.add(viewButton);
-        searchField.setText("Search:");
-
-        JButton deleteButton = new JButton("Delete");
-
-        // Add components to frame
-        frame.add(rightPanel, BorderLayout.EAST);
-        frame.add(searchField, BorderLayout.NORTH);
-        frame.add(scrollPane, BorderLayout.CENTER);
-
-        rightPanel.add(deleteButton);
-
-        //Filter Functionality
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        JLabel filterBy = new JLabel("Filter By:");
-
-        filterPanel.add(filterBy);
-        JComboBox<String> provinceComboBox = new JComboBox<>();
-        provinceComboBox.addItem("Select Province");
-        provinceComboBox.addItem("Ontario");
-        provinceComboBox.addItem("Quebec");
-        provinceComboBox.addItem("British Columbia");
-        provinceComboBox.addItem("Alberta");
-        provinceComboBox.addItem("Manitoba");
-        provinceComboBox.addItem("Saskatchewan");
-        provinceComboBox.addItem("Nova Scotia");
-        provinceComboBox.addItem("New Brunswick");
-        provinceComboBox.addItem("Prince Edward Island");
-        provinceComboBox.addItem("Newfoundland and Labrador");
-
-        provinceComboBox.addActionListener(e -> {
-            selectedProvince = (String) provinceComboBox.getSelectedItem();
-        });
-        JComboBox<String> typeComboBox = new JComboBox<>();
-        typeComboBox.addItem("Select Type");
-        typeComboBox.addItem("Park");
-        typeComboBox.addItem("Waterfall");
-        typeComboBox.addItem("Historic Site");
-        typeComboBox.addItem("Landmark");
-
-
-        typeComboBox.addActionListener(e -> {
-            selectedType = (String) typeComboBox.getSelectedItem();
-        });
-
+    private void layoutComponents() {
+        // --- Top Panel (Search + Filters) ---
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        filterPanel.add(new JLabel("Filter By:"));
         filterPanel.add(provinceComboBox);
         filterPanel.add(typeComboBox);
+        // filterPanel.add(filterButton); // Removed button
+        filterPanel.add(resetButton); // Moved Reset button here for better grouping
 
-        JButton filterButton = new JButton("Filter");
-
-        filterButton.addActionListener(e -> {
-            Filter filter = new Filter();
-
-            if (selectedProvince != null && selectedType != null) {
-                filter.filterBoth(selectedProvince, selectedType);
-            } else if (selectedProvince != null) {
-                filter.filterProvince(selectedProvince);
-            } else if (selectedType != null) {
-                filter.filterType(selectedType);
-            } else {
-                JOptionPane.showMessageDialog(frame, "Please select at least one filter option.");
-                return;
-            }
-
-            // Get results and update table
-            ArrayList<String> results = filter.getResults();
-            updateTable(results);
-        });
-        filterPanel.add(filterButton);
-
-        JButton resetButton = new JButton("Reset Filters");
-        resetButton.addActionListener(e -> {
-            provinceComboBox.setSelectedIndex(0);
-            typeComboBox.setSelectedIndex(0);
-
-            // Reset the filter variables
-            selectedProvince = null;
-            selectedType = null;
-
-            // Manually read the original data from the file
-            ArrayList<String> allResults = new ArrayList<>();
-            try (BufferedReader br = new BufferedReader(new FileReader(dataBase))) {
-                String line;
-                boolean isFirstLine = true;
-                while ((line = br.readLine()) != null) {
-                    if (isFirstLine) {
-                        isFirstLine = false;
-                        continue;  // Skip the header line
-                    }
-                    allResults.add(line); // Read each line and add to the results
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-
-            // Update the table with all the rows from the file
-            updateTable(allResults);
-        });
-
-        filterPanel.add(resetButton);
-
-        JPanel topPanel = new JPanel(new BorderLayout());
+        JPanel topPanel = new JPanel(new BorderLayout(0, 5)); // Add vertical gap
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Add padding
         topPanel.add(searchField, BorderLayout.NORTH);
-        topPanel.add(filterPanel, BorderLayout.SOUTH);
+        topPanel.add(filterPanel, BorderLayout.CENTER); // Use Center for filters
 
+        // --- Right Panel (Actions) ---
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        rightPanel.add(returnButton);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        rightPanel.add(viewButton);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        rightPanel.add(deleteButton);
+        rightPanel.add(Box.createVerticalGlue());
+
+        // --- Center Panel (Table) ---
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // --- Add Panels to Frame ---
+        frame.setLayout(new BorderLayout(5, 5));
         frame.add(topPanel, BorderLayout.NORTH);
         frame.add(rightPanel, BorderLayout.EAST);
-
-        frame.setVisible(true);
-
-        deleteButton.addActionListener(e -> {
-            deleteRow();
-        });
-
+        frame.add(scrollPane, BorderLayout.CENTER);
     }
-    private void updateTable(ArrayList<String> results) {
-        model.setRowCount(0); // Clear current table data
 
-        for (String result : results) {
-            String[] rowData = result.split(","); // Assuming CSV format
-            model.addRow(rowData);
+    private void loadInitialData() {
+        try {
+            // Clear existing filters before loading
+            if (sorter != null) {
+                sorter.setRowFilter(null);
+            }
+            List<LocationData> allLocations = locationService.getAllLocations();
+            updateTableModel(allLocations); // This just updates the model data
+            System.out.println("Initial data loaded. Rows in model: " + tableModel.getRowCount());
+        } catch (Exception e) {
+            System.err.println("Error loading initial location data: " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame,
+                    "Could not load location data:\n" + e.getMessage(),
+                    "Data Load Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    void deleteRow()
-    {
-        int selectedRow = table.getSelectedRow();
+    /**
+     * Updates the table model data. The sorter will handle displaying it.
+     */
+    private void updateTableModel(List<LocationData> locations) {
+        tableModel.setRowCount(0); // Clear existing rows in the model
+        if (locations != null && !locations.isEmpty()) {
+            for (LocationData loc : locations) {
+                tableModel.addRow(new Object[]{
+                        loc.getId(),
+                        loc.getName() != null ? loc.getName() : "",
+                        loc.getCity() != null ? loc.getCity() : "",
+                        loc.getProvince() != null ? loc.getProvince() : "",
+                        loc.getCategory() != null ? loc.getCategory() : ""
+                });
+            }
+        }
+        // The sorter will automatically update the view based on the new model data
+        // and existing filter (if any).
+    }
 
-        if (selectedRow != -1) { // Ensure a row is selected
-            int columnCount = table.getColumnCount();
+    /**
+     * Applies filters based on the current state of search field and combo boxes.
+     */
+    private void applyCombinedFilters() {
+        if (sorter == null) return; // Should not happen after init
 
-            String selectedRowID = (String) table.getValueAt(selectedRow, 0);
+        List<RowFilter<Object, Object>> filters = new ArrayList<>();
 
-            DatabaseManager.deleteFromFile(selectedRowID, dataBase);
+        // 1. Text Filter (Fuzzy or Regex)
+        String searchText = searchField.getText();
+        final String placeholder = "Search name, city, category...";
+        if (searchText != null && !searchText.trim().isEmpty() && !searchText.equals(placeholder)) {
+            // Option A: Simple Regex Filter (Case-Insensitive)
+            // try {
+            //     filters.add(RowFilter.regexFilter("(?i)" + Pattern.quote(searchText)));
+            // } catch (PatternSyntaxException pse) {
+            //     System.err.println("Bad regex pattern: " + pse.getMessage());
+            // }
+            // Option B: Custom Fuzzy RowFilter
+            filters.add(createFuzzyRowFilter(searchText.toLowerCase()));
+        }
 
-            model.removeRow(selectedRow);
+        // 2. Province Filter
+        String province = (String) provinceComboBox.getSelectedItem();
+        if (province != null && !province.equals("All Provinces")) {
+            // Column 3 is Province
+            filters.add(RowFilter.regexFilter("^" + Pattern.quote(province) + "$", 3));
+        }
+
+        // 3. Type/Category Filter
+        String type = (String) typeComboBox.getSelectedItem();
+        if (type != null && !type.equals("All Types")) {
+            // Column 4 is Category
+            filters.add(RowFilter.regexFilter("^" + Pattern.quote(type) + "$", 4));
+        }
+
+        // Combine filters using AND logic
+        RowFilter<Object, Object> combinedFilter = null;
+        if (!filters.isEmpty()) {
+            combinedFilter = RowFilter.andFilter(filters);
+        }
+
+        // Apply the combined filter to the sorter
+        sorter.setRowFilter(combinedFilter);
+    }
+
+    /**
+     * Creates a custom RowFilter implementing fuzzy matching.
+     */
+    private RowFilter<Object, Object> createFuzzyRowFilter(String query) {
+        return new RowFilter<Object, Object>() {
+            @Override
+            public boolean include(Entry<?, ?> entry) {
+                // Iterate through columns relevant for searching (skip ID column 0)
+                for (int i = 1; i < entry.getValueCount(); i++) {
+                    Object value = entry.getValue(i);
+                    if (value != null) {
+                        String cellText = value.toString().toLowerCase();
+                        // Check if any word in the cell text is close enough
+                        String[] words = cellText.split("\\s+"); // Split by whitespace
+                        for (String word : words) {
+                            if (levenshteinDistance.apply(query, word) <= 2) { // Using threshold 2
+                                return true; // Match found in this row
+                            }
+                        }
+                        // Optional: Check the whole cell text as well?
+                        // if (levenshteinDistance.apply(query, cellText) <= 2) return true;
+                    }
+                }
+                return false; // No match found in any relevant cell of this row
+            }
+        };
+    }
+
+
+    /**
+     * Resets filters, search field, and clears the sorter's filter.
+     */
+    private void resetView() {
+        provinceComboBox.setSelectedIndex(0); // "All Provinces"
+        typeComboBox.setSelectedIndex(0);     // "All Types"
+        setupSearchFieldPlaceholder(); // Reset search field text and color
+
+        // Clear the sorter's filter to show all rows from the model
+        if (sorter != null) {
+            sorter.setRowFilter(null);
+        }
+        System.out.println("Filters and search reset. Showing all model data.");
+        // Optional: Could reload data if needed, but usually not necessary if model is intact
+        // loadInitialData();
+    }
+
+
+    // --- Action Methods ---
+
+    private void viewSelectedLocation() {
+        int selectedViewRow = table.getSelectedRow();
+        if (selectedViewRow != -1) {
+            int modelRow = table.convertRowIndexToModel(selectedViewRow);
+            LocationData locationData = getLocationDataFromModelRow(modelRow);
+            if (locationData != null) {
+                DetailView detailView = new DetailView(this.frame, locationData);
+                detailView.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Could not retrieve data for the selected row.", "Data Error", JOptionPane.WARNING_MESSAGE);
+            }
         } else {
-            System.out.println("No row selected.");
+            JOptionPane.showMessageDialog(frame, "Please select a location from the table to view.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void deleteSelectedLocation() {
+        int selectedViewRow = table.getSelectedRow();
+        if (selectedViewRow != -1) {
+            int modelRow = table.convertRowIndexToModel(selectedViewRow); // Use model row index!
+            String locationId = (String) tableModel.getValueAt(modelRow, 0);
+            String locationName = (String) tableModel.getValueAt(modelRow, 1);
+
+            int confirmation = JOptionPane.showConfirmDialog(frame,"Are you sure you want to delete '" + locationName + "'?", "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+            if (confirmation == JOptionPane.YES_OPTION) {
+                try {
+                    locationService.deleteLocation(locationId);
+                    // IMPORTANT: Remove the row from the MODEL, not the view directly.
+                    // The sorter handles the view update.
+                    tableModel.removeRow(modelRow);
+                    // Re-apply filters in case the deletion affects the view, although
+                    // removeRow should notify the sorter. It's usually safer though.
+                    // applyCombinedFilters(); // Maybe not needed, test first.
+                    JOptionPane.showMessageDialog(frame, "'" + locationName + "' deleted successfully.", "Deletion Successful", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    System.err.println("Error deleting location: " + e.getMessage());
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(frame, "Could not delete location:\n" + e.getMessage(), "Deletion Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please select a location from the table to delete.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
 
-    public void setSearch(String text) {
-        searchField.requestFocus();
-        this.searchField.setText(text);
-        System.out.println(text);
+    // --- Helper Methods ---
+
+    private LocationData getLocationDataFromModelRow(int modelRowIndex) {
+        if (modelRowIndex < 0 || modelRowIndex >= tableModel.getRowCount()) {
+            System.err.println("Error: Attempted to access invalid model row index: " + modelRowIndex);
+            return null;
+        }
+        try {
+            String id = String.valueOf(tableModel.getValueAt(modelRowIndex, 0));
+            String name = String.valueOf(tableModel.getValueAt(modelRowIndex, 1));
+            String city = String.valueOf(tableModel.getValueAt(modelRowIndex, 2));
+            String province = String.valueOf(tableModel.getValueAt(modelRowIndex, 3));
+            String category = String.valueOf(tableModel.getValueAt(modelRowIndex, 4));
+            return new LocationData(id, name, city, province, category);
+        } catch (Exception e) {
+            System.err.println("Unexpected error retrieving data from model row " + modelRowIndex + ": " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 }

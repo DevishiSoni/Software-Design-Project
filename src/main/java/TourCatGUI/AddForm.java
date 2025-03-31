@@ -1,7 +1,8 @@
 package TourCatGUI;
 
-import TourCatSystem.DatabaseManager;
-import TourCatSystem.FileManager;
+import TourCatService.LocationService;
+import TourCatData.DatabaseManager;
+import TourCatData.FileManager;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
@@ -17,10 +18,11 @@ public class AddForm extends JFrame {
     private File imageDestination = null;
     private File selectedImage = null;
 
+    LocationService locationService = null;
 
     public File saveFile;
 
-    public AddForm(String username) {
+    public AddForm(String username, LocationService locationService) {
         saveFile = FileManager.getInstance().getDatabaseFile();
 
         setTitle("Add Form");
@@ -106,7 +108,7 @@ public class AddForm extends JFrame {
             addFieldsToFile(saveFile);
         });
         cancelButton.addActionListener(e -> {
-            new HomePage(username);
+            new HomePage(username, locationService);
             dispose();
         });
 
@@ -200,6 +202,13 @@ public class AddForm extends JFrame {
     }
 
     public static void main(String[] args) {
-        new AddForm("tester");
+
+
+        FileManager fileManager = FileManager.getInstance(true);
+        DatabaseManager databaseManager = new DatabaseManager();
+
+        LocationService locationService = new LocationService(databaseManager, fileManager);
+
+        new AddForm("tester", locationService);
     }
 }

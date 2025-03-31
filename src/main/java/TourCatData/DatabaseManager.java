@@ -1,4 +1,4 @@
-package TourCatSystem;
+package TourCatData;
 
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
