@@ -7,8 +7,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.net.URL;
+// Removed: import java.io.File; // No longer needed here
+import java.net.URL; // Import URL for image loading
 
 public class CatalogView {
 
@@ -102,7 +102,6 @@ public class CatalogView {
         rightPanel.add(returnButton);
         rightPanel.add(viewButton);
         rightPanel.add(deleteButton);
-        // Add some spacing if needed, or adjust GridLayout
 
         // Filter Panel
         filterPanel.add(filterBy);
@@ -114,7 +113,7 @@ public class CatalogView {
 
         // Top Panel (Search + Filters)
         topPanel.add(searchField, BorderLayout.NORTH);
-        topPanel.add(filterPanel, BorderLayout.CENTER); // Changed to CENTER for better fit
+        topPanel.add(filterPanel, BorderLayout.CENTER);
 
         // Add components to frame
         frame.add(topPanel, BorderLayout.NORTH);
@@ -132,21 +131,20 @@ public class CatalogView {
             public void focusGained(FocusEvent e) {
                 if (searchField.getText().equals("Search here:")) {
                     searchField.setText("");
-                    searchField.setForeground(Color.BLACK); // Reset text color
+                    searchField.setForeground(Color.BLACK);
                 }
             }
-
             @Override
             public void focusLost(FocusEvent e) {
                 if (searchField.getText().isEmpty()) {
                     searchField.setText("Search here:");
-                    searchField.setForeground(Color.GRAY); // Set placeholder color
+                    searchField.setForeground(Color.GRAY);
                 }
             }
         });
-        searchField.setForeground(Color.GRAY); // Initial placeholder color
+        searchField.setForeground(Color.GRAY);
 
-        // Search key listener - delegates to logic
+        // Search key listener
         searchField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -154,19 +152,18 @@ public class CatalogView {
             }
         });
 
-        // Button listeners - delegate to logic
+        // Button listeners
         viewButton.addActionListener(e -> logic.handleViewAction());
         returnButton.addActionListener(e -> logic.handleReturnAction());
         deleteButton.addActionListener(e -> logic.handleDeleteAction());
         filterButton.addActionListener(e -> logic.handleFilterAction());
         resetButton.addActionListener(e -> logic.handleResetAction());
 
-        // ComboBox listeners - update logic's state
+        // ComboBox listeners
         provinceComboBox.addActionListener(e -> {
             String selection = (String) provinceComboBox.getSelectedItem();
             logic.updateSelectedProvince(selection.equals("Select Province") ? null : selection);
         });
-
         typeComboBox.addActionListener(e -> {
             String selection = (String) typeComboBox.getSelectedItem();
             logic.updateSelectedType(selection.equals("Select Type") ? null : selection);
@@ -188,28 +185,20 @@ public class CatalogView {
     }
 
     public Object getValueAt(int row, int col) {
-        // Ensure row/col are valid before accessing model directly
         if (row >= 0 && row < tableModel.getRowCount() && col >= 0 && col < tableModel.getColumnCount()) {
             return tableModel.getValueAt(row, col);
         }
-        return null; // Or throw an exception
+        return null;
     }
 
-    // Method to remove a row visually - Model is updated by logic
     public void removeTableRow(int viewRow) {
-        // Important: Convert view row index to model row index if sorting/filtering is enabled
-        // For now, assuming a direct mapping if no complex sorting/filtering is active on the JTable itself
         int modelRow = table.convertRowIndexToModel(viewRow);
-        // The logic class should ideally handle model changes.
-        // This might be redundant if logic already removed from the model it passed.
-        // Let's assume logic handles the model, and we just need to know it changed.
-        // tableModel.fireTableRowsDeleted(modelRow, modelRow); // Or let logic fire this
+        // Logic class handles removing from the actual model
     }
-
 
     public String getSearchText() {
         String text = searchField.getText();
-        return text.equals("Search here:") ? "" : text; // Return empty if placeholder
+        return text.equals("Search here:") ? "" : text;
     }
 
     public void setSearchText(String text) {
@@ -223,14 +212,12 @@ public class CatalogView {
     }
 
     public JTable getTable() {
-        return table; // Needed by FuzzyFinder potentially
+        return table;
     }
 
     public void resetFilters() {
         provinceComboBox.setSelectedIndex(0);
         typeComboBox.setSelectedIndex(0);
-        // Resetting search text might also be desired here
-        // setSearchText(""); // Uncomment if you want to clear search on filter reset
     }
 
     public void showMessage(String message) {
@@ -241,22 +228,32 @@ public class CatalogView {
         JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    // --- Details Popup ---
-    public void displayDetailsWindow(String id, String name, String city, String province, String category, URL imageFile) {
+    // --- Details Popup (Modified) ---
+    /**
+     * Displays a popup window with location details and an image loaded from a URL.
+     *
+     * @param id         The location ID.
+     * @param name       The location name.
+     * @param city       The location city.
+     * @param province   The location province.
+     * @param category   The location category.
+     * @param imageURL   The URL pointing to the image resource (can be null).
+     */
+    public void displayDetailsWindow(String id, String name, String city, String province, String category, URL imageURL) { // Changed parameter type
         JFrame detailsFrame = new JFrame("Location Details: " + name);
-        detailsFrame.setSize(450, 450); // Adjusted size
-        detailsFrame.setLayout(new BorderLayout(10, 10)); // Added gaps
-        detailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Dispose only this window
+        detailsFrame.setSize(450, 450);
+        detailsFrame.setLayout(new BorderLayout(10, 10));
+        detailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Panel for text details
+        // Panel for text details (unchanged)
         JPanel textPanel = new JPanel();
-        textPanel.setLayout(new GridLayout(0, 1, 5, 5)); // Flexible rows, add gaps
-        textPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
+        textPanel.setLayout(new GridLayout(0, 1, 5, 5));
+        textPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         textPanel.add(new JLabel("<html><b>Name:</b> " + name + "</html>"));
         textPanel.add(new JLabel("<html><b>City:</b> " + city + "</html>"));
         textPanel.add(new JLabel("<html><b>Province:</b> " + province + "</html>"));
         textPanel.add(new JLabel("<html><b>Category:</b> " + category + "</html>"));
-        textPanel.add(new JLabel("<html><b>ID:</b> " + id + "</html>")); // Show ID
+        textPanel.add(new JLabel("<html><b>ID:</b> " + id + "</html>"));
 
         // Image Label
         JLabel imageLabel = new JLabel();
@@ -264,10 +261,18 @@ public class CatalogView {
         imageLabel.setVerticalAlignment(SwingConstants.CENTER);
         imageLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        if (imageFile != null && imageFile.exists()) {
+        // --- Load image using URL ---
+        if (imageURL != null) { // Check if URL was found by logic
             try {
-                ImageIcon icon = new ImageIcon(imageFile.getAbsolutePath());
-                // Scale image proportionally to fit within bounds (e.g., 300x300)
+                // Create ImageIcon directly from the URL
+                ImageIcon icon = new ImageIcon(imageURL);
+
+                // Check if image loaded successfully (basic check)
+                if (icon.getIconWidth() <= 0 || icon.getIconHeight() <= 0) {
+                    throw new Exception("Image failed to load from URL (invalid format or dimensions).");
+                }
+
+                // Scale image proportionally (unchanged logic)
                 int maxWidth = 300;
                 int maxHeight = 300;
                 int imgWidth = icon.getIconWidth();
@@ -285,14 +290,18 @@ public class CatalogView {
                 imageLabel.setText(null); // Clear text if image is loaded
 
             } catch (Exception e) {
-                System.err.println("Error loading image: " + imageFile.getAbsolutePath() + " - " + e.getMessage());
+                // Catch potential errors during URL loading or ImageIcon creation
+                System.err.println("Error loading image from URL: " + imageURL + " - " + e.getMessage());
+                // Optionally log the stack trace: e.printStackTrace();
                 imageLabel.setText("Error loading image");
                 imageLabel.setIcon(null);
             }
         } else {
+            // If imageURL was null (not found by logic)
             imageLabel.setText("No Image Available");
             imageLabel.setIcon(null);
         }
+        // ---------------------------
 
         // Add components to frame
         detailsFrame.add(textPanel, BorderLayout.NORTH);
