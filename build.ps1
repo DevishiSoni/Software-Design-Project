@@ -18,10 +18,10 @@ $mavenCommand = "mvn"
 
 # Full path to the Launch4j Command-Line executable (launch4jc.exe)
 # !! IMPORTANT: UPDATE THIS PATH !!
-$launch4jCliPath = "C:\Program Files (x86)\Launch4j\launch4jc.exe" # <-- EXAMPLE PATH! Change this!
+$launch4jCliPath = "C:\Program Files (x86)\Launch4j\launch4jc.exe"
 
 # Path to your Launch4j configuration file (relative to $projectRoot)
-$launch4jConfig = Join-Path $projectRoot "build\launch4j.xml" #<-- ADJUST if your XML is elsewhere (e.g., "launch4j.xml")
+$launch4jConfig = Join-Path $projectRoot "build\launch4j.xml"
 
 # Expected location of the final JAR after Maven build (relative to $projectRoot)
 $fatJarPath = Join-Path $projectRoot "target\tourcat-1.0.jar"

@@ -8,6 +8,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.net.URL;
 
 public class CatalogView {
 
@@ -241,7 +242,7 @@ public class CatalogView {
     }
 
     // --- Details Popup ---
-    public void displayDetailsWindow(String id, String name, String city, String province, String category, File imageFile) {
+    public void displayDetailsWindow(String id, String name, String city, String province, String category, URL imageFile) {
         JFrame detailsFrame = new JFrame("Location Details: " + name);
         detailsFrame.setSize(450, 450); // Adjusted size
         detailsFrame.setLayout(new BorderLayout(10, 10)); // Added gaps

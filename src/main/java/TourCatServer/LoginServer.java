@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class LoginServer {
     private static final int PORT = 12345;
-    private static final String CREDENTIALS_FILE = "credentials.txt";
+    private static final String CREDENTIALS_FILE = "src/main/resources/credentials.txt";
     private static HashMap<String, String> credentials = new HashMap<>();
     private static Set<String> loggedInUsers = new HashSet<>(); // Track logged-in users
 
