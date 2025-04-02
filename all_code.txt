@@ -1,0 +1,2893 @@
+import TourCatGUI.HomePage;
+
+import javax.swing.*;
+
+
+public class MainApplication {
+
+
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatLightLaf");
+            System.out.println("FlatLaf Light theme applied successfully.");
+        } catch (Exception ex) { // Catch broader Exception is okay here for setup
+            System.err.println("Failed to initialize Flat LaF Dark theme:");
+            ex.printStackTrace();
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            new HomePage("DefaultUser"); // Or LoginWindow, etc.
+       });
+    }
+}
+package TourCatGUI;
+
+import TourCatGUI.Catalog.CatalogLogic;
+import TourCatGUI.Forms.AddFormLogic;
+import TourCatSystem.FileManager;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.net.Socket;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+
+public class HomePage extends JFrame {
+   private String loggedInUser;
+   JButton homeButton = new JButton("Home");
+   JButton login = new JButton("Login");
+   JButton catalogue = new JButton("Catalogue");
+   JButton add = new JButton("Add to Catalogue");
+   JButton logout = new JButton("Logout");
+
+   public HomePage(String username) {
+
+
+
+      loggedInUser = username;
+
+      JFrame frame = new JFrame("TourCat");
+      frame.setLayout(new BorderLayout());
+      frame.setBackground(Color.CYAN);
+      frame.getContentPane().setBackground(Color.WHITE);
+
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.setSize(1000, 500);
+
+      File skylineImg = FileManager.getInstance().getImageFile("torontoSkyline.jpg");
+      BackgroundPanel bgPanel = new BackgroundPanel(skylineImg.getAbsolutePath(), 0.75f);
+      bgPanel.setLayout(new GridBagLayout());
+      setContentPane(bgPanel);
+
+      JLabel welcomeLabel = new JLabel(getWelcomeMessage(), SwingConstants.CENTER);
+      welcomeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 36));
+      bgPanel.add(welcomeLabel);
+
+      GridBagConstraints gbc = new GridBagConstraints();
+      gbc.gridx = 0;
+      gbc.gridy = 50;
+      gbc.weightx = 1.0;
+      gbc.weighty = 1.0;
+      gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+      gbc.insets = new Insets(75, 50, 0, 0);
+
+      bgPanel.add(welcomeLabel, gbc);
+
+      JTextField searchBar = new JTextField(15);
+
+      JPanel topPanel = new JPanel(new BorderLayout());
+      JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+      Dimension buttonSize = new Dimension(120, 40);
+      homeButton.setPreferredSize(new Dimension(100, 40));
+      login.setPreferredSize(buttonSize);
+      catalogue.setPreferredSize(buttonSize);
+      add.setPreferredSize(new Dimension(140, 40));
+      logout.setPreferredSize(buttonSize);
+
+      login.setVisible(true);
+      logout.setVisible(false);
+
+      buttonPanel.add(homeButton);
+      buttonPanel.add(login);
+      buttonPanel.add(catalogue);
+      buttonPanel.add(add);
+      buttonPanel.add(logout);
+
+      // Add action listeners for login and logout buttons
+      login.addActionListener(e -> {
+         frame.setVisible(false);
+         SwingUtilities.invokeLater(() -> {
+            LoginGUI loginGUI = new LoginGUI();
+            loginGUI.setVisible(true);
+         });
+         dispose();
+         welcomeLabel.setText(getWelcomeMessage());
+      });
+
+      JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+      JButton searchButton = new JButton("Search");
+      searchPanel.add(searchBar);
+      searchPanel.add(searchButton);
+
+      topPanel.add(buttonPanel, BorderLayout.WEST);
+      topPanel.add(searchPanel, BorderLayout.EAST);
+
+      frame.add(topPanel, BorderLayout.NORTH);
+      frame.add(bgPanel, BorderLayout.CENTER);
+      frame.setVisible(true);
+
+      logout.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            if (loggedInUser == null) {
+               JOptionPane.showMessageDialog(HomePage.this, "No user is currently logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+               return;
+            }
+
+            try (Socket socket = new Socket("localhost", 12345);
+                 PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+               // Debug: Print the username being sent
+               System.out.println("Attempting to log out user: " + loggedInUser);
+
+               // Send logout request
+               writer.println("LOGOUT");
+               writer.println(loggedInUser); // Send the logged-in username
+
+               // Receive response from the server
+               String response = reader.readLine();
+               if ("LOGOUT_SUCCESS".equals(response)) {
+                  JOptionPane.showMessageDialog(HomePage.this, "Logout Successful!");
+                  loggedInUser = null; // Clear the logged-in user
+               } else {
+                  JOptionPane.showMessageDialog(HomePage.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+               }
+            } catch (IOException ex) {
+               ex.printStackTrace();
+            }
+            updateLoginLogoutUI();
+            welcomeLabel.setText(getWelcomeMessage());
+         }
+      });
+
+      add.addActionListener(e -> {
+         frame.setVisible(false);
+         dispose();
+         new AddFormLogic(username);
+      });
+
+      catalogue.addActionListener( e -> {
+         frame.setVisible(false);
+         dispose();
+         CatalogLogic cataLogic = new CatalogLogic(username);
+      });
+   }
+
+   public void updateLoginLogoutUI() {
+      if (loggedInUser == null) {
+         login.setVisible(true);
+         logout.setVisible(false);
+      } else {
+         login.setVisible(false);
+         logout.setVisible(true);
+      }
+   }
+
+   private String getWelcomeMessage() {
+      if (loggedInUser == null) {
+         return "Welcome to TourCat!";
+      } else {
+         return "Welcome to TourCat, " + loggedInUser + "!";
+      }
+   }
+}
+
+class BackgroundPanel extends JPanel {
+   private BufferedImage image;
+   private float alpha; // Transparency level (0.0 - 1.0)
+
+   public BackgroundPanel(String imagePath, float alpha) {
+      this.alpha = alpha;
+      try {
+         image = ImageIO.read(new File(imagePath));
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+
+   @Override
+   protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      if (image != null) {
+         Graphics2D g2d = (Graphics2D) g;
+         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+         g2d.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+      }
+   }
+
+   public static void main(String[] args) {
+      HomePage homePage = new HomePage("Username");
+   }
+}
+package TourCatGUI;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.net.Socket;
+
+public class LoginGUI extends JFrame {
+    public JTextField usernameField;
+    private JPasswordField passwordField;
+    private JButton loginButton;
+    private JButton registerButton;
+    //    private JButton logoutButton;
+    private String loggedInUser = null; // Track the logged-in user
+
+    public LoginGUI() {
+        // Set up the GUI
+        setTitle("TourCat - Login");
+        setSize(500, 250);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBackground(Color.CYAN);
+
+
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+
+        usernameField = new JTextField(15);
+        passwordField = new JPasswordField(15);
+        loginButton = new JButton("Login");
+        registerButton = new JButton("Register");
+//        logoutButton = new JButton("Logout");
+
+        JLabel welcome = new JLabel("Welcome to TourCat! Please login to start touring :)");
+        welcome.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
+        add(welcome);
+        add(new JLabel("Username:"));
+        add(usernameField);
+        add(new JLabel("Password:"));
+        add(passwordField);
+        add(loginButton);
+        add(registerButton);
+//        add(logoutButton);
+
+        // Disable logout button initially
+//        logoutButton.setEnabled(false);
+
+        // Add action listener for the login button
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                try (Socket socket = new Socket("localhost", 12345);
+                     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                    // Send login request
+                    writer.println("LOGIN");
+                    writer.println(username);
+                    writer.println(password);
+
+                    // Receive response from the server
+                    String response = reader.readLine();
+                    if ("LOGIN_SUCCESS".equals(response)) {
+                        loggedInUser = username; // Track the logged-in user
+                        JOptionPane.showMessageDialog(LoginGUI.this, "Login Successful!");
+                        loginButton.setEnabled(false);
+                        registerButton.setEnabled(false);
+                        loggedInUser = username;
+                        SwingUtilities.invokeLater(() -> {
+                            HomePage homePage = new HomePage(username);  // Open home screen
+                            homePage.updateLoginLogoutUI(); // Update buttons on the homepage
+                            dispose(); // Close login window
+                        });
+
+
+                    } else {
+                        JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        // Add action listener for the register button
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                try (Socket socket = new Socket("localhost", 12345);
+                     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                    // Send registration request
+                    writer.println("REGISTER");
+                    writer.println(username);
+                    writer.println(password);
+
+                    // Receive response from the server
+                    String response = reader.readLine();
+                    if ("REGISTRATION_SUCCESS".equals(response)) {
+                        JOptionPane.showMessageDialog(LoginGUI.this, "Registration Successful!");
+
+                        loggedInUser = username;
+                        SwingUtilities.invokeLater(() -> {
+                            HomePage homePage = new HomePage(username);  // Open home screen
+                            homePage.updateLoginLogoutUI(); // Update buttons on the homepage
+                            dispose(); // Close login window
+                        });
+
+                    } else {
+                        JOptionPane.showMessageDialog(LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        // Add action listener for the logout button
+//        logoutButton.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (loggedInUser == null) {
+//                    JOptionPane.showMessageDialog(TourCatGUI.LoginGUI.this, "No user is currently logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+//                    return;
+//                }
+//
+//                try (Socket socket = new Socket("localhost", 12345);
+//                     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+//                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+//
+//                    // Debug: Print the username being sent
+//                    System.out.println("Attempting to log out user: " + loggedInUser);
+//
+//                    // Send logout request
+//                    writer.println("LOGOUT");
+//                    writer.println(loggedInUser); // Send the logged-in username
+//
+//                    // Receive response from the server
+//                    String response = reader.readLine();
+//                    if ("LOGOUT_SUCCESS".equals(response)) {
+//                        JOptionPane.showMessageDialog(TourCatGUI.LoginGUI.this, "Logout Successful!");
+//                        loggedInUser = null; // Clear the logged-in user
+//                        loginButton.setEnabled(true);
+//                        registerButton.setEnabled(true);
+//                        logoutButton.setEnabled(false);
+//                    } else {
+//                        JOptionPane.showMessageDialog(TourCatGUI.LoginGUI.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+//                    }
+//                } catch (IOException ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        });
+    }
+
+    public static void main(String[] args) {
+        HomePage homePage = new HomePage(null);
+//        SwingUtilities.invokeLater(() -> {
+//            LoginGUI loginGUI = new LoginGUI();
+//            loginGUI.setVisible(true);
+//        });
+    }
+}
+package TourCatGUI.Catalog;
+
+import TourCatGUI.HomePage;
+import TourCatSystem.DatabaseManager;
+import TourCatSystem.FileManager;
+import TourCatSystem.Filter;
+import TourCatSystem.LocationReader;
+import com.opencsv.exceptions.CsvException;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class CatalogLogic {
+
+    private CatalogView gui; // Reference to the GUI
+    private String username;
+    private File dataBaseFile;
+    private DefaultTableModel tableModel;
+    private FuzzyFinder fuzzyFinder;
+    private Filter filter; // Reusable filter object
+
+    // Filter state
+    private String selectedProvince = null;
+    private String selectedType = null;
+
+    public CatalogLogic(String username) {
+        this.username = username;
+        this.dataBaseFile = FileManager.getInstance().getDatabaseFile();
+
+        this.filter = new Filter(dataBaseFile); // Initialize filter with the database file
+
+        // 1. Load initial data
+        loadInitialTableData();
+
+        // 2. Create the GUI, passing the model and this logic instance
+        this.gui = new CatalogView(username, this, tableModel);
+
+        // 3. Initialize components requiring GUI elements (like FuzzyFinder)
+        this.fuzzyFinder = new FuzzyFinder(gui.getTable());
+
+        // 4. Make the GUI visible
+        this.gui.setVisible(true);
+    }
+
+    // --- Data Loading and Management ---
+
+    private void loadInitialTableData() {
+        LocationReader reader = new LocationReader(dataBaseFile);
+        this.tableModel = reader.getTableModel();
+        // Column hiding logic can stay here or move to GUI, let's keep it near the reader
+        // We need a way to access the TableColumnModel *after* the GUI/JTable is created.
+        // Let's add a method for the GUI to call *after* table creation.
+    }
+
+    // Called by GUI after JTable is created
+    public void hideIdColumn(TableColumnModel columnModel) {
+        LocationReader.hideColumns(columnModel, new int[]{0}); // Assuming column 0 is ID
+    }
+
+    private void updateTableModel(ArrayList<String> results) {
+        // Clear existing data (important!)
+        tableModel.setRowCount(0);
+
+        // Get column names (assuming they don't change)
+        // String[] columnNames = ... ; // If needed, but DefaultTableModel handles this
+
+        if (results != null) {
+            for (String resultLine : results) {
+                if (resultLine != null && !resultLine.trim().isEmpty()) {
+                    String[] rowData = resultLine.split(","); // Assuming CSV
+                    // Basic validation: Ensure enough columns exist
+                    if (rowData.length >= tableModel.getColumnCount()) {
+                        // If ID is hidden but present in data, adjust indices or ensure model matches data structure
+                        tableModel.addRow(rowData);
+                    } else {
+                        System.err.println("Skipping malformed row: " + resultLine);
+                        // Optionally, pad with empty strings if necessary:
+                        // Object[] paddedRow = new Object[tableModel.getColumnCount()];
+                        // System.arraycopy(rowData, 0, paddedRow, 0, rowData.length);
+                        // java.util.Arrays.fill(paddedRow, rowData.length, paddedRow.length, "");
+                        // tableModel.addRow(paddedRow);
+                    }
+                }
+            }
+        }
+        // No need to call fireTableDataChanged if using addRow/setRowCount on DefaultTableModel
+    }
+
+
+    private ArrayList<String> readAllDataFromFile() {
+        ArrayList<String> allResults = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
+            String line;
+            boolean isFirstLine = true; // Assuming header row
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue; // Skip the header line
+                }
+                if (!line.trim().isEmpty()) { // Avoid adding blank lines
+                    allResults.add(line);
+                }
+            }
+        } catch (IOException ex) {
+            gui.showError("Error reading database file: " + ex.getMessage());
+            ex.printStackTrace(); // Log for debugging
+        }
+        return allResults;
+    }
+
+
+    // --- Action Handlers (Called by GUI listeners) ---
+
+    public void handleSearch(String searchText) {
+        // Avoid searching on the placeholder text
+        if (searchText != null && !searchText.equals("Search here:")) {
+            fuzzyFinder.performFuzzySearch(searchText);
+        } else {
+            // Optional: If search text is empty or placeholder, reset to show all (or filtered) results
+            handleFilterAction(); // Re-apply filters or show all if no filters active
+        }
+    }
+
+    public void handleReturnAction() {
+        new HomePage(username); // Assuming HomePage exists and works
+        gui.dispose();
+    }
+
+    public void handleViewAction() {
+        int selectedRow = gui.getSelectedRow();
+        if (selectedRow != -1) {
+            // Convert view index to model index in case of sorting/filtering
+            int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
+
+            // Get data using model index
+            String id = (String) tableModel.getValueAt(modelRow, 0); // Assumes ID is column 0
+            String name = (String) tableModel.getValueAt(modelRow, 1);
+            String city = (String) tableModel.getValueAt(modelRow, 2);
+            String province = (String) tableModel.getValueAt(modelRow, 3);
+            String category = (String) tableModel.getValueAt(modelRow, 4);
+
+            // Find the corresponding image file
+            File imageFile = FileManager.getInstance().getImageFile(id + ".png");
+            if (!imageFile.exists()) {
+                imageFile = FileManager.getInstance().getImageFile(id + ".jpg");
+            }
+            // If neither exists, imageFile will point to the non-existent .jpg path
+
+            // Ask GUI to display the details window
+            gui.displayDetailsWindow(id, name, city, province, category, imageFile);
+
+        } else {
+            gui.showMessage("Please select a location from the table to view details.");
+        }
+    }
+
+    public void handleDeleteAction() {
+        int selectedRow = gui.getSelectedRow();
+        if (selectedRow != -1) {
+            // Show confirmation dialog
+            int confirmation = JOptionPane.showConfirmDialog(
+                    gui.frame, // Parent component
+                    "Are you sure you want to delete this location?\n" + tableModel.getValueAt(gui.getTable().convertRowIndexToModel(selectedRow), 1), // Message showing name
+                    "Confirm Deletion", // Title
+                    JOptionPane.YES_NO_OPTION, // Options
+                    JOptionPane.WARNING_MESSAGE // Icon
+            );
+
+            if (confirmation == JOptionPane.YES_OPTION) {
+                int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
+                String selectedRowID = (String) tableModel.getValueAt(modelRow, 0); // Assumes ID is column 0
+
+
+                DatabaseManager databaseManager = null;
+                try {
+                    databaseManager = new DatabaseManager(dataBaseFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                boolean success = false;
+                try {
+                    databaseManager.deleteById(selectedRowID);
+                } catch (IOException | DatabaseManager.RecordNotFoundException | CsvException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (success) {
+                    // Remove row from the model (this will update the JTable)
+                    tableModel.removeRow(modelRow);
+                    gui.showMessage("Location deleted successfully.");
+                } else {
+                    gui.showError("Failed to delete the location from the database file.");
+                }
+            }
+        } else {
+            gui.showMessage("Please select a location from the table to delete.");
+        }
+    }
+
+    public void handleFilterAction() {
+        filter.reset(); // Clear previous filter results within the Filter object
+
+        boolean provinceSelected = selectedProvince != null && !selectedProvince.isEmpty();
+        boolean typeSelected = selectedType != null && !selectedType.isEmpty();
+
+        if (provinceSelected && typeSelected) {
+            filter.filterBoth(selectedProvince, selectedType);
+        } else if (provinceSelected) {
+            filter.filterProvince(selectedProvince);
+        } else if (typeSelected) {
+            filter.filterType(selectedType);
+        } else {
+            // No filters selected, show all data
+            ArrayList<String> allData = readAllDataFromFile();
+            updateTableModel(allData);
+            // Optionally show a message if you *require* a filter to be selected
+            // gui.showMessage("Please select at least one filter option or reset filters.");
+            return; // Exit after showing all data
+        }
+
+        // Get results from the filter and update the table model
+        ArrayList<String> results = filter.getResults();
+        updateTableModel(results);
+
+        if(results.isEmpty()){
+            gui.showMessage("No locations match the selected filters.");
+        }
+    }
+
+    public void handleResetAction() {
+        // 1. Clear filter state in logic
+        selectedProvince = null;
+        selectedType = null;
+
+        // 2. Tell GUI to reset combo boxes and potentially search field
+        gui.resetFilters();
+
+        // 3. Reload all data from the file
+        ArrayList<String> allResults = readAllDataFromFile();
+
+        // 4. Update the table model
+        updateTableModel(allResults);
+
+        // 5. Clear any active JTable sorting/filtering (if FuzzyFinder or JTable itself adds it)
+        gui.getTable().setRowSorter(null); // Remove sorter temporarily
+        fuzzyFinder = new FuzzyFinder(gui.getTable()); // Recreate FuzzyFinder with the fresh table state
+
+        gui.showMessage("Filters reset. Showing all locations.");
+    }
+
+
+    // --- State Update Methods (Called by GUI listeners) ---
+
+    public void updateSelectedProvince(String province) {
+        this.selectedProvince = province; // Store null if "Select Province" was chosen
+    }
+
+    public void updateSelectedType(String type) {
+        this.selectedType = type; // Store null if "Select Type" was chosen
+    }
+}
+package TourCatGUI.Catalog;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.File;
+
+public class CatalogView {
+
+    private CatalogLogic logic; // Reference to the logic class
+    private String username;
+
+    // --- GUI Components ---
+    JFrame frame;
+    JTable table;
+    DefaultTableModel tableModel; // Model managed by logic, but GUI needs reference
+    JTextField searchField;
+    JButton viewButton;
+    JButton returnButton;
+    JButton deleteButton;
+    JButton filterButton;
+    JButton resetButton;
+    JComboBox<String> provinceComboBox;
+    JComboBox<String> typeComboBox;
+    JScrollPane scrollPane;
+    JPanel rightPanel;
+    JPanel filterPanel;
+    JPanel topPanel;
+    JLabel filterBy;
+
+    // Constructor takes username, logic instance, and the table model
+    CatalogView(String username, CatalogLogic logic, DefaultTableModel tableModel) {
+        this.username = username;
+        this.logic = logic;
+        this.tableModel = tableModel; // Use the model created by logic
+
+        initComponents();
+        layoutComponents();
+        attachListeners();
+
+        // Initial setup
+        searchField.setText("Search here:"); // Initial placeholder
+        logic.hideIdColumn(table.getColumnModel()); // Ask logic to hide column
+    }
+
+    // --- Initialization Helper ---
+    private void initComponents() {
+        frame = new JFrame("Tour Catalog - " + username);
+        table = new JTable(tableModel); // Use the provided model
+        scrollPane = new JScrollPane(table);
+        searchField = new JTextField();
+        viewButton = new JButton("View Details");
+        returnButton = new JButton("Return To Homepage");
+        deleteButton = new JButton("Delete Location");
+        filterButton = new JButton("Apply Filters");
+        resetButton = new JButton("Reset Filters");
+        rightPanel = new JPanel();
+        filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        topPanel = new JPanel(new BorderLayout());
+        filterBy = new JLabel("Filter By:");
+
+        // Province ComboBox Setup
+        provinceComboBox = new JComboBox<>();
+        provinceComboBox.addItem("Select Province");
+        provinceComboBox.addItem("Ontario");
+        provinceComboBox.addItem("Quebec");
+        provinceComboBox.addItem("British Columbia");
+        provinceComboBox.addItem("Alberta");
+        provinceComboBox.addItem("Manitoba");
+        provinceComboBox.addItem("Saskatchewan");
+        provinceComboBox.addItem("Nova Scotia");
+        provinceComboBox.addItem("New Brunswick");
+        provinceComboBox.addItem("Prince Edward Island");
+        provinceComboBox.addItem("Newfoundland and Labrador");
+        // Add more provinces as needed
+
+        // Type ComboBox Setup
+        typeComboBox = new JComboBox<>();
+        typeComboBox.addItem("Select Type");
+        typeComboBox.addItem("Park");
+        typeComboBox.addItem("Waterfall");
+        typeComboBox.addItem("Historic Site");
+        typeComboBox.addItem("Landmark");
+        // Add more types as needed
+    }
+
+    // --- Layout Helper ---
+    private void layoutComponents() {
+        // Frame setup
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
+        frame.setLayout(new BorderLayout());
+
+        // Right Panel (Buttons)
+        rightPanel.setLayout(new GridLayout(5, 1, 5, 10)); // Added gaps
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
+        rightPanel.add(returnButton);
+        rightPanel.add(viewButton);
+        rightPanel.add(deleteButton);
+        // Add some spacing if needed, or adjust GridLayout
+
+        // Filter Panel
+        filterPanel.add(filterBy);
+        filterPanel.add(provinceComboBox);
+        filterPanel.add(typeComboBox);
+        filterPanel.add(filterButton);
+        filterPanel.add(resetButton);
+        filterPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Padding
+
+        // Top Panel (Search + Filters)
+        topPanel.add(searchField, BorderLayout.NORTH);
+        topPanel.add(filterPanel, BorderLayout.CENTER); // Changed to CENTER for better fit
+
+        // Add components to frame
+        frame.add(topPanel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+        frame.add(rightPanel, BorderLayout.EAST);
+
+        frame.setLocationRelativeTo(null); // Center on screen
+    }
+
+    // --- Listener Setup Helper ---
+    private void attachListeners() {
+        // Search field placeholder text behavior
+        searchField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (searchField.getText().equals("Search here:")) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK); // Reset text color
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText("Search here:");
+                    searchField.setForeground(Color.GRAY); // Set placeholder color
+                }
+            }
+        });
+        searchField.setForeground(Color.GRAY); // Initial placeholder color
+
+        // Search key listener - delegates to logic
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                logic.handleSearch(searchField.getText());
+            }
+        });
+
+        // Button listeners - delegate to logic
+        viewButton.addActionListener(e -> logic.handleViewAction());
+        returnButton.addActionListener(e -> logic.handleReturnAction());
+        deleteButton.addActionListener(e -> logic.handleDeleteAction());
+        filterButton.addActionListener(e -> logic.handleFilterAction());
+        resetButton.addActionListener(e -> logic.handleResetAction());
+
+        // ComboBox listeners - update logic's state
+        provinceComboBox.addActionListener(e -> {
+            String selection = (String) provinceComboBox.getSelectedItem();
+            logic.updateSelectedProvince(selection.equals("Select Province") ? null : selection);
+        });
+
+        typeComboBox.addActionListener(e -> {
+            String selection = (String) typeComboBox.getSelectedItem();
+            logic.updateSelectedType(selection.equals("Select Type") ? null : selection);
+        });
+    }
+
+    // --- Methods called by Logic to update GUI ---
+
+    public void setVisible(boolean visible) {
+        frame.setVisible(visible);
+    }
+
+    public void dispose() {
+        frame.dispose();
+    }
+
+    public int getSelectedRow() {
+        return table.getSelectedRow();
+    }
+
+    public Object getValueAt(int row, int col) {
+        // Ensure row/col are valid before accessing model directly
+        if (row >= 0 && row < tableModel.getRowCount() && col >= 0 && col < tableModel.getColumnCount()) {
+            return tableModel.getValueAt(row, col);
+        }
+        return null; // Or throw an exception
+    }
+
+    // Method to remove a row visually - Model is updated by logic
+    public void removeTableRow(int viewRow) {
+        // Important: Convert view row index to model row index if sorting/filtering is enabled
+        // For now, assuming a direct mapping if no complex sorting/filtering is active on the JTable itself
+        int modelRow = table.convertRowIndexToModel(viewRow);
+        // The logic class should ideally handle model changes.
+        // This might be redundant if logic already removed from the model it passed.
+        // Let's assume logic handles the model, and we just need to know it changed.
+        // tableModel.fireTableRowsDeleted(modelRow, modelRow); // Or let logic fire this
+    }
+
+
+    public String getSearchText() {
+        String text = searchField.getText();
+        return text.equals("Search here:") ? "" : text; // Return empty if placeholder
+    }
+
+    public void setSearchText(String text) {
+        searchField.setText(text);
+        if (text.isEmpty() || text.equals("Search here:")) {
+            searchField.setText("Search here:");
+            searchField.setForeground(Color.GRAY);
+        } else {
+            searchField.setForeground(Color.BLACK);
+        }
+    }
+
+    public JTable getTable() {
+        return table; // Needed by FuzzyFinder potentially
+    }
+
+    public void resetFilters() {
+        provinceComboBox.setSelectedIndex(0);
+        typeComboBox.setSelectedIndex(0);
+        // Resetting search text might also be desired here
+        // setSearchText(""); // Uncomment if you want to clear search on filter reset
+    }
+
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(frame, message, "Information", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void showError(String message) {
+        JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    // --- Details Popup ---
+    public void displayDetailsWindow(String id, String name, String city, String province, String category, File imageFile) {
+        JFrame detailsFrame = new JFrame("Location Details: " + name);
+        detailsFrame.setSize(450, 450); // Adjusted size
+        detailsFrame.setLayout(new BorderLayout(10, 10)); // Added gaps
+        detailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Dispose only this window
+
+        // Panel for text details
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new GridLayout(0, 1, 5, 5)); // Flexible rows, add gaps
+        textPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
+        textPanel.add(new JLabel("<html><b>Name:</b> " + name + "</html>"));
+        textPanel.add(new JLabel("<html><b>City:</b> " + city + "</html>"));
+        textPanel.add(new JLabel("<html><b>Province:</b> " + province + "</html>"));
+        textPanel.add(new JLabel("<html><b>Category:</b> " + category + "</html>"));
+        textPanel.add(new JLabel("<html><b>ID:</b> " + id + "</html>")); // Show ID
+
+        // Image Label
+        JLabel imageLabel = new JLabel();
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
+        imageLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        if (imageFile != null && imageFile.exists()) {
+            try {
+                ImageIcon icon = new ImageIcon(imageFile.getAbsolutePath());
+                // Scale image proportionally to fit within bounds (e.g., 300x300)
+                int maxWidth = 300;
+                int maxHeight = 300;
+                int imgWidth = icon.getIconWidth();
+                int imgHeight = icon.getIconHeight();
+
+                if (imgWidth > maxWidth || imgHeight > maxHeight) {
+                    double scale = Math.min((double) maxWidth / imgWidth, (double) maxHeight / imgHeight);
+                    int scaledWidth = (int) (imgWidth * scale);
+                    int scaledHeight = (int) (imgHeight * scale);
+                    Image scaledImage = icon.getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+                    imageLabel.setIcon(new ImageIcon(scaledImage));
+                } else {
+                    imageLabel.setIcon(icon); // Use original size if small enough
+                }
+                imageLabel.setText(null); // Clear text if image is loaded
+
+            } catch (Exception e) {
+                System.err.println("Error loading image: " + imageFile.getAbsolutePath() + " - " + e.getMessage());
+                imageLabel.setText("Error loading image");
+                imageLabel.setIcon(null);
+            }
+        } else {
+            imageLabel.setText("No Image Available");
+            imageLabel.setIcon(null);
+        }
+
+        // Add components to frame
+        detailsFrame.add(textPanel, BorderLayout.NORTH);
+        detailsFrame.add(imageLabel, BorderLayout.CENTER);
+
+        detailsFrame.setLocationRelativeTo(frame); // Center relative to main window
+        detailsFrame.setVisible(true);
+    }
+}
+package TourCatGUI.Catalog;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.*;
+import java.util.List;
+import java.util.regex.PatternSyntaxException;
+
+public class FuzzyFinder { // Renaming might be good later if not using fuzzy logic
+
+    private final JTable table;
+    private final TableRowSorter<DefaultTableModel> sorter;
+    // Define which columns are searchable (using their MODEL indices)
+    // Example: Assuming 0=ID, 1=Name, 2=City, 3=Province, 4=Category
+    private final List<Integer> searchableColumns = List.of(1, 2, 3, 4); // Exclude ID column (index 0)
+
+    /**
+     * Creates a finder/filterer for the given JTable.
+     * It sets up a TableRowSorter to enable dynamic filtering.
+     *
+     * @param table The JTable to apply filtering to.
+     */
+    public FuzzyFinder(JTable table) {
+        this.table = table;
+        if (!(table.getModel() instanceof DefaultTableModel)) {
+            throw new IllegalArgumentException("FuzzyFinder requires a DefaultTableModel for the JTable.");
+        }
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        this.sorter = new TableRowSorter<>(model);
+        this.table.setRowSorter(sorter);
+    }
+
+    /**
+     * Applies a filter to the table based on the query string.
+     * Rows are included if the query (case-insensitive) is found as a substring
+     * in any of the searchable columns.
+     *
+     * @param query The text to search for. If empty or null, the filter is cleared.
+     */
+    public void performFuzzySearch(String query) {
+        final String preparedQuery = (query == null) ? "" : query.trim().toLowerCase();
+
+        if (preparedQuery.isEmpty()) {
+            // If query is empty, remove the filter to show all rows
+            sorter.setRowFilter(null);
+        } else {
+            try {
+                // Create a RowFilter that checks designated columns for the query substring
+                RowFilter<DefaultTableModel, Integer> rowFilter = new RowFilter<>() {
+                    @Override
+                    public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                        // Iterate only through the searchable columns defined earlier
+                        for (int colIndex : searchableColumns) {
+                            // Ensure the column index is valid for the current row entry
+                            if (colIndex >= 0 && colIndex < entry.getValueCount()) {
+                                Object value = entry.getValue(colIndex);
+                                if (value != null) {
+                                    // Convert cell value to lowercase string and check for substring
+                                    String cellText = value.toString().toLowerCase();
+                                    if (cellText.contains(preparedQuery)) {
+                                        return true; // Match found in this row, include it
+                                    }
+                                }
+                            }
+                        }
+                        // No match found in any searchable column for this row
+                        return false;
+                    }
+                };
+                // Apply the filter
+                sorter.setRowFilter(rowFilter);
+
+            } catch (PatternSyntaxException e) {
+                // This catch block might be relevant if using regex-based filters in the future.
+                // For simple contains, it's less likely to be hit unless the query itself causes issues
+                // (highly unlikely for basic strings).
+                System.err.println("Error applying filter: " + e.getMessage());
+                sorter.setRowFilter(null); // Clear filter on error
+            }
+        }
+    }
+
+    // --- Optional: Alternative using Regex for more complex patterns ---
+    // (Uncomment and use this instead of the contains-based filter if needed)
+    /*
+    public void performRegexSearch(String query) {
+        final String preparedQuery = (query == null) ? "" : query.trim();
+
+        if (preparedQuery.isEmpty()) {
+            sorter.setRowFilter(null);
+        } else {
+            try {
+                // Create a case-insensitive regex pattern
+                // We escape the query to treat it literally unless you intend regex features
+                Pattern pattern = Pattern.compile(Pattern.quote(preparedQuery), Pattern.CASE_INSENSITIVE);
+
+                RowFilter<DefaultTableModel, Integer> rowFilter = new RowFilter<>() {
+                    @Override
+                    public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                        for (int colIndex : searchableColumns) {
+                            if (colIndex >= 0 && colIndex < entry.getValueCount()) {
+                                Object value = entry.getValue(colIndex);
+                                if (value != null) {
+                                    Matcher matcher = pattern.matcher(value.toString());
+                                    if (matcher.find()) { // Check if the pattern is found anywhere
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                };
+                sorter.setRowFilter(rowFilter);
+            } catch (PatternSyntaxException e) {
+                System.err.println("Invalid regex pattern: " + e.getMessage());
+                sorter.setRowFilter(null); // Clear filter on error
+            }
+        }
+    }
+    */
+
+    /**
+     * Clears any active filter, showing all rows.
+     */
+    public void clearFilter() {
+        sorter.setRowFilter(null);
+    }
+
+
+    // Example main method for basic testing (requires a visible JFrame)
+    public static void main(String[] args) {
+        // --- Setup Minimal GUI for Testing ---
+        JFrame frame = new JFrame("FuzzyFinder Test");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(600, 400);
+        frame.setLayout(new BorderLayout());
+
+        // Sample Data
+        String[] columnNames = {"ID", "Name", "City", "Type"};
+        Object[][] data = {
+                {"1", "Niagara Falls", "Niagara", "Waterfall"},
+                {"2", "CN Tower", "Toronto", "Landmark"},
+                {"3", "Stanley Park", "Vancouver", "Park"},
+                {"4", "Parliament Hill", "Ottawa", "Historic Site"},
+                {"5", "Old Quebec", "Quebec City", "Historic Site"},
+                {"6", "Lake Louise", "Banff", "Lake"},
+                {"7", "Signal Hill", "St. John's", "Historic Site"}
+        };
+
+        DefaultTableModel model = new DefaultTableModel(data, columnNames);
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Create the Finder instance AFTER table and model are set up
+        FuzzyFinder finder = new FuzzyFinder(table);
+        // IMPORTANT: Make sure finder's searchableColumns match your sample data indices
+        // finder.searchableColumns = List.of(1, 2, 3); // Adjust if needed
+
+        JTextField searchField = new JTextField();
+        searchField.addActionListener(e -> finder.performFuzzySearch(searchField.getText())); // Filter on Enter
+        searchField.putClientProperty("JTextField.placeholderText", "Type to search and press Enter...");
+
+
+        JButton clearButton = new JButton("Clear Filter");
+        clearButton.addActionListener(e -> {
+            searchField.setText("");
+            finder.clearFilter();
+        });
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(new JLabel("Search:"), BorderLayout.WEST);
+        topPanel.add(searchField, BorderLayout.CENTER);
+        topPanel.add(clearButton, BorderLayout.EAST);
+
+
+        frame.add(topPanel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        // --- End GUI Setup ---
+
+
+        // You can also test programmatically (though less visual)
+        System.out.println("Testing programmatically:");
+        finder.performFuzzySearch("Park");
+        System.out.println("Rows visible after searching 'Park': " + table.getRowCount()); // Shows filtered row count
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) {} // Pause
+
+        finder.performFuzzySearch("hiStoric");
+        System.out.println("Rows visible after searching 'hiStoric': " + table.getRowCount());
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) {} // Pause
+
+        finder.clearFilter();
+        System.out.println("Rows visible after clearing filter: " + table.getRowCount());
+    }
+}
+package TourCatGUI.Forms;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.io.File;
+
+public class AddFormGUI extends JFrame {
+
+    // Reference to the logic class
+    private final AddFormLogic logic;
+    private final String username; // Keep username if needed for cancel action
+
+    // --- GUI Components ---
+    JTextField nameField, cityField, provinceField, categoryField;
+    JButton submitButton, cancelButton, uploadImageButton;
+    JLabel submissionReplyLabel, imagePreviewLabel, introLabel;
+
+    // Constructor takes username and logic instance
+    public AddFormGUI(String username, AddFormLogic logic) {
+        this.username = username;
+        this.logic = logic;
+
+        initComponents();
+        layoutComponents();
+        attachListeners();
+
+        // Frame setup
+        setTitle("Add New Location");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Dispose instead of Exit
+        setLocationRelativeTo(null); // Center on screen
+        pack(); // Adjusts size to fit components
+    }
+
+    // --- Initialization Helper ---
+    private void initComponents() {
+        introLabel = new JLabel("Enter details for the new location:");
+        introLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 15));
+
+        nameField = new JTextField(25);
+        cityField = new JTextField(25);
+        provinceField = new JTextField(25);
+        categoryField = new JTextField(25);
+
+        submitButton = new JButton("Submit Location");
+        cancelButton = new JButton("Cancel");
+        uploadImageButton = new JButton("Choose Image...");
+
+        imagePreviewLabel = new JLabel();
+        imagePreviewLabel.setPreferredSize(new Dimension(150, 120));
+        imagePreviewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imagePreviewLabel.setVerticalAlignment(SwingConstants.CENTER);
+        imagePreviewLabel.setBorder(BorderFactory.createEtchedBorder()); // Use EtchedBorder
+        imagePreviewLabel.setText("No Image Selected");
+
+        submissionReplyLabel = new JLabel(" "); // Start with a space for layout stability
+        submissionReplyLabel.setFont(new Font("Trebuchet MS", Font.ITALIC, 12));
+        submissionReplyLabel.setForeground(Color.GRAY); // Default color
+    }
+
+    // --- Layout Helper ---
+    private void layoutComponents() {
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8); // Increased insets for spacing
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Row 0: Title
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.weightx = 1.0; // Allow title to expand horizontally
+        add(introLabel, gbc);
+        gbc.weightx = 0; // Reset weightx for labels
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Row 1: Landmark Name Label & Field
+        gbc.gridx = 0; gbc.gridy = 1;
+        add(new JLabel("Name:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; // Allow field to expand
+        add(nameField, gbc);
+        gbc.weightx = 0; // Reset
+
+        // Row 2: City Label & Field
+        gbc.gridx = 0; gbc.gridy = 2;
+        add(new JLabel("City:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        add(cityField, gbc);
+        gbc.weightx = 0;
+
+        // Row 3: Province Label & Field
+        gbc.gridx = 0; gbc.gridy = 3;
+        add(new JLabel("Province:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        add(provinceField, gbc);
+        gbc.weightx = 0;
+
+        // Row 4: Category Label & Field
+        gbc.gridx = 0; gbc.gridy = 4;
+        add(new JLabel("Category:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        add(categoryField, gbc);
+        gbc.weightx = 0;
+
+        // Row 5: Image Preview
+        gbc.gridx = 0; gbc.gridy = 5;
+        add(new JLabel("Image Preview:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; // Let preview take space
+        gbc.fill = GridBagConstraints.NONE; // Don't stretch image label itself
+        gbc.anchor = GridBagConstraints.CENTER; // Center preview
+        add(imagePreviewLabel, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Reset fill
+        gbc.anchor = GridBagConstraints.WEST; // Reset anchor
+        gbc.weightx = 0; // Reset weight
+
+        // Row 6: Upload Image Button
+        gbc.gridx = 1; gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.NONE; // Don't stretch button
+        gbc.anchor = GridBagConstraints.LINE_START; // Align button left within its cell
+        add(uploadImageButton, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Reset fill
+        gbc.anchor = GridBagConstraints.WEST; // Reset anchor
+
+        // Row 7: Submission Reply Label
+        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        add(submissionReplyLabel, gbc);
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
+
+        // Row 8: Buttons (using a sub-panel for better alignment)
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0)); // Align right
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(submitButton);
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.EAST; // Align panel right
+        add(buttonPanel, gbc);
+    }
+
+    // --- Listener Setup Helper ---
+    private void attachListeners() {
+        // Delegate actions to the logic class
+        submitButton.addActionListener(e -> logic.handleSubmitAction());
+        cancelButton.addActionListener(e -> logic.handleCancelAction());
+        uploadImageButton.addActionListener(e -> logic.handleUploadImageAction());
+    }
+
+    // --- Methods Called by Logic to Update GUI ---
+
+    /**
+     * Displays a file chooser for image selection.
+     * @return The selected File, or null if none was selected.
+     */
+    public File showImageFileChooser() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Choose an image");
+        // Filter for common image types
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "Images (JPG, PNG, GIF)", "jpg", "jpeg", "png", "gif");
+        fileChooser.setFileFilter(filter);
+        fileChooser.setAcceptAllFileFilterUsed(false); // Only allow specified image types
+
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile();
+        }
+        return null; // User cancelled or closed dialog
+    }
+
+    /**
+     * Sets the image preview label.
+     * @param icon The ImageIcon to display (should be appropriately scaled), or null to clear.
+     */
+    public void setImagePreview(ImageIcon icon) {
+        imagePreviewLabel.setIcon(icon);
+        if (icon == null) {
+            imagePreviewLabel.setText("No Image Selected");
+        } else {
+            imagePreviewLabel.setText(null); // Remove text when image is present
+        }
+    }
+
+    /**
+     * Updates the submission status label.
+     * @param message The message to display.
+     * @param isError True if the message represents an error (sets text color to red), false otherwise (green for success, gray for info).
+     */
+    public void setSubmissionReply(String message, boolean isError) {
+        submissionReplyLabel.setText(message);
+        if (isError) {
+            submissionReplyLabel.setForeground(Color.RED);
+        } else if (message.toLowerCase().contains("success")) {
+            submissionReplyLabel.setForeground(new Color(0, 128, 0)); // Dark Green
+        } else {
+            submissionReplyLabel.setForeground(Color.GRAY); // Default informational
+        }
+    }
+
+    /** Clears all input fields and the image preview. */
+    public void clearForm() {
+        nameField.setText("");
+        cityField.setText("");
+        provinceField.setText("");
+        categoryField.setText("");
+        setImagePreview(null); // Clear image preview
+        setSubmissionReply(" ", false); // Reset reply label
+    }
+
+    // --- Getters for Logic ---
+    public String getNameText() { return nameField.getText(); }
+    public String getCityText() { return cityField.getText(); }
+    public String getProvinceText() { return provinceField.getText(); }
+    public String getCategoryText() { return categoryField.getText(); }
+
+}
+package TourCatGUI.Forms;
+
+import TourCatGUI.HomePage;
+import TourCatSystem.DatabaseManager;
+import TourCatSystem.FileManager;
+import org.apache.commons.io.FilenameUtils; // Ensure this dependency is present
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+
+public class AddFormLogic {
+
+    private final AddFormGUI gui; // Reference to the GUI
+    private final String username;
+    private final File databaseFile;
+    private File selectedImage = null; // Holds the currently selected image file
+
+    private DatabaseManager databaseManager;
+
+    public AddFormLogic(String username) {
+        this.username = username;
+        this.databaseFile = FileManager.getInstance().getDatabaseFile();
+
+        try {
+            this.databaseManager = new DatabaseManager(databaseFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Create the GUI, passing this logic instance
+        this.gui = new AddFormGUI(username, this);
+
+        // Make the GUI visible
+        this.gui.setVisible(true);
+    }
+
+    // --- Action Handlers (Called by GUI listeners) ---
+
+    /** Handles the action when the 'Choose Image' button is clicked. */
+    public void handleUploadImageAction() {
+        File file = gui.showImageFileChooser();
+        if (file != null) {
+            this.selectedImage = file;
+            try {
+                // Create a scaled ImageIcon for the preview
+                ImageIcon originalIcon = new ImageIcon(selectedImage.getAbsolutePath());
+                Image scaledImage = originalIcon.getImage().getScaledInstance(
+                        150, 120, Image.SCALE_SMOOTH);
+                ImageIcon previewIcon = new ImageIcon(scaledImage);
+                gui.setImagePreview(previewIcon);
+                gui.setSubmissionReply("Image selected: " + file.getName(), false);
+            } catch (Exception e) {
+                // Handle potential errors loading the image
+                System.err.println("Error creating image preview: " + e.getMessage());
+                gui.setImagePreview(null); // Clear preview on error
+                gui.setSubmissionReply("Error loading image preview.", true);
+                this.selectedImage = null; // Invalidate selected image if preview failed
+            }
+        } else {
+            // User cancelled selection, optionally clear preview if needed
+            // gui.setImagePreview(null);
+            // this.selectedImage = null;
+            gui.setSubmissionReply("Image selection cancelled.", false);
+        }
+    }
+
+    /** Handles the action when the 'Submit' button is clicked. */
+    public void handleSubmitAction() {
+        // 1. Get data from GUI
+        String name = gui.getNameText().trim();
+        String city = gui.getCityText().trim();
+        String province = gui.getProvinceText().trim();
+        String category = gui.getCategoryText().trim();
+
+        // 2. Validate input
+        if (!isInputValid(name, city, province, category)) {
+            gui.setSubmissionReply("Validation Error: Please fill in Name, Province, and Category.", true);
+            return;
+        }
+
+        // 3. Prepare data for storage
+        String nextIdStr = generateNextId();
+        String[] newLocationData = new String[5];
+        newLocationData[0] = (nextIdStr);
+        newLocationData[1] = (name);
+        newLocationData[2] = (city); // Add city even if blank, handle in DB/display if needed
+        newLocationData[3] = (province);
+        newLocationData[4] = (category);
+        // Add other fields if your CSV structure requires them
+
+
+        // 4. Attempt to add data to the file
+        try {
+            DatabaseManager databaseManager = new DatabaseManager(databaseFile);
+            databaseManager.addRecord(newLocationData);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        // 5. Attempt to save the image (if selected)
+        boolean imageSaveSuccess = true; // Assume success if no image selected
+        if (selectedImage != null) {
+            imageSaveSuccess = saveImageResource(selectedImage, nextIdStr);
+            if (!imageSaveSuccess) {
+                // Warn user, but data might be saved already. Consider rollback?
+                gui.setSubmissionReply("Warning: Location data saved, but failed to save image file.", true);
+                // Don't clear the form yet, maybe user wants to retry image? Or clear partially?
+            }
+        }
+
+        // 6. Final success handling (if data and image saved)
+        if (imageSaveSuccess) {
+            gui.setSubmissionReply("Success: Location added to the database!", false);
+            gui.clearForm(); // Clear the form on full success
+            this.selectedImage = null; // Reset selected image state
+        }
+    }
+
+    /** Handles the action when the 'Cancel' button is clicked. */
+    public void handleCancelAction() {
+        // Assuming HomePage takes username and shows itself
+        new HomePage(username);
+        gui.dispose(); // Close the AddForm window
+    }
+
+
+    // --- Helper Methods ---
+
+    /**
+     * Generates the next sequential ID based on the current max ID in the database.
+     * @return The formatted ID string (e.g., "00015").
+     */
+    private String generateNextId() {
+        int maxId = this.databaseManager.getMaxId().getAsInt();
+        int nextId = maxId + 1;
+        return String.format("%05d", nextId); // Formats with leading zeros up to 5 digits
+    }
+
+    /**
+     * Validates the core required input fields.
+     * Basic check: Name, Province, Category must not be blank.
+     * @param name Name input
+     * @param city City input (optional in this validation)
+     * @param province Province input
+     * @param category Category input
+     * @return true if the essential input is valid, false otherwise.
+     */
+    public boolean isInputValid(String name, String city, String province, String category) {
+        // City is often optional, main requirement here is Name, Province, Category
+        return name != null && !name.isBlank() &&
+                province != null && !province.isBlank() &&
+                category != null && !category.isBlank();
+    }
+
+
+    /**
+     * Copies the selected image file to the application's image resource folder,
+     * renaming it based on the location's ID.
+     *
+     * @param sourceImageFile The image file selected by the user.
+     * @param locationId The ID assigned to the new location (used for filename).
+     * @return true if the image was copied successfully, false otherwise.
+     */
+    private boolean saveImageResource(File sourceImageFile, String locationId) {
+        try {
+            // Get the designated image resource folder
+            File destinationFolder = FileManager.getInstance().getImageResourceFolder(); // Use specific method
+
+            if (!destinationFolder.exists()) {
+                if (!destinationFolder.mkdirs()) {
+                    System.err.println("Error: Could not create image resource directory: " + destinationFolder.getAbsolutePath());
+                    return false;
+                }
+            }
+
+            // Determine the file extension
+            String extension = FilenameUtils.getExtension(sourceImageFile.getName());
+            if (extension == null || extension.isEmpty()) {
+                // Handle case with no extension? Maybe default to .jpg or skip?
+                System.err.println("Warning: Selected image has no extension. Cannot determine file type.");
+                extension = "jpg"; // Or return false / throw exception
+            }
+
+            // Create the destination filename (e.g., "00015.png")
+            String destinationFilename = locationId + "." + extension.toLowerCase();
+            File destinationFile = new File(destinationFolder, destinationFilename);
+
+            // Copy the file, replacing if it somehow already exists
+            Files.copy(sourceImageFile.toPath(), destinationFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            System.out.println("Image successfully saved to: " + destinationFile.getAbsolutePath());
+            return true;
+
+        } catch (IOException e) {
+            System.err.println("Error saving image file: " + e.getMessage());
+            e.printStackTrace(); // Log the full stack trace for debugging
+            return false;
+        } catch (Exception e) { // Catch unexpected errors
+            System.err.println("Unexpected error saving image: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Main method for testing this specific form (optional)
+    // Usually, the application starts from a central point (like MainApplication)
+    public static void main(String[] args) {
+
+        // Run the GUI on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> new AddFormLogic("TestUser"));
+    }
+}
+package TourCatServer;
+
+import java.io.*;
+import java.net.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+public class LoginServer {
+    private static final int PORT = 12345;
+    private static final String CREDENTIALS_FILE = "credentials.txt";
+    private static HashMap<String, String> credentials = new HashMap<>();
+    private static Set<String> loggedInUsers = new HashSet<>(); // Track logged-in users
+
+    public static void main(String[] args) {
+        // Load credentials from file at startup
+        loadCredentialsFromFile();
+
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("Server is listening on port " + PORT);
+
+            while (true) {
+                Socket socket = serverSocket.accept();
+                System.out.println("New client connected");
+
+                // Handle client in a separate thread
+                new ClientHandler(socket).start();
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // Load credentials from file
+    private static void loadCredentialsFromFile() {
+        try (BufferedReader br = new BufferedReader(new FileReader(CREDENTIALS_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length == 2) {
+                    credentials.put(parts[0], parts[1]);
+                }
+            }
+            System.out.println("Credentials loaded from file.");
+        } catch (IOException e) {
+            System.out.println("No credentials file found. Starting with an empty database.");
+        }
+    }
+
+    // Save credentials to file
+    private static void saveCredentialsToFile() {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(CREDENTIALS_FILE))) {
+            for (String username : credentials.keySet()) {
+                bw.write(username + ":" + credentials.get(username));
+                bw.newLine();
+            }
+            System.out.println("Credentials saved to file.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static class ClientHandler extends Thread {
+        private Socket socket;
+        private String username; // Track the username for this client
+
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        public void run() {
+            try (InputStream input = socket.getInputStream();
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                 OutputStream output = socket.getOutputStream();
+                 PrintWriter writer = new PrintWriter(output, true)) {
+
+                // Read the request type (LOGIN, REGISTER, or LOGOUT)
+                String requestType = reader.readLine();
+
+                if ("LOGIN".equals(requestType)) {
+                    // Handle login request
+                    handleLogin(reader, writer);
+                } else if ("REGISTER".equals(requestType)) {
+                    // Handle registration request
+                    handleRegistration(reader, writer);
+                } else if ("LOGOUT".equals(requestType)) {
+                    // Handle logout request
+                    handleLogout(reader,writer);
+                } else {
+                    writer.println("INVALID_REQUEST");
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } finally {
+                if (username != null && loggedInUsers.contains(username)) {
+                    System.out.println("Client disconnected: " + username);
+                }
+            }
+        }
+
+        private void handleLogin(BufferedReader reader, PrintWriter writer) throws IOException {
+            // Read username and password from client
+            username = reader.readLine();
+            String password = reader.readLine();
+
+            // Authenticate
+            if (credentials.containsKey(username) && credentials.get(username).equals(password)) {
+                if (!loggedInUsers.contains(username)) {
+                    loggedInUsers.add(username); // Mark user as logged in
+                    writer.println("LOGIN_SUCCESS");
+                    System.out.println("User logged in: " + username);
+                } else {
+                    writer.println("LOGIN_FAILED: User already logged in");
+                }
+            } else {
+                writer.println("LOGIN_FAILED: Invalid credentials");
+            }
+        }
+
+        private void handleRegistration(BufferedReader reader, PrintWriter writer) throws IOException {
+            // Read username and password from client
+            String newUsername = reader.readLine();
+            String newPassword = reader.readLine();
+
+            // Check if username already exists
+            if (credentials.containsKey(newUsername)) {
+                writer.println("REGISTRATION_FAILED: Username already exists");
+            } else {
+                // Add new user to credentials
+                credentials.put(newUsername, newPassword);
+                saveCredentialsToFile(); // Save updated credentials to file
+                writer.println("REGISTRATION_SUCCESS");
+                System.out.println("New user registered: " + newUsername);
+            }
+        }
+
+        private void handleLogout(BufferedReader reader, PrintWriter writer) throws IOException {
+            String usernameToLogout = reader.readLine(); // Read username from client
+
+            System.out.println("Received logout request for user: " + usernameToLogout);
+            System.out.println("Logged-in users before logout: " + loggedInUsers);
+
+            if (usernameToLogout != null && loggedInUsers.contains(usernameToLogout)) {
+                loggedInUsers.remove(usernameToLogout);
+                writer.println("LOGOUT_SUCCESS");
+                System.out.println("User logged out: " + usernameToLogout);
+            } else {
+                writer.println("LOGOUT_FAILED: User not logged in");
+            }
+        }
+
+    }
+}
+package TourCatSystem;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DatabaseFileReader {
+
+    private final File databaseFile;
+
+    public DatabaseFileReader(File databaseFile) {
+        if (databaseFile == null || !databaseFile.exists() || !databaseFile.isFile()) {
+            throw new IllegalArgumentException("Invalid database file provided: " +
+                    (databaseFile == null ? "null" : databaseFile.getAbsolutePath()));
+        }
+        this.databaseFile = databaseFile;
+    }
+
+    /**
+     * Reads all data lines (excluding the header) from the database file.
+     *
+     * @return A List of strings, each representing a data row from the file.  Returns an empty list on error.
+     */
+    public List<String> readAllDataLines() {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(databaseFile))) {
+            String line;
+            boolean isFirstLine = true;
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;  // Skip header
+                    continue;
+                }
+                if (!line.trim().isEmpty()) {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading database file: " + e.getMessage());
+            // Consider throwing a custom exception here
+        }
+        return lines;
+    }
+}
+package TourCatSystem;
+
+import com.opencsv.*;
+import com.opencsv.exceptions.CsvException; // Use CsvException for broader CSV errors
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.OptionalInt; // Good for returning optional numeric results
+
+/**
+ * Manages interaction with a location database stored in a CSV file.
+ * Provides methods to read, add, delete, and query location records.
+ * Each instance operates on a specific database file.
+ *
+ * CSV Structure Expected:
+ * - Column 0: ID (String, unique, typically numeric format like "00001")
+ * - Column 1: Name (String)
+ * - Column 2: City (String)
+ * - Column 3: Province (String)
+ * - Column 4: Category (String)
+ *
+ * Dependencies: OpenCSV library.
+ *
+ * Error Handling: Methods throw IOExceptions or CsvExceptions on failure.
+ *
+ * Author: Garrett (Refactored by AI Assistant)
+ * Version: 2.0
+ * Date: 2023-10-27 (Approx. refactor date)
+ */
+public class DatabaseManager {
+
+    // --- Constants for CSV Column Indices ---
+    private static final int ID_COLUMN = 0;
+    private static final int NAME_COLUMN = 1;
+    private static final int CITY_COLUMN = 2;
+    private static final int PROVINCE_COLUMN = 3;
+    private static final int CATEGORY_COLUMN = 4;
+    // Add more if needed, ensure this matches your actual file structure
+
+    private final File databaseFile;
+    private final CSVParser csvParser; // Reusable parser configuration
+
+    /**
+     * Creates a DatabaseManager instance for the specified CSV file.
+     *
+     * @param databaseFile The CSV file to manage. Must not be null.
+     * @throws IllegalArgumentException if databaseFile is null or not a file.
+     * @throws IOException if the file cannot be created or accessed appropriately.
+     */
+    public DatabaseManager(File databaseFile) throws IOException {
+        if (databaseFile == null) {
+            throw new IllegalArgumentException("Database file cannot be null.");
+        }
+        // Ensure the directory exists
+        File parentDir = databaseFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                throw new IOException("Could not create parent directory: " + parentDir.getAbsolutePath());
+            }
+        }
+        // Ensure the file exists (create if not) - Optional: you might want creation handled elsewhere
+        if (!databaseFile.exists()) {
+            try {
+                if (databaseFile.createNewFile()) {
+                    // Optionally write header row if creating a new file
+                    writeHeaderIfNotPresent();
+                    System.out.println("Created new database file: " + databaseFile.getAbsolutePath());
+                } else {
+                    throw new IOException("Could not create database file: " + databaseFile.getAbsolutePath());
+                }
+            } catch(SecurityException se) {
+                throw new IOException("Security exception creating file: " + databaseFile.getAbsolutePath(), se);
+            }
+        }
+        if (!databaseFile.isFile()) {
+            throw new IllegalArgumentException("Database path does not point to a valid file: " + databaseFile.getAbsolutePath());
+        }
+
+        this.databaseFile = databaseFile;
+
+        // Configure the parser once - assuming standard CSV, no quotes needed based on original code
+        this.csvParser = new CSVParserBuilder()
+                .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                // .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER) // Let parser handle quotes if they exist
+                .build();
+    }
+
+    /**
+     * Writes the header row if the database file is empty or newly created.
+     * @throws IOException if writing fails.
+     */
+    private void writeHeaderIfNotPresent() throws IOException {
+        if (databaseFile.length() == 0) { // Check if file is empty
+            try (ICSVWriter writer = createCsvWriter(false)) { // false = don't append
+                writer.writeNext(new String[]{"ID", "Name", "City", "Province", "Category"});
+            }
+        }
+    }
+
+
+    /**
+     * Helper to create a configured CSVWriter.
+     *
+     * @param append true to append to the file, false to overwrite.
+     * @return An configured ICSVWriter instance.
+     * @throws IOException If the writer cannot be created.
+     */
+    private ICSVWriter createCsvWriter(boolean append) throws IOException {
+        // Based on original code, NO_QUOTE_CHARACTER was used. Be cautious if data might contain commas.
+        // If data can contain commas or quotes, use DEFAULT_QUOTE_CHARACTER.
+        return new CSVWriterBuilder(new FileWriter(databaseFile, append))
+                .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER) // Adjust if needed
+                .withEscapeChar(CSVWriter.NO_ESCAPE_CHARACTER) // Adjust if needed
+                .withLineEnd(CSVWriter.DEFAULT_LINE_END)
+                .build();
+    }
+
+    /**
+     * Deletes a record from the CSV file based on its unique ID.
+     * This is generally safer and more reliable than deleting by name if IDs are unique.
+     *
+     * @param locationIdToDelete The ID of the location record to delete.
+     * @throws IOException  If file reading/writing fails.
+     * @throws CsvException If there's an error processing the CSV data.
+     * @throws RecordNotFoundException If no record with the specified ID is found.
+     */
+    public void deleteById(String locationIdToDelete) throws IOException, CsvException, RecordNotFoundException {
+        if (locationIdToDelete == null || locationIdToDelete.trim().isEmpty()) {
+            throw new IllegalArgumentException("Location ID to delete cannot be null or empty.");
+        }
+
+        List<String[]> allRows;
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(databaseFile)).withCSVParser(csvParser).build()) {
+            allRows = reader.readAll();
+        }
+
+        List<String[]> rowsToWrite = new ArrayList<>();
+        boolean found = false;
+        int expectedColumnCount = -1; // Track expected columns from header or first row
+
+        for (String[] row : allRows) {
+            if (row == null || row.length == 0) continue; // Skip empty lines
+
+            if (expectedColumnCount == -1) {
+                expectedColumnCount = row.length; // Set based on first valid row (usually header)
+            }
+
+            // Basic validation - Check against ID column
+            if (row.length > ID_COLUMN && locationIdToDelete.equals(row[ID_COLUMN])) {
+                found = true; // Found the record, don't add it to rowsToWrite
+            } else {
+                // Check for consistent column count if desired, otherwise just write valid rows
+                if(row.length != expectedColumnCount) {
+                    System.err.println("Warning: Row with inconsistent column count encountered: " + String.join(",", row));
+                    // Decide whether to skip or write these malformed rows
+                }
+                rowsToWrite.add(row);
+            }
+        }
+
+        if (!found) {
+            throw new RecordNotFoundException("Location with ID '" + locationIdToDelete + "' not found for deletion.");
+        }
+
+        // Overwrite the original file with the filtered rows
+        try (ICSVWriter writer = createCsvWriter(false)) { // false = overwrite
+            writer.writeAll(rowsToWrite);
+        }
+    }
+
+    /**
+     * Adds a new location record to the end of the CSV file.
+     *
+     * @param newLocationData An array representing the new location record.
+     *                        Must match the expected CSV structure (ID, Name, City, Province, Category).
+     * @throws IOException  If writing to the file fails.
+     * @throws IllegalArgumentException If newLocationData is null or has incorrect length.
+     */
+    public void addRecord(String[] newLocationData) throws IOException {
+        // Basic validation - adjust expected length if columns change
+        int expectedColumns = 5;
+        if (newLocationData == null || newLocationData.length < expectedColumns) {
+            throw new IllegalArgumentException("New location data is invalid or incomplete. Expected " + expectedColumns + " columns.");
+        }
+
+        // Ensure header exists before appending
+        writeHeaderIfNotPresent();
+
+        try (ICSVWriter writer = createCsvWriter(true)) { // true = append
+            writer.writeNext(newLocationData);
+        }
+    }
+
+
+    /**
+     * Finds the maximum numeric ID present in the ID column of the CSV file.
+     * Assumes IDs are stored as strings but represent integers.
+     *
+     * @return An OptionalInt containing the maximum ID, or empty if the file is empty,
+     *         has no valid IDs, or an error occurs.
+     */
+    public OptionalInt getMaxId() {
+        int maxId = -1;
+        boolean idFound = false;
+
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(databaseFile))
+                .withCSVParser(csvParser)
+                .withSkipLines(1) // Skip header row for max ID calculation
+                .build())
+        {
+            String[] nextLine;
+            while ((nextLine = reader.readNext()) != null) {
+                if (nextLine.length > ID_COLUMN && nextLine[ID_COLUMN] != null) {
+                    try {
+                        int id = Integer.parseInt(nextLine[ID_COLUMN].trim());
+                        if (id > maxId) {
+                            maxId = id;
+                            idFound = true;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Warning: Non-numeric ID encountered and skipped: " + nextLine[ID_COLUMN]);
+                        // Continue processing other rows
+                    }
+                }
+            }
+        } catch (IOException | CsvException e) {
+            System.err.println("Error reading file to determine max ID: " + e.getMessage());
+            return OptionalInt.empty(); // Return empty on error
+        }
+
+        return idFound ? OptionalInt.of(maxId) : OptionalInt.empty();
+    }
+
+
+    /**
+     * Reads all valid data rows from the CSV file (excluding the header).
+     *
+     * @return A List of String arrays, where each array represents a row.
+     * @throws IOException if file reading fails.
+     * @throws CsvException if CSV parsing fails.
+     */
+    public List<String[]> readAllRecords() throws IOException, CsvException {
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(databaseFile))
+                .withCSVParser(csvParser)
+                .withSkipLines(1) // Skip header row
+                .build())
+        {
+            return reader.readAll();
+        }
+    }
+
+
+    // --- Main method for basic testing (Consider using JUnit for proper testing) ---
+    public static void main(String[] args) {
+        try {
+            // 1. Get the file using FileManager (still okay for testing setup)
+            File testDbFile = FileManager.getInstance().getDatabaseFile(); // Use a test-specific file
+            System.out.println("Using test database: " + testDbFile.getAbsolutePath());
+
+            // 2. Create an instance of DatabaseManager
+            DatabaseManager dbManager = new DatabaseManager(testDbFile);
+
+            // 3. Test adding data
+            System.out.println("\n--- Testing Add ---");
+            try {
+                // Get next ID
+                int nextIdNum = dbManager.getMaxId().orElse(-1) + 1;
+                String nextId = String.format("%05d", nextIdNum);
+
+                String[] location1 = {nextId, "Test Landmark " + nextId, "Test City", "Test Province", "Test Category"};
+                dbManager.addRecord(location1);
+                System.out.println("Added: " + String.join(",", location1));
+
+                // Add another one
+                nextIdNum++;
+                nextId = String.format("%05d", nextIdNum);
+                String[] location2 = {nextId, "Another Test", "Anytown", "BC", "Park"};
+                dbManager.addRecord(location2);
+                System.out.println("Added: " + String.join(",", location2));
+
+            } catch (IOException e) {
+                System.err.println("Error during add test: " + e.getMessage());
+            }
+
+            // 4. Test reading data
+            System.out.println("\n--- Testing Read All ---");
+            try {
+                List<String[]> allData = dbManager.readAllRecords();
+                System.out.println("Read " + allData.size() + " records:");
+                for(String[] row : allData) {
+                    System.out.println("  " + String.join(" | ", row));
+                }
+            } catch (IOException | CsvException e) {
+                System.err.println("Error reading all records: " + e.getMessage());
+            }
+
+
+            // 5. Test Get Max ID
+            System.out.println("\n--- Testing Max ID ---");
+            OptionalInt maxIdOpt = dbManager.getMaxId();
+            if (maxIdOpt.isPresent()) {
+                System.out.println("Max ID found: " + maxIdOpt.getAsInt());
+            } else {
+                System.out.println("Max ID could not be determined (file empty or error).");
+            }
+
+            // 6. Test deleting data (use an ID known to exist from adding)
+            System.out.println("\n--- Testing Delete ---");
+            String idToDelete = String.format("%05d", dbManager.getMaxId().orElse(0)); // Get last added ID
+            if (!idToDelete.equals("00000")){ // Check if there was an ID to delete
+                try {
+                    System.out.println("Attempting to delete record with ID: " + idToDelete);
+                    dbManager.deleteById(idToDelete);
+                    System.out.println("Deletion successful for ID: " + idToDelete);
+
+                    // Verify deletion by reading again
+                    List<String[]> dataAfterDelete = dbManager.readAllRecords();
+                    System.out.println("Records after deletion: " + dataAfterDelete.size());
+                    // Optional: Check if ID is truly gone
+
+                } catch (RecordNotFoundException e) {
+                    System.err.println("Delete failed: " + e.getMessage());
+                } catch (IOException | CsvException e) {
+                    System.err.println("Error during delete test: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Skipping delete test as no valid max ID found to delete.");
+            }
+
+            // Test deleting non-existent ID
+            System.out.println("\n--- Testing Delete Non-Existent ---");
+            try {
+                String nonExistentId = "99999";
+                System.out.println("Attempting to delete record with ID: " + nonExistentId);
+                dbManager.deleteById(nonExistentId);
+                System.out.println("!!! This should not be printed if exception handling works !!!");
+            } catch (RecordNotFoundException e) {
+                System.out.println("Correctly caught expected error: " + e.getMessage());
+            } catch (IOException | CsvException e) {
+                System.err.println("Unexpected error during non-existent delete test: " + e.getMessage());
+            }
+
+
+        } catch (IOException e) {
+            System.err.println("Failed to initialize DatabaseManager for testing: " + e.getMessage());
+            e.printStackTrace();
+        } catch(IllegalArgumentException e) {
+            System.err.println("Configuration error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Custom exception for cases where a record lookup fails.
+     */
+    public static class RecordNotFoundException extends Exception {
+        public RecordNotFoundException(String message) {
+            super(message);
+        }
+    }
+}
+package TourCatSystem;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class FileManager {
+    // Static instance of the singleton
+    private static FileManager instance;
+
+    // Resource directory path
+    private Path resourceDirectory;
+
+    private final boolean testMode;  // Made final so it cannot be changed after initialization
+
+    // Private constructor with testMode parameter
+    private FileManager(boolean testMode) {
+        this.testMode = testMode;  // Assign testMode early
+
+        // Set resource directory based on mode
+        this.resourceDirectory = testMode
+                ? Paths.get("src", "test", "resources")
+                : Paths.get("src", "main", "resources");
+
+        // Create the directory if it doesn't exist
+        try {
+            if (!Files.exists(resourceDirectory)) {
+                Files.createDirectories(resourceDirectory);
+            }
+        } catch (IOException e) {
+            System.err.println("Error creating resource directory: " + e.getMessage());
+        }
+    }
+
+    // Method to get the singleton instance with specific mode
+    public static synchronized FileManager getInstance(boolean testMode) {
+        if (instance == null || instance.testMode != testMode) {
+            instance = new FileManager(testMode);
+        }
+        return instance;
+    }
+
+    // For backward compatibility, default to production mode
+    public static synchronized FileManager getInstance() {
+        return getInstance(instance != null && instance.testMode);
+    }
+
+    // Get resource directory as Path object
+    public Path getResourceDirectory() {
+        return resourceDirectory;
+    }
+
+    // Get resource directory as File object
+    public File getResourceDirectoryAsFile() {
+        return resourceDirectory.toFile();
+    }
+
+    // Get resource directory as String
+    public String getResourceDirectoryPath() {
+        return resourceDirectory.toString();
+    }
+
+    // Get a specific resource file or directory within the resource directory
+    public Path getResource(String resourceName) {
+        return resourceDirectory.resolve(resourceName);
+    }
+
+    // Set custom resource directory
+    public void setResourceDirectory(String directoryPath) {
+        this.resourceDirectory = Paths.get(directoryPath);
+
+        // Create the directory if it doesn't exist
+        try {
+            if (!Files.exists(resourceDirectory)) {
+                Files.createDirectories(resourceDirectory);
+            }
+        } catch (IOException e) {
+            System.err.println("Error creating resource directory: " + e.getMessage());
+        }
+    }
+
+    public File getImageResourceFolder()
+    {
+        return getResourceFile("image");
+    }
+
+    // Check if a resource exists
+    public boolean resourceExists(String resourceName) {
+        return Files.exists(getResource(resourceName));
+    }
+
+    // Get current mode
+    public boolean isTestMode() {
+        return testMode;
+    }
+
+    public File getResourceFile(String fileName)
+    {
+        return new File(getResourceDirectoryPath() + File.separator + fileName);
+    }
+
+    public File getImageFile(String imageName)
+    {
+        return getResourceFile("image" + File.separator + imageName);
+    }
+
+    public File getDatabaseFile()
+    {
+        return getResourceFile("database.csv");
+    }
+}
+package TourCatSystem;
+
+import java.io.*; // Import necessary IO classes
+import java.util.ArrayList;
+import java.util.List; // Use List interface
+
+public class Filter {
+    private final File databaseFile; // Make final, set in constructor
+    private ArrayList<String> results; // Store results here
+
+    // Define column indices (adjust if your CSV is different)
+    private static final int PROVINCE_COLUMN_INDEX = 3;
+    private static final int TYPE_COLUMN_INDEX = 4;
+
+    // Constructor takes the database file
+    public Filter(File databaseFile) {
+        if (databaseFile == null || !databaseFile.exists()) {
+            throw new IllegalArgumentException("Database file must exist and not be null.");
+        }
+        this.databaseFile = databaseFile;
+        this.results = new ArrayList<>();
+    }
+
+    // Method to read all relevant lines (excluding header)
+    private List<String> readAllLines() {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(databaseFile))) {
+            String line;
+            boolean isFirstLine = true;
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false; // Skip header
+                    continue;
+                }
+                if (!line.trim().isEmpty()) {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading database file in Filter: " + e.getMessage());
+            // Consider throwing a custom exception or returning empty list
+        }
+        return lines;
+    }
+
+    // Helper to safely get column data
+    private String getColumnData(String line, int columnIndex) {
+        if (line == null) return null;
+        String[] parts = line.split(","); // Simple CSV split
+        if (columnIndex >= 0 && columnIndex < parts.length) {
+            return parts[columnIndex].trim(); // Trim whitespace
+        }
+        return null; // Index out of bounds or bad split
+    }
+
+
+    // --- Filtering Methods ---
+
+    // Filter by Province only
+    public void filterProvince(String selectedProvince) {
+        results.clear();
+        if (selectedProvince == null || selectedProvince.trim().isEmpty()) {
+            return; // No filter applied if province is null/empty
+        }
+        List<String> allLines = readAllLines();
+        for (String line : allLines) {
+            String provinceInLine = getColumnData(line, PROVINCE_COLUMN_INDEX);
+            if (provinceInLine != null && provinceInLine.equalsIgnoreCase(selectedProvince.trim())) {
+                results.add(line);
+            }
+        }
+    }
+
+    // Filter by Type only
+    public void filterType(String selectedType) {
+        results.clear();
+        if (selectedType == null || selectedType.trim().isEmpty()) {
+            return; // No filter applied if type is null/empty
+        }
+        List<String> allLines = readAllLines();
+        for (String line : allLines) {
+            String typeInLine = getColumnData(line, TYPE_COLUMN_INDEX);
+            // Special handling for "Historic Site" possibly containing a comma
+            // A more robust CSV parser would be better here.
+            // Let's assume for now the simple split works or the data is clean.
+            if (typeInLine != null && typeInLine.equalsIgnoreCase(selectedType.trim())) {
+                results.add(line);
+            }
+        }
+    }
+
+    // Filter by Both Province and Type
+    public void filterBoth(String selectedProvince, String selectedType) {
+        results.clear();
+        if (selectedProvince == null || selectedProvince.trim().isEmpty() ||
+                selectedType == null || selectedType.trim().isEmpty()) {
+            // Maybe filter by the one that IS provided? Or require both?
+            // Current logic requires both. If only one provided, result is empty.
+            return;
+        }
+
+        List<String> allLines = readAllLines();
+        String targetProvince = selectedProvince.trim();
+        String targetType = selectedType.trim();
+
+        for (String line : allLines) {
+            String provinceInLine = getColumnData(line, PROVINCE_COLUMN_INDEX);
+            String typeInLine = getColumnData(line, TYPE_COLUMN_INDEX);
+
+            if (provinceInLine != null && provinceInLine.equalsIgnoreCase(targetProvince) &&
+                    typeInLine != null && typeInLine.equalsIgnoreCase(targetType)) {
+                results.add(line);
+            }
+        }
+    }
+
+    // Get results
+    public ArrayList<String> getResults() {
+        // Return a copy to prevent external modification? Optional.
+        // return new ArrayList<>(results);
+        return results;
+    }
+
+    // Reset filter results
+    public void reset() {
+        results.clear();
+        // Maybe also reset internal province/type state if they were instance vars
+    }
+
+    // Simple print method (mainly for testing)
+    public void printResults() {
+        if (results.isEmpty()) {
+            System.out.println("No matching results found for the last filter operation.");
+        } else {
+            System.out.println("Filter Results (" + results.size() + " items):");
+            for (String result : results) {
+                System.out.println(result);
+            }
+        }
+    }
+}
+package TourCatSystem;
+
+public class Landmark {
+    int ID;
+    String GeographicalName;
+    String LandmarkName;
+    String City;
+    PROVINCE Province;
+    String Category;
+
+    public enum PROVINCE {
+        ONTARIO,
+        QUEBEC,
+        BRITISH_COLUMBIA,
+        ALBERTA,
+        MANITOBA,
+        SASKATCHEWAN,
+        NOVA_SCOTIA,
+        NEW_BRUNSWICK,
+        PRINCE_EDWARD_ISLAND,
+        NEWFOUNDLAND_AND_LABRADOR,
+        NORTHWEST_TERRITORIES,
+        YUKON,
+        NUNAVUT
+    }
+
+    public enum CATEGORYTYPE{
+    }
+
+    Landmark(int ID, String GeoName, String LandmarkName, String city, PROVINCE PROVINCE, String category)
+    {
+        this.ID = ID;
+        this.GeographicalName = GeoName;
+        this.LandmarkName = LandmarkName;
+        this.City = city;
+        this.Province = PROVINCE;
+        this.Category = category;
+    }
+
+
+
+
+}
+
+package TourCatSystem;
+
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
+
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+//The location reader class will be the class responsible for reading from
+//the csv file.
+public class LocationReader {
+
+    private DefaultTableModel tableModel;
+
+    public LocationReader(File file)
+    {
+
+        try(CSVReader reader = new CSVReader(new FileReader(file))){
+
+            String[] header = reader.readNext();
+
+            tableModel = new DefaultTableModel();
+
+            if (header != null)
+            {
+                tableModel.setColumnIdentifiers(header);
+            }
+
+            String[] line;
+            while((line = reader.readNext()) != null)
+            {
+                tableModel.addRow(line);
+            }
+
+
+
+        } catch (IOException | CsvValidationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public DefaultTableModel getTableModel() {
+        return this.tableModel;
+    }
+
+    static void hideColumn(TableColumnModel tableColumnModel, int i){
+        tableColumnModel.getColumn(i).setMinWidth(0);
+        tableColumnModel.getColumn(i).setMaxWidth(0);
+        tableColumnModel.getColumn(i).setPreferredWidth(0);
+    }
+
+    public static void hideColumns(TableColumnModel tcm, int[] vals)
+    {
+        for(int i : vals)
+        {
+            hideColumn(tcm, i);
+        }
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+
+    }
+}
+package TourCatSystem;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Search {
+    public static ArrayList<String> search(File file, String query) {
+        ArrayList<String> results = new ArrayList<>();
+        boolean found = false;
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.toLowerCase().contains(query.toLowerCase())) {
+//                    System.out.println("Match: " + line);
+                    found = true;
+                    results.add(line);
+                }
+            }
+
+            if (!found) {
+//                System.out.println("No matches found.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return results;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+//        System.out.print("Search: ");
+        String input = scanner.nextLine();
+        scanner.close();
+
+        search(FileManager.getInstance().getDatabaseFile(), input);
+    }
+}
+import TourCatGUI.Forms.AddFormLogic; // Correct package if it moved
+import TourCatSystem.DatabaseManager;
+import TourCatSystem.FileManager; // Assuming this provides the test file path
+import com.opencsv.CSVReader; // For reading test file
+import com.opencsv.CSVWriter; // For writing test file
+import com.opencsv.exceptions.CsvException;
+import org.junit.jupiter.api.*; // Use JUnit 5 annotations
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import java.util.OptionalInt;
+
+import static org.junit.jupiter.api.Assertions.*; // Use JUnit 5 assertions
+
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class AddFormLogicTest_Adapted {
+
+    static Path testDirectory = Paths.get("test_data_add_adapted"); // Dedicated test directory
+    static Path testDatabasePath;
+    static File testDatabaseFile;
+
+    // Sample Header
+    static final String[] HEADER = {"ID", "Name", "City", "Province", "Category"};
+
+    static final String[] INITIAL_RECORD = {"00000", "Initial", "InitCity", "InitProv", "InitCat"};
+
+    @BeforeAll
+    static void setupClass() throws IOException {
+
+        Files.createDirectories(testDirectory);
+        // Rely on FileManager to provide the path for the test file name
+        testDatabaseFile = FileManager.getInstance(true) // Use testing mode if it helps isolate
+                .getResourceFile("testAddDB_Adapted.csv"); // Use a specific test file name
+        testDatabasePath = testDatabaseFile.toPath();
+
+        System.out.println("Test database path: " + testDatabasePath.toAbsolutePath());
+    }
+
+    @BeforeEach
+    void setupTest() throws IOException {
+
+        try (Writer writer = Files.newBufferedWriter(testDatabasePath, StandardCharsets.UTF_8);
+             CSVWriter csvWriter = new CSVWriter(writer,
+                     CSVWriter.DEFAULT_SEPARATOR,
+                     CSVWriter.NO_QUOTE_CHARACTER, // Match DatabaseManager config
+                     CSVWriter.NO_ESCAPE_CHARACTER,
+                     CSVWriter.DEFAULT_LINE_END)) {
+
+            csvWriter.writeNext(HEADER);
+            csvWriter.writeNext(INITIAL_RECORD); // Add initial record
+        }
+    }
+
+    @AfterEach
+    void tearDownTest() throws IOException {
+        Files.deleteIfExists(testDatabasePath);
+    }
+
+    @AfterAll
+    static void tearDownClass() throws IOException {
+        // Files.deleteIfExists(testDirectory);
+    }
+
+    // Helper to read CSV content for verification
+    private List<String[]> readCsvContent(File file) throws IOException, CsvException {
+        try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            CSVReader csvReader = new CSVReader(reader);
+            List<String[]> content = csvReader.readAll();
+            csvReader.close(); // Explicitly close reader
+            return content;
+        }
+    }
+
+    // Helper to simulate ID generation based on AddFormLogic's current implementation
+    // Needs the current file state. Handles the OptionalInt bug.
+    private String simulateGenerateNextId(File currentFile) throws IOException {
+        DatabaseManager tempDbManager = new DatabaseManager(currentFile); // Create temporary manager to check ID
+        OptionalInt maxIdOpt = tempDbManager.getMaxId();
+        if (!maxIdOpt.isPresent()) {
+            // This simulates the state where the original code would throw NoSuchElementException
+            // We handle it here to make the test runnable, but highlight the underlying issue.
+            System.err.println("TEST WARNING: Max ID not found, defaulting to 0. Original code might fail here.");
+            return String.format("%05d", 0); // Start from 0 if file was unexpectedly empty/invalid
+        }
+        int nextId = maxIdOpt.getAsInt() + 1;
+        return String.format("%05d", nextId);
+    }
+
+    // Helper to simulate the actual add action as performed in handleSubmitAction
+    // Creates a local DatabaseManager instance.
+    private void simulateAddRecordAction(String[] data, File file) throws IOException {
+        DatabaseManager localDbManager = new DatabaseManager(file); // Mimics local creation
+        localDbManager.addRecord(data);
+    }
+
+
+    @Test
+    @Order(1)
+    @DisplayName("[Adapted] Should add a valid record successfully")
+    void addValidRecordSuccess() throws IOException, CsvException {
+        // --- Input Data ---
+        String name = "New Landmark";
+        String city = "Test City";
+        String province = "ON";
+        String category = "Monument";
+        // We don't directly test image saving here, focus on CSV change
+
+        // --- Initial State ---
+        List<String[]> initialContent = readCsvContent(testDatabaseFile);
+        assertEquals(2, initialContent.size(), "Initial file should have header + 1 initial record"); // Header + Initial Record
+        String expectedNextIdStr = simulateGenerateNextId(testDatabaseFile); // Get expected ID based on current file
+
+        // --- Action (Simulate steps of handleSubmitAction for valid data) ---
+        String[] newLocationData = {
+                expectedNextIdStr, name, city, province, category
+        };
+        // Simulate the add action using the helper that mimics the flawed logic
+        assertDoesNotThrow(
+                () -> simulateAddRecordAction(newLocationData, testDatabaseFile),
+                "Simulated addRecord should not throw IO exception for valid data"
+        );
+
+        // --- Verification ---
+        List<String[]> finalContent = readCsvContent(testDatabaseFile);
+        assertEquals(3, finalContent.size(), "File should have header + initial record + 1 new data row");
+
+        // Verify the added row content (it will be the last row, index 2)
+        String[] addedRow = finalContent.get(2);
+        assertNotNull(addedRow, "Added row should not be null");
+        assertEquals(5, addedRow.length, "Added row should have 5 columns");
+        assertEquals(expectedNextIdStr, addedRow[0], "ID should be the next sequential ID");
+        assertEquals(name, addedRow[1], "Name should match input");
+        // ... check other columns ...
+        assertEquals(category, addedRow[4], "Category should match input");
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("[Adapted] Should increment Max ID after adding a record")
+    void newHighestIDTest() throws IOException, CsvException {
+        // --- Add a first record (simulated) ---
+        String firstId = simulateGenerateNextId(testDatabaseFile);
+        String[] firstData = {firstId, "First", "CityA", "ProvA", "CatA"};
+        simulateAddRecordAction(firstData, testDatabaseFile);
+        int idAfterFirstAdd = Integer.parseInt(firstId); // ID we just added
+
+        // --- Add a second record (simulated) ---
+        String secondId = simulateGenerateNextId(testDatabaseFile); // ID based on state *after* first add
+        String[] secondData = {secondId, "Second", "CityB", "ProvB", "CatB"};
+        simulateAddRecordAction(secondData, testDatabaseFile);
+        int idAfterSecondAdd = Integer.parseInt(secondId); // ID we just added
+
+        // --- Verification ---
+        assertEquals(idAfterFirstAdd + 1, idAfterSecondAdd, "ID after second add should be one greater than the first");
+
+        // Verify using DatabaseManager's getMaxId on the final state
+        DatabaseManager finalDbManager = new DatabaseManager(testDatabaseFile);
+        int finalMaxId = finalDbManager.getMaxId().orElse(-1);
+        assertEquals(idAfterSecondAdd, finalMaxId, "Final max ID in file should match the last added ID");
+    }
+
+
+    @Test
+    @Order(3)
+    @DisplayName("[Adapted] Should NOT add record for incomplete form data")
+    void addIncompleteRecordNoChange() throws IOException, CsvException {
+        // --- Input Data (Missing Name) ---
+        String name = ""; // Invalid according to isInputValid
+        String city = "Test City";
+        String province = "ON";
+        String category = "Monument";
+
+        // --- Initial State ---
+        List<String[]> initialContent = readCsvContent(testDatabaseFile);
+        assertEquals(2, initialContent.size(), "Initial file should have header + 1 record");
+
+        // --- Action (Simulate the validation check only) ---
+        // We need to access or replicate the isInputValid logic. Let's assume we can call it.
+        // If AddFormLogic needs an instance, create one temporarily ONLY for validation check.
+        // This is awkward due to the lack of a test constructor/static validation method.
+        boolean isValid;
+        try {
+            // Temporary instance just to call validation - less than ideal
+            AddFormLogic tempLogicForValidation = new AddFormLogic("test");
+            isValid = tempLogicForValidation.isInputValid(name, city, province, category);
+        } catch (Exception e) {
+            fail("Failed to create temporary AddFormLogic for validation", e);
+            return; // Keep compiler happy
+        }
+
+        assertFalse(isValid, "isInputValid should return false for incomplete data");
+
+        // --- Verification ---
+        // Since validation failed, handleSubmitAction would return. No addRecord is called.
+        // Verify the file hasn't changed.
+        List<String[]> finalContent = readCsvContent(testDatabaseFile);
+        assertEquals(2, finalContent.size(), "File should still have header + 1 record after failed validation");
+        // Use deep array comparison
+        assertLinesMatch(initialContent.stream().map(Arrays::toString),
+                finalContent.stream().map(Arrays::toString), // Compare string representations for simplicity here
+                "File content should not change on validation failure");
+    }
+
+    // --- Image Test remains largely the same, relying on file system ---
+//    @Test
+//    @Order(4)
+//    @DisplayName("[Adapted] Should attempt to save image when provided (basic check)")
+//    void addRecordWithImage() throws IOException {
+//        // --- Setup: Create a dummy image file ---
+//
+//
+//
+//        Path dummyImagePath = testDirectory.resolve("dummyImage_adapted.png");
+//
+//        Path newDummyImage = dummyImagePath.resolveSibling("newDummy.png");
+//
+//        Files.createFile(newDummyImage);
+//
+//        File dummyImageFile = dummyImagePath.toFile();
+//
+//        // --- Input Data ---
+//        String name = "Image Landmark Adapted";
+//        String city = "Img City";
+//        String province = "BC";
+//        String category = "Viewpoint";
+//
+//        // --- Action (Simulate adding the record first) ---
+//        String expectedImageId = simulateGenerateNextId(testDatabaseFile); // Get ID before adding
+//        String[] data = {expectedImageId, name, city, province, category};
+//        simulateAddRecordAction(data, testDatabaseFile); // Add the CSV record
+//
+//        // --- Simulate image saving (call saveImageResource) ---
+//        // Need an AddFormLogic instance to call the private method. Create one.
+//        boolean imageSaveAttempted;
+//        boolean imageSaveSuccess;
+//        try {
+//            AddFormLogic tempLogicForImage = new AddFormLogic("tempuser.");
+//            // We cannot call the private saveImageResource directly.
+//            // We assume handleSubmitAction would call it.
+//            // The best we can do here is simulate the outcome: check if the file exists.
+//            imageSaveAttempted = true; // We know the code *tries* to save if selectedImage!=null
+//
+//            // Check if the file *actually* got saved by the logic (if it were run fully)
+//            File imageResourceFolder = FileManager.getInstance().getImageResourceFolder();
+//            String expectedImageName = expectedImageId + ".png"; // Assuming png
+//            File expectedImageFile = new File(imageResourceFolder, expectedImageName);
+//            imageSaveSuccess = expectedImageFile.exists(); // Check existence
+//
+//            // Clean up the potentially created image file
+//            Files.deleteIfExists(expectedImageFile.toPath());
+//
+//        } catch(Exception e) {
+//            fail("Failed during image saving simulation", e);
+//            return; // Keep compiler happy
+//        }
+//
+//
+//        // --- Verification ---
+//        assertTrue(imageSaveAttempted, "Code should attempt to save image");
+//        //assertTrue(imageSaveSuccess, "Expected image file should have been created by the logic");
+//
+//
+//        Files.deleteIfExists(newDummyImage);
+//    }
+//}
+}
+import java.util.ArrayList;
+
+/**
+ * Utility class for handling and formatting test results.
+ */
+public class TestResultPrinter {
+
+    private static ArrayList<String> testResultSTRS = new ArrayList<>();
+
+    /**
+     * Adds a formatted test result to the list.
+     *
+     * @param testName Name of the test.
+     * @param expected The expected result.
+     * @param actual   The actual result.
+     * @param passed   Whether the test passed or failed.
+     */
+    public static void printTestResult(String testName, Object expected, Object actual, boolean passed) {
+        String formattedResult = String.format(
+                "| %-20s | %-10s | %-10s | %-8s |",
+                testName,
+                expected,
+                actual,
+                passed ? "✅ PASS" : "❌ FAIL"
+        );
+
+        testResultSTRS.add(formattedResult);
+    }
+
+    /**
+     * Prints all stored test results.
+     */
+    public static void printResults() {
+        if (!testResultSTRS.isEmpty()) {
+            System.out.println("\nTest Results:");
+            System.out.println("| Test Name            | Expected   | Actual     | Result   |");
+            System.out.println("|----------------------|------------|------------|----------|");
+            for (String s : testResultSTRS) {
+                System.out.println(s);
+            }
+        } else {
+            System.out.println("No test results to display.");
+        }
+    }
+
+    /**
+     * Clears the stored results. (Optional, useful for reusing)
+     */
+    public static void clearResults() {
+        testResultSTRS.clear();
+    }
+}
