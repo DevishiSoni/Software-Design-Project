@@ -31,13 +31,4 @@ public class Search {
         }
         return results;
     }
-
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-//        System.out.print("Search: ");
-        String input = scanner.nextLine();
-        scanner.close();
-
-        search(FileManager.getInstance().getDatabaseFile(), input);
-    }
 }

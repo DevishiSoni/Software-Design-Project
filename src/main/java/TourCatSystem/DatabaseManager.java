@@ -28,7 +28,7 @@ import java.util.OptionalInt; // Good for returning optional numeric results
  *
  * Author: Garrett (Refactored by AI Assistant)
  * Version: 2.0
- * Date: 2023-10-27 (Approx. refactor date)
+ * Date
  */
 public class DatabaseManager {
 
@@ -250,107 +250,6 @@ public class DatabaseManager {
                 .build())
         {
             return reader.readAll();
-        }
-    }
-
-
-    // --- Main method for basic testing (Consider using JUnit for proper testing) ---
-    public static void main(String[] args) {
-        try {
-            // 1. Get the file using FileManager (still okay for testing setup)
-            File testDbFile = FileManager.getInstance().getDatabaseFile(); // Use a test-specific file
-            System.out.println("Using test database: " + testDbFile.getAbsolutePath());
-
-            // 2. Create an instance of DatabaseManager
-            DatabaseManager dbManager = new DatabaseManager(testDbFile);
-
-            // 3. Test adding data
-            System.out.println("\n--- Testing Add ---");
-            try {
-                // Get next ID
-                int nextIdNum = dbManager.getMaxId().orElse(-1) + 1;
-                String nextId = String.format("%05d", nextIdNum);
-
-                String[] location1 = {nextId, "Test Landmark " + nextId, "Test City", "Test Province", "Test Category"};
-                dbManager.addRecord(location1);
-                System.out.println("Added: " + String.join(",", location1));
-
-                // Add another one
-                nextIdNum++;
-                nextId = String.format("%05d", nextIdNum);
-                String[] location2 = {nextId, "Another Test", "Anytown", "BC", "Park"};
-                dbManager.addRecord(location2);
-                System.out.println("Added: " + String.join(",", location2));
-
-            } catch (IOException e) {
-                System.err.println("Error during add test: " + e.getMessage());
-            }
-
-            // 4. Test reading data
-            System.out.println("\n--- Testing Read All ---");
-            try {
-                List<String[]> allData = dbManager.readAllRecords();
-                System.out.println("Read " + allData.size() + " records:");
-                for(String[] row : allData) {
-                    System.out.println("  " + String.join(" | ", row));
-                }
-            } catch (IOException | CsvException e) {
-                System.err.println("Error reading all records: " + e.getMessage());
-            }
-
-
-            // 5. Test Get Max ID
-            System.out.println("\n--- Testing Max ID ---");
-            OptionalInt maxIdOpt = dbManager.getMaxId();
-            if (maxIdOpt.isPresent()) {
-                System.out.println("Max ID found: " + maxIdOpt.getAsInt());
-            } else {
-                System.out.println("Max ID could not be determined (file empty or error).");
-            }
-
-            // 6. Test deleting data (use an ID known to exist from adding)
-            System.out.println("\n--- Testing Delete ---");
-            String idToDelete = String.format("%05d", dbManager.getMaxId().orElse(0)); // Get last added ID
-            if (!idToDelete.equals("00000")){ // Check if there was an ID to delete
-                try {
-                    System.out.println("Attempting to delete record with ID: " + idToDelete);
-                    dbManager.deleteById(idToDelete);
-                    System.out.println("Deletion successful for ID: " + idToDelete);
-
-                    // Verify deletion by reading again
-                    List<String[]> dataAfterDelete = dbManager.readAllRecords();
-                    System.out.println("Records after deletion: " + dataAfterDelete.size());
-                    // Optional: Check if ID is truly gone
-
-                } catch (RecordNotFoundException e) {
-                    System.err.println("Delete failed: " + e.getMessage());
-                } catch (IOException | CsvException e) {
-                    System.err.println("Error during delete test: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Skipping delete test as no valid max ID found to delete.");
-            }
-
-            // Test deleting non-existent ID
-            System.out.println("\n--- Testing Delete Non-Existent ---");
-            try {
-                String nonExistentId = "99999";
-                System.out.println("Attempting to delete record with ID: " + nonExistentId);
-                dbManager.deleteById(nonExistentId);
-                System.out.println("!!! This should not be printed if exception handling works !!!");
-            } catch (RecordNotFoundException e) {
-                System.out.println("Correctly caught expected error: " + e.getMessage());
-            } catch (IOException | CsvException e) {
-                System.err.println("Unexpected error during non-existent delete test: " + e.getMessage());
-            }
-
-
-        } catch (IOException e) {
-            System.err.println("Failed to initialize DatabaseManager for testing: " + e.getMessage());
-            e.printStackTrace();
-        } catch(IllegalArgumentException e) {
-            System.err.println("Configuration error: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
