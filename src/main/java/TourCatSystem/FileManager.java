@@ -81,6 +81,11 @@ public class FileManager {
         }
     }
 
+    public File getImageResourceFolder()
+    {
+        return getResourceFile("image");
+    }
+
     // Check if a resource exists
     public boolean resourceExists(String resourceName) {
         return Files.exists(getResource(resourceName));

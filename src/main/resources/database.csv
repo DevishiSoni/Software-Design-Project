@@ -17,8 +17,5 @@ ID,Geographical Name,City,Province,Category
 0017,Science World,Vancouver,British Columbia,Museum
 0018,Signal Hill,St. John's,Newfoundland and Labrador,Historic Site
 0019,Reversing Falls,Saint John,New Brunswick,Natural Phenomenon
-00020,aaa,aaa,aaa,aaa
-00021,aa,aa,ac,ac
-00022,1,2,3,4
-00023,2,34,4,5
-00024,4,5,6,1
+00020,Name,Cit,Pro,Cata
+00021,cit,name,pro,cat
