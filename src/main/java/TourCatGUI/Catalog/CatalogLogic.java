@@ -2,7 +2,7 @@ package TourCatGUI.Catalog;
 
 import TourCatGUI.HomePage;
 import TourCatSystem.DatabaseManager;
-import TourCatSystem.FileManager;
+// Assuming FileManager might still be used for *finding* the writable path, or replaced by a new manager
 import TourCatSystem.Filter;
 import TourCatSystem.LocationReader;
 import com.opencsv.exceptions.CsvException;
@@ -10,20 +10,28 @@ import com.opencsv.exceptions.CsvException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.*; // Import NIO for file operations
 import java.util.ArrayList;
+import java.util.List; // Use List interface
 
 public class CatalogLogic {
 
     private CatalogView gui; // Reference to the GUI
     private String username;
-    private File dataBaseFile;
+    private File writableDatabaseFile; // Path to the database file the user can modify
     private DefaultTableModel tableModel;
     private FuzzyFinder fuzzyFinder;
     private Filter filter; // Reusable filter object
+
+    // Constants for resource paths inside the JAR
+    private static final String INTERNAL_DB_PATH = "/database.csv";
+    private static final String IMAGE_RESOURCE_PATH_PREFIX = "/image/"; // Leading and trailing slash
+
+    // Name for the external database file
+    private static final String WRITABLE_DB_FILENAME = "userdata_database.csv";
 
     // Filter state
     private String selectedProvince = null;
@@ -31,60 +39,148 @@ public class CatalogLogic {
 
     public CatalogLogic(String username) {
         this.username = username;
-        this.dataBaseFile = FileManager.getInstance().getDatabaseFile();
 
-        this.filter = new Filter(dataBaseFile); // Initialize filter with the database file
+        try {
+            // 1. Determine and prepare the writable database file location
+            this.writableDatabaseFile = initializeWritableDatabase();
 
-        // 1. Load initial data
-        loadInitialTableData();
+            // 2. Initialize Filter and DatabaseManager (using the writable file)
+            // Assuming Filter is updated to work with the provided File path
+            this.filter = new Filter(writableDatabaseFile);
 
-        // 2. Create the GUI, passing the model and this logic instance
-        this.gui = new CatalogView(username, this, tableModel);
+            // 3. Load initial data from the *writable* database
+            loadInitialTableData(); // Uses writableDatabaseFile internally
 
-        // 3. Initialize components requiring GUI elements (like FuzzyFinder)
-        this.fuzzyFinder = new FuzzyFinder(gui.getTable());
+            // 4. Create the GUI, passing the model and this logic instance
+            this.gui = new CatalogView(username, this, tableModel);
 
-        // 4. Make the GUI visible
-        this.gui.setVisible(true);
+            // 5. Initialize components requiring GUI elements (like FuzzyFinder)
+            this.fuzzyFinder = new FuzzyFinder(gui.getTable());
+
+            // 6. Make the GUI visible
+            this.gui.setVisible(true);
+
+        } catch (IOException | URISyntaxException e) {
+            // Handle critical initialization errors
+            System.err.println("FATAL: Could not initialize database. " + e.getMessage());
+            e.printStackTrace();
+            // Show error to user and potentially exit or disable functionality
+            JOptionPane.showMessageDialog(null,
+                    "Error initializing database.\n" + e.getMessage() + "\nPlease check file permissions or contact support.",
+                    "Database Initialization Error", JOptionPane.ERROR_MESSAGE);
+            // Optionally, create an empty GUI or dispose it:
+            // if (gui != null) gui.dispose();
+            // Or maybe just disable features that need the DB
+        }
     }
+
+    /**
+     * Ensures the writable database file exists, copying the default from resources if needed.
+     * @return The File object pointing to the writable database.
+     * @throws IOException If file operations fail.
+     * @throws URISyntaxException If finding the app's running location fails.
+     */
+    private File initializeWritableDatabase() throws IOException, URISyntaxException {
+        // Determine directory where the app is running (or user home dir)
+        Path applicationDirectory = getApplicationDirectory(); // Use helper method
+        Path externalDbPath = applicationDirectory.resolve(WRITABLE_DB_FILENAME);
+        File externalDbFile = externalDbPath.toFile();
+
+        // If the writable file doesn't exist, copy it from the JAR resources
+        if (!externalDbFile.exists()) {
+            System.out.println("Writable database not found at " + externalDbPath + ". Copying default...");
+            URL internalDbUrl = getClass().getResource(INTERNAL_DB_PATH);
+            if (internalDbUrl == null) {
+                throw new IOException("Could not find internal resource: " + INTERNAL_DB_PATH);
+            }
+
+            try (InputStream internalStream = getClass().getResourceAsStream(INTERNAL_DB_PATH)) {
+                if (internalStream == null) { // Double check stream could be opened
+                    throw new IOException("Could not open internal resource stream: " + INTERNAL_DB_PATH);
+                }
+                // Ensure parent directory exists
+                Files.createDirectories(externalDbPath.getParent());
+                // Copy the file
+                Files.copy(internalStream, externalDbPath, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Default database copied to: " + externalDbPath);
+            } catch (IOException e) {
+                throw new IOException("Failed to copy internal database to " + externalDbPath, e);
+            }
+        } else {
+            System.out.println("Using existing writable database at: " + externalDbPath);
+        }
+
+        return externalDbFile;
+    }
+
+    /**
+     * Helper to get the directory where the JAR/application is running.
+     * Falls back to user home directory if running location is problematic (e.g., inside JAR structure).
+     * @return Path to the application's directory or user home.
+     * @throws URISyntaxException
+     */
+    private Path getApplicationDirectory() throws URISyntaxException {
+        try {
+            // Get the path of the JAR file itself
+            Path jarPath = Paths.get(CatalogLogic.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            // Get the directory containing the JAR
+            if (Files.isDirectory(jarPath)) {
+                return jarPath; // Running from classes dir (IDE)
+            }
+            return jarPath.getParent(); // Running from JAR
+        } catch (Exception e) { // Catch broader exceptions during path finding
+            System.err.println("Warning: Could not determine application directory reliably. Falling back to user home. Error: " + e.getMessage());
+            // Fallback to user home directory
+            String userHome = System.getProperty("user.home");
+            Path userHomePath = Paths.get(userHome, "TourCatData"); // Subfolder in user home
+            try {
+                Files.createDirectories(userHomePath); // Ensure the fallback directory exists
+            } catch (IOException ioException) {
+                System.err.println("Error creating fallback directory in user home: "+ ioException.getMessage());
+                // As a last resort, use current working directory, though less reliable
+                return Paths.get("").toAbsolutePath();
+            }
+            return userHomePath;
+        }
+    }
+
 
     // --- Data Loading and Management ---
 
-    private void loadInitialTableData() {
-        LocationReader reader = new LocationReader(dataBaseFile);
+    /**
+     * Loads data from the *writable* database file into the table model.
+     */
+    private void loadInitialTableData() throws IOException { // Propagate potential IO errors
+        // Assuming LocationReader is updated to read from a File path correctly
+        LocationReader reader = new LocationReader(writableDatabaseFile);
         this.tableModel = reader.getTableModel();
-        // Column hiding logic can stay here or move to GUI, let's keep it near the reader
-        // We need a way to access the TableColumnModel *after* the GUI/JTable is created.
-        // Let's add a method for the GUI to call *after* table creation.
     }
 
     // Called by GUI after JTable is created
     public void hideIdColumn(TableColumnModel columnModel) {
+        // Assuming LocationReader provides a static method for this
         LocationReader.hideColumns(columnModel, new int[]{0}); // Assuming column 0 is ID
     }
 
-    private void updateTableModel(ArrayList<String> results) {
+    /**
+     * Updates the table model with the given list of CSV data lines.
+     * @param results List of strings, each representing a row from the CSV.
+     */
+    private void updateTableModel(List<String> results) { // Use List interface
         // Clear existing data (important!)
         tableModel.setRowCount(0);
-
-        // Get column names (assuming they don't change)
-        // String[] columnNames = ... ; // If needed, but DefaultTableModel handles this
 
         if (results != null) {
             for (String resultLine : results) {
                 if (resultLine != null && !resultLine.trim().isEmpty()) {
-                    String[] rowData = resultLine.split(","); // Assuming CSV
+                    // Use a more robust CSV parser if possible, but stick to split for now
+                    String[] rowData = resultLine.split(","); // Potential issue with commas in fields
                     // Basic validation: Ensure enough columns exist
                     if (rowData.length >= tableModel.getColumnCount()) {
-                        // If ID is hidden but present in data, adjust indices or ensure model matches data structure
                         tableModel.addRow(rowData);
                     } else {
                         System.err.println("Skipping malformed row: " + resultLine);
-                        // Optionally, pad with empty strings if necessary:
-                        // Object[] paddedRow = new Object[tableModel.getColumnCount()];
-                        // System.arraycopy(rowData, 0, paddedRow, 0, rowData.length);
-                        // java.util.Arrays.fill(paddedRow, rowData.length, paddedRow.length, "");
-                        // tableModel.addRow(paddedRow);
+                        // Handle potentially malformed rows (e.g., pad, log, ignore)
                     }
                 }
             }
@@ -92,10 +188,14 @@ public class CatalogLogic {
         // No need to call fireTableDataChanged if using addRow/setRowCount on DefaultTableModel
     }
 
-
-    private ArrayList<String> readAllDataFromFile() {
+    /**
+     * Reads all data lines (excluding header) from the *writable* database file.
+     * @return A List of strings, each representing a data row.
+     */
+    private List<String> readAllDataFromWritableFile() { // Renamed for clarity
         ArrayList<String> allResults = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
+        // Use the writableDatabaseFile instance variable
+        try (BufferedReader br = new BufferedReader(new FileReader(writableDatabaseFile))) {
             String line;
             boolean isFirstLine = true; // Assuming header row
             while ((line = br.readLine()) != null) {
@@ -108,7 +208,12 @@ public class CatalogLogic {
                 }
             }
         } catch (IOException ex) {
-            gui.showError("Error reading database file: " + ex.getMessage());
+            // Show error to the user via the GUI if available
+            if(gui != null) {
+                gui.showError("Error reading database file: " + ex.getMessage());
+            } else {
+                System.err.println("Error reading database file: " + ex.getMessage());
+            }
             ex.printStackTrace(); // Log for debugging
         }
         return allResults;
@@ -118,42 +223,55 @@ public class CatalogLogic {
     // --- Action Handlers (Called by GUI listeners) ---
 
     public void handleSearch(String searchText) {
-        // Avoid searching on the placeholder text
-        if (searchText != null && !searchText.equals("Search here:")) {
+        if (searchText != null && !searchText.isEmpty() && !searchText.equals("Search here:")) {
             fuzzyFinder.performFuzzySearch(searchText);
         } else {
-            // Optional: If search text is empty or placeholder, reset to show all (or filtered) results
+            // If search text is empty/placeholder, reset filtering/searching
             handleFilterAction(); // Re-apply filters or show all if no filters active
+            // Optionally clear the sorter filter directly:
+            // fuzzyFinder.clearFilter();
         }
     }
 
     public void handleReturnAction() {
-        new HomePage(username); // Assuming HomePage exists and works
+        // Consider passing the username back correctly
+        new HomePage(username); // Assuming HomePage constructor handles username
         gui.dispose();
     }
 
     public void handleViewAction() {
         int selectedRow = gui.getSelectedRow();
         if (selectedRow != -1) {
-            // Convert view index to model index in case of sorting/filtering
             int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
 
-            // Get data using model index
-            String id = (String) tableModel.getValueAt(modelRow, 0); // Assumes ID is column 0
+            String id = (String) tableModel.getValueAt(modelRow, 0);
             String name = (String) tableModel.getValueAt(modelRow, 1);
             String city = (String) tableModel.getValueAt(modelRow, 2);
             String province = (String) tableModel.getValueAt(modelRow, 3);
             String category = (String) tableModel.getValueAt(modelRow, 4);
 
-            // Find the corresponding image file
-            File imageFile = FileManager.getInstance().getImageFile(id + ".png");
-            if (!imageFile.exists()) {
-                imageFile = FileManager.getInstance().getImageFile(id + ".jpg");
+            // --- Load Image using Classpath Resources ---
+            URL imageURL = null;
+            String[] extensions = {".png", ".jpg", ".jpeg", ".gif"}; // Add more if needed
+            for (String ext : extensions) {
+                String resourcePath = IMAGE_RESOURCE_PATH_PREFIX + id + ext;
+                imageURL = getClass().getResource(resourcePath);
+                if (imageURL != null) {
+                    System.out.println("Found image resource: " + resourcePath);
+                    break; // Found one, stop looking
+                } else {
+                    System.out.println("Did not find image resource: " + resourcePath);
+                }
             }
-            // If neither exists, imageFile will point to the non-existent .jpg path
 
-            // Ask GUI to display the details window
-            gui.displayDetailsWindow(id, name, city, province, category, imageFile);
+            if (imageURL == null) {
+                System.err.println("Could not find image resource for ID: " + id + " with common extensions.");
+            }
+            // --------------------------------------------
+
+            // Ask GUI to display the details window, passing the URL
+            // *** Requires CatalogView.displayDetailsWindow to be updated ***
+            gui.displayDetailsWindow(id, name, city, province, category, imageURL);
 
         } else {
             gui.showMessage("Please select a location from the table to view details.");
@@ -163,40 +281,36 @@ public class CatalogLogic {
     public void handleDeleteAction() {
         int selectedRow = gui.getSelectedRow();
         if (selectedRow != -1) {
-            // Show confirmation dialog
             int confirmation = JOptionPane.showConfirmDialog(
-                    gui.frame, // Parent component
-                    "Are you sure you want to delete this location?\n" + tableModel.getValueAt(gui.getTable().convertRowIndexToModel(selectedRow), 1), // Message showing name
-                    "Confirm Deletion", // Title
-                    JOptionPane.YES_NO_OPTION, // Options
-                    JOptionPane.WARNING_MESSAGE // Icon
+                    gui.frame,
+                    "Are you sure you want to delete this location?\n" + tableModel.getValueAt(gui.getTable().convertRowIndexToModel(selectedRow), 1),
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
             );
 
             if (confirmation == JOptionPane.YES_OPTION) {
                 int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
-                String selectedRowID = (String) tableModel.getValueAt(modelRow, 0); // Assumes ID is column 0
+                String selectedRowID = (String) tableModel.getValueAt(modelRow, 0);
 
-
-                DatabaseManager databaseManager = null;
                 try {
-                    databaseManager = new DatabaseManager(dataBaseFile);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                boolean success = false;
-                try {
+                    // DatabaseManager needs to use the writable file
+                    // It should ideally be an instance variable or re-created safely
+                    DatabaseManager databaseManager = new DatabaseManager(writableDatabaseFile); // Pass the correct file
                     databaseManager.deleteById(selectedRowID);
-                } catch (IOException | DatabaseManager.RecordNotFoundException | CsvException e) {
-                    throw new RuntimeException(e);
-                }
 
-                if (success) {
-                    // Remove row from the model (this will update the JTable)
-                    tableModel.removeRow(modelRow);
+                    // If deleteById throws no exception, assume success
+                    tableModel.removeRow(modelRow); // Update the view
                     gui.showMessage("Location deleted successfully.");
-                } else {
-                    gui.showError("Failed to delete the location from the database file.");
+
+                } catch (DatabaseManager.RecordNotFoundException e) {
+                    gui.showError("Could not delete: Record not found (ID: " + selectedRowID + ")");
+                } catch (IOException | CsvException e) {
+                    gui.showError("Error deleting location from database: " + e.getMessage());
+                    e.printStackTrace(); // Log for debugging
+                } catch (RuntimeException e) { // Catch unexpected runtime errors
+                    gui.showError("An unexpected error occurred during deletion: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         } else {
@@ -205,11 +319,13 @@ public class CatalogLogic {
     }
 
     public void handleFilterAction() {
-        filter.reset(); // Clear previous filter results within the Filter object
+        // Assuming Filter class reads correctly from the file path provided in its constructor
+        filter.reset();
 
         boolean provinceSelected = selectedProvince != null && !selectedProvince.isEmpty();
         boolean typeSelected = selectedType != null && !selectedType.isEmpty();
 
+        // Determine which filter method to call based on selections
         if (provinceSelected && typeSelected) {
             filter.filterBoth(selectedProvince, selectedType);
         } else if (provinceSelected) {
@@ -217,40 +333,45 @@ public class CatalogLogic {
         } else if (typeSelected) {
             filter.filterType(selectedType);
         } else {
-            // No filters selected, show all data
-            ArrayList<String> allData = readAllDataFromFile();
+            // No filters selected, show all data from the writable file
+            List<String> allData = readAllDataFromWritableFile();
             updateTableModel(allData);
-            // Optionally show a message if you *require* a filter to be selected
-            // gui.showMessage("Please select at least one filter option or reset filters.");
             return; // Exit after showing all data
         }
 
-        // Get results from the filter and update the table model
-        ArrayList<String> results = filter.getResults();
+        // Get results from the filter object and update the table model
+        ArrayList<String> results = filter.getResults(); // Filter should hold results internally
         updateTableModel(results);
 
-        if(results.isEmpty()){
+        if (results.isEmpty() && (provinceSelected || typeSelected)) { // Only show if filters were active
             gui.showMessage("No locations match the selected filters.");
         }
     }
+
 
     public void handleResetAction() {
         // 1. Clear filter state in logic
         selectedProvince = null;
         selectedType = null;
 
-        // 2. Tell GUI to reset combo boxes and potentially search field
+        // 2. Tell GUI to reset combo boxes
         gui.resetFilters();
 
-        // 3. Reload all data from the file
-        ArrayList<String> allResults = readAllDataFromFile();
+        // 3. Reload all data from the *writable* file
+        List<String> allResults = readAllDataFromWritableFile();
 
         // 4. Update the table model
         updateTableModel(allResults);
 
-        // 5. Clear any active JTable sorting/filtering (if FuzzyFinder or JTable itself adds it)
-        gui.getTable().setRowSorter(null); // Remove sorter temporarily
-        fuzzyFinder = new FuzzyFinder(gui.getTable()); // Recreate FuzzyFinder with the fresh table state
+        // 5. Clear any active JTable sorting/filtering via FuzzyFinder
+        if (fuzzyFinder != null) {
+            fuzzyFinder.clearFilter();
+        } else {
+            // Fallback if FuzzyFinder wasn't initialized? Unlikely here but good practice
+            gui.getTable().setRowSorter(null);
+            // Recreate FuzzyFinder if needed
+            this.fuzzyFinder = new FuzzyFinder(gui.getTable());
+        }
 
         gui.showMessage("Filters reset. Showing all locations.");
     }
@@ -259,10 +380,10 @@ public class CatalogLogic {
     // --- State Update Methods (Called by GUI listeners) ---
 
     public void updateSelectedProvince(String province) {
-        this.selectedProvince = province; // Store null if "Select Province" was chosen
+        this.selectedProvince = province;
     }
 
     public void updateSelectedType(String type) {
-        this.selectedType = type; // Store null if "Select Type" was chosen
+        this.selectedType = type;
     }
 }
