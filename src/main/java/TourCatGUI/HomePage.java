@@ -39,6 +39,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
 
       // --- Load Background Image using Classpath Resource ---
       URL skylineUrl = getClass().getResource("/image/torontoSkyline.jpg"); // Path relative to resources root
+      System.out.println(skylineUrl.toString());
       BackgroundPanel bgPanel = null;
       if (skylineUrl != null) {
          bgPanel = new BackgroundPanel(skylineUrl, 0.75f); // Use 0.75f for float
