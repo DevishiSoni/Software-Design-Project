@@ -1,5 +1,4 @@
 TourCatSystem\Landmark.class
-TourCatSystem\FileManager.class
 MainApplication.class
 TourCatGUI\Forms\AddFormGUI.class
 TourCatGUI\Forms\AddFormLogic.class
@@ -11,7 +10,6 @@ TourCatSystem\Search.class
 TourCatGUI\Catalog\CatalogView$1.class
 TourCatGUI\Catalog\FuzzyFinder.class
 TourCatGUI\LoginGUI$2.class
-TourCatSystem\DatabaseFileReader.class
 TourCatSystem\LocationReader.class
 TourCatServer\LoginServer$ClientHandler.class
 TourCatGUI\HomePage.class
@@ -20,7 +18,6 @@ TourCatSystem\DatabaseManager$RecordNotFoundException.class
 TourCatGUI\Catalog\CatalogView.class
 TourCatGUI\BackgroundPanel.class
 TourCatGUI\Catalog\CatalogLogic.class
-TourCatGUI\HomePage$1.class
 TourCatGUI\Catalog\CatalogView$2.class
 TourCatGUI\LoginGUI$1.class
 TourCatSystem\Filter.class
