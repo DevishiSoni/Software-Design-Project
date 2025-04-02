@@ -1,6 +1,6 @@
 package TourCatGUI;
 
-import TourCatGUI.Catalog.CataLogic;
+import TourCatGUI.Catalog.CatalogLogic;
 import TourCatGUI.Forms.AddFormLogic;
 import TourCatSystem.FileManager;
 
@@ -143,7 +143,7 @@ public class HomePage extends JFrame {
       catalogue.addActionListener( e -> {
          frame.setVisible(false);
          dispose();
-         CataLogic cataLogic = new CataLogic(username);
+         CatalogLogic cataLogic = new CatalogLogic(username);
       });
    }
 

@@ -2,30 +2,58 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>..\target\tourcat-1.0.jar</jar>
-  <outfile>..\target\TourCat.exe</outfile>
-  <errTitle></errTitle>
+
+  <!-- JAR location relative to this XML file (which is in the 'build' dir) -->
+  <jar>../target/tourcat-1.0.jar</jar>
+
+  <!-- Output EXE location relative to this XML file -->
+  <outfile>../target/TourCat.exe</outfile>
+
+  <errTitle>TourCat Error</errTitle>
   <cmdLine></cmdLine>
+
+  <!-- Change working directory to the parent of the EXE's location -->
   <chdir>../</chdir>
+
   <priority>normal</priority>
-  <downloadUrl></downloadUrl>
+  <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
+
+  <!-- Icon location relative to this XML file -->
   <icon>TourICON.ico</icon>
+
+  <!-- === JRE Configuration (Using System JRE, requiring Java 21+) === -->
   <jre>
-    <path>jre</path>
-    <requiresJdk>false</requiresJdk>
-    <requires64Bit>false</requires64Bit>
-    <minVersion>1.23.0</minVersion>
-    <maxVersion>1.23.1</maxVersion>
+    <!-- Path is EMPTY to search system path/registry for JRE -->
+    <path></path>
+
+    <!-- *** Minimum Java version set to 21 *** -->
+    <minVersion>21.0.0</minVersion>
+
+    <!-- Remove maxVersion unless you know it breaks on newer versions -->
+    <maxVersion></maxVersion>
+
+    <requiresJdk>false</requiresJdk> <!-- Typically only need JRE -->
+    <requires64Bit>false</requires64Bit> <!-- Allow both 32-bit and 64-bit JREs -->
+    <runtimeBits>64/32</runtimeBits> <!-- Explicitly state preference or allowance -->
+
+    <!-- Optional: Add JVM arguments if needed -->
+    <!-- <initialHeapSize>256</initialHeapSize> --> <!-- Consider slightly higher defaults for modern apps -->
+    <!-- <maxHeapSize>1024</maxHeapSize> -->
+    <!-- <opt>-Dsome.property=value</opt> -->
+
   </jre>
+
+  <!-- === Error Messages === -->
   <messages>
-    <startupErr>An error occurred while starting the application.</startupErr>
-    <jreNotFoundErr>This application requires a Java Runtime Environment.</jreNotFoundErr>
-    <jreVersionErr>This application requires a Java Runtime Environment</jreVersionErr>
-    <launcherErr>The registry refers to a nonexistent Java Runtime Environment installation or the runtime is corrupted.</launcherErr>
-    <instanceAlreadyExistsMsg>An application instance is already running.</instanceAlreadyExistsMsg>
+    <startupErr>An error occurred while starting the TourCat application.</startupErr>
+    <jreNotFoundErr>TourCat requires a Java Runtime Environment (JRE) version 21 or newer to run. Please install or update Java and ensure it's in your system PATH or JAVA_HOME is set.</jreNotFoundErr>
+    <!-- Updated message to be more specific -->
+    <jreVersionErr>TourCat requires Java version ${jre.minVersion} or later. Your current Java version is not compatible. Please update your Java installation.</jreVersionErr>
+    <launcherErr>The registry refers to a nonexistent Java Runtime Environment installation or the runtime is corrupted. Please reinstall Java version 21 or newer.</launcherErr>
+    <instanceAlreadyExistsMsg>Another instance of TourCat is already running.</instanceAlreadyExistsMsg>
   </messages>
 </launch4jConfig>
