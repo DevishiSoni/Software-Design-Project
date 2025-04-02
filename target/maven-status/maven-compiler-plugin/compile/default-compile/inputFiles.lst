@@ -2,8 +2,7 @@ C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\HomePa
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatServer\LoginServer.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatSystem\LocationReader.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\LoginGUI.java
-C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\Catalog\CataView.java
-C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\Catalog\CataLogic.java
+C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\Catalog\CatalogLogic.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatSystem\Search.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatSystem\DatabaseFileReader.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\Forms\AddFormLogic.java
@@ -14,4 +13,4 @@ C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatSystem\Fil
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\MainApplication.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\Forms\AddFormGUI.java
 C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatSystem\DatabaseManager.java
-C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\main.java
+C:\Users\ghann\aa_SCHOOL\Software-Design-Project\src\main\java\TourCatGUI\Catalog\CatalogView.java

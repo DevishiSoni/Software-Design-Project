@@ -6,13 +6,33 @@
 
     <groupId>CSCI2040U.tourcat</groupId>
     <artifactId>tourcat</artifactId>
-    <version>1.0</version>
+    <version>1.0</version> <!-- Your project version -->
+    <packaging>jar</packaging> <!-- Default packaging type -->
+
+    <name>TourCat</name> <!-- Optional: A user-friendly name for the project -->
 
     <properties>
-        <!-- Standardize on Java 21, matching your previous error and Launch4j config -->
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <!-- Set Java version -->
+        <maven.compiler.source>21</maven.compiler.source> <!-- Or higher if needed, e.g., 11, 17, 21 -->
+        <maven.compiler.target>21</maven.compiler.target> <!-- Must match source -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Plugin Versions -->
+        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <maven.shade.plugin.version>3.5.1</maven.shade.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+
+        <!-- Dependency Versions -->
+        <opencsv.version>5.9</opencsv.version>
+        <commons.io.version>2.11.0</commons.io.version> <!-- Updated from 2.6 -->
+        <flatlaf.version>3.4.1</flatlaf.version>
+        <junit.jupiter.version>5.10.1</junit.jupiter.version>
+        <mockito.version>5.10.0</mockito.version>
+
+        <!-- Define your main class here -->
+        <main.class>MainApplication</main.class> <!-- CHANGE THIS if your main class is in a package, e.g., tourcat.MainApplication -->
+
     </properties>
 
     <dependencies>
@@ -20,23 +40,21 @@
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.9</version>
-            <!-- Default scope is 'compile', which is correct -->
+            <version>${opencsv.version}</version>
         </dependency>
 
         <!-- Apache Commons IO -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version> <!-- Consider updating to a more recent version like 2.11.0 or later -->
+            <version>${commons.io.version}</version>
         </dependency>
 
         <!-- FlatLaf Look and Feel -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
-            <version>3.4.1</version> <!-- Use a specific stable version -->
-            <!-- Default scope 'compile' is generally fine here too -->
+            <version>${flatlaf.version}</version>
         </dependency>
 
         <!-- == Test Dependencies == -->
@@ -44,13 +62,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.10.1</version> <!-- Use recent versions -->
+            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.10.1</version> <!-- Use recent versions -->
+            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -58,52 +76,67 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.10.0</version> <!-- Use recent versions -->
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Removed redundant JUnit 4 dependency -->
-
     </dependencies>
 
     <build>
+        <!-- == Resource Handling == -->
+        <!-- Ensures files in src/main/resources are included -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- You can add filtering here if needed -->
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <!-- You can add filtering here if needed -->
+            </testResource>
+        </testResources>
+
         <plugins>
-            <!-- Compiler Plugin (Configuration now relies on properties) -->
+            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version> <!-- Use a recent version -->
-                <!-- Configuration for source/target is now taken from <properties> -->
+                <version>${maven.compiler.plugin.version}</version>
+                <!-- Configuration for source/target is taken from <properties> -->
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
             </plugin>
 
-            <!-- Surefire Plugin (for running tests) -->
+            <!-- Surefire Plugin (Runs Tests) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version> <!-- Use a recent version -->
+                <version>${maven.surefire.plugin.version}</version>
+                <!-- Add any specific test configurations here if needed -->
             </plugin>
 
-            <!-- *** Maven Shade Plugin (Builds the Fat JAR) *** -->
+            <!-- *** Maven Shade Plugin (Builds the Fat/Uber JAR) *** -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version> <!-- Use a recent version -->
+                <version>${maven.shade.plugin.version}</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>package</phase> <!-- Bind to the package phase -->
                         <goals>
-                            <goal>shade</goal>
+                            <goal>shade</goal> <!-- Execute the shade goal -->
                         </goals>
                         <configuration>
                             <transformers>
+                                <!-- Sets the Main-Class attribute in the MANIFEST.MF -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <!-- IMPORTANT: Verify your Main Class name and package -->
-                                    <!-- If it's in the default package: -->
-                                    <mainClass>MainApplication</mainClass>
-                                    <!-- If it's in a package like 'com.yourcompany.tourcat': -->
-                                    <!-- <mainClass>com.yourcompany.tourcat.MainApplication</mainClass> -->
+                                    <mainClass>${main.class}</mainClass> <!-- Uses the property defined above -->
                                 </transformer>
                             </transformers>
-                            <!-- Optional: Filters to prevent issues with signed JARs within the fat JAR -->
+                            <!-- Filters to avoid issues with signed JARs within the fat JAR -->
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -114,23 +147,24 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <!-- Optional: Rename the final shaded JAR if needed -->
+                            <!-- <finalName>${project.artifactId}-${project.version}-shaded</finalName> -->
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- Standard JAR plugin - Not strictly needed for main class manifest when using Shade -->
-            <!-- You can potentially remove this if Shade is handling the manifest correctly -->
+            <!-- Standard JAR plugin (Usually not needed for main class with Shade, but good for other manifest entries) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version> <!-- Use a recent version -->
+                <version>${maven.jar.plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
-                            <!-- Let Shade plugin handle the mainClass in the final shaded JAR -->
-                            <!-- <mainClass>MainApplication</mainClass> -->
-                            <!-- You might add other manifest entries here if needed -->
+                            <!-- Main class is set by the Shade plugin's transformer -->
+                            <!-- Add other manifest entries here if needed, e.g.: -->
+                            <!-- <addDefaultImplementationEntries>true</addDefaultImplementationEntries> -->
                         </manifest>
                     </archive>
                 </configuration>
