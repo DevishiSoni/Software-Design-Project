@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*; // Use NIO paths
-import java.util.NoSuchElementException;
 import java.util.OptionalInt;
 
 public class AddFormLogic {
@@ -33,7 +32,7 @@ public class AddFormLogic {
     private static final String WRITABLE_IMAGE_DIRNAME = "images"; // Subdirectory for images
 
 
-    public AddFormLogic(String username) {
+    public AddFormLogic (String username) {
         this.username = username;
 
         try {
@@ -65,12 +64,12 @@ public class AddFormLogic {
             // Cannot proceed without the database, throw runtime exception or handle gracefully
             throw new RuntimeException("Failed to initialize AddFormLogic", e);
         } catch (IllegalArgumentException e) {
-             System.err.println("FATAL: Configuration error during Add Form initialization. " + e.getMessage());
-             e.printStackTrace();
-             JOptionPane.showMessageDialog(null,
+            System.err.println("FATAL: Configuration error during Add Form initialization. " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
                     "Configuration error.\n" + e.getMessage(),
                     "Initialization Error", JOptionPane.ERROR_MESSAGE);
-             throw new RuntimeException("Failed to initialize AddFormLogic", e);
+            throw new RuntimeException("Failed to initialize AddFormLogic", e);
         }
     }
 
@@ -78,11 +77,12 @@ public class AddFormLogic {
 
     /**
      * Ensures the writable database file exists, copying the default from resources if needed.
+     *
      * @return The File object pointing to the writable database.
-     * @throws IOException If file operations fail.
+     * @throws IOException        If file operations fail.
      * @throws URISyntaxException If finding the app's running location fails.
      */
-    private File initializeWritableDatabase() throws IOException, URISyntaxException {
+    private File initializeWritableDatabase () throws IOException, URISyntaxException {
         Path applicationDirectory = getApplicationDirectory();
         Path externalDbPath = applicationDirectory.resolve(WRITABLE_DB_FILENAME);
         File externalDbFile = externalDbPath.toFile();
@@ -95,7 +95,7 @@ public class AddFormLogic {
             }
 
             try (InputStream internalStream = getClass().getResourceAsStream(INTERNAL_DB_PATH)) {
-                 if (internalStream == null) {
+                if (internalStream == null) {
                     throw new IOException("Could not open internal resource stream: " + INTERNAL_DB_PATH);
                 }
                 Files.createDirectories(externalDbPath.getParent());
@@ -105,7 +105,7 @@ public class AddFormLogic {
                 throw new IOException("Failed to copy internal database to " + externalDbPath, e);
             }
         } else {
-             System.out.println("Using existing writable database at: " + externalDbPath);
+            System.out.println("Using existing writable database at: " + externalDbPath);
         }
         return externalDbFile;
     }
@@ -114,7 +114,7 @@ public class AddFormLogic {
      * Helper to get the directory where the JAR/application is running.
      * Falls back to user home directory if running location is problematic.
      */
-     private Path getApplicationDirectory() throws URISyntaxException {
+    private Path getApplicationDirectory () throws URISyntaxException {
         try {
             Path jarPath = Paths.get(AddFormLogic.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             if (Files.isDirectory(jarPath)) {
@@ -125,11 +125,11 @@ public class AddFormLogic {
             System.err.println("Warning: Could not determine application directory. Falling back to user home. Error: " + e.getMessage());
             String userHome = System.getProperty("user.home");
             Path userHomePath = Paths.get(userHome, "TourCatData"); // Subfolder
-             try {
+            try {
                 Files.createDirectories(userHomePath);
             } catch (IOException ioException) {
-                 System.err.println("Error creating fallback directory: "+ ioException.getMessage());
-                 return Paths.get("").toAbsolutePath(); // Last resort CWD
+                System.err.println("Error creating fallback directory: " + ioException.getMessage());
+                return Paths.get("").toAbsolutePath(); // Last resort CWD
             }
             return userHomePath;
         }
@@ -137,12 +137,14 @@ public class AddFormLogic {
 
     // --- Action Handlers (Called by GUI listeners) ---
 
-    /** Handles the action when the 'Choose Image' button is clicked. */
-    public void handleUploadImageAction() {
+    /**
+     * Handles the action when the 'Choose Image' button is clicked.
+     */
+    public void handleUploadImageAction () {
         File file = gui.showImageFileChooser();
         if (file != null) {
             // Check file existence and readability before proceeding
-             if (!file.exists() || !file.canRead()) {
+            if (!file.exists() || !file.canRead()) {
                 gui.showError("Cannot read selected image file: " + file.getName());
                 this.selectedImage = null;
                 gui.setImagePreview(null);
@@ -153,9 +155,9 @@ public class AddFormLogic {
             try {
                 // Create a scaled ImageIcon for the preview (using File path is OK here)
                 ImageIcon originalIcon = new ImageIcon(selectedImage.getAbsolutePath());
-                 if (originalIcon.getIconWidth() <= 0) { // Basic check if image loaded
+                if (originalIcon.getIconWidth() <= 0) { // Basic check if image loaded
                     throw new Exception("ImageIcon could not load image data.");
-                 }
+                }
                 Image scaledImage = originalIcon.getImage().getScaledInstance(
                         150, 120, Image.SCALE_SMOOTH); // Adjust preview size if needed
                 ImageIcon previewIcon = new ImageIcon(scaledImage);
@@ -172,8 +174,10 @@ public class AddFormLogic {
         }
     }
 
-    /** Handles the action when the 'Submit' button is clicked. */
-    public void handleSubmitAction() {
+    /**
+     * Handles the action when the 'Submit' button is clicked.
+     */
+    public void handleSubmitAction () {
         // 1. Get data from GUI
         String name = gui.getNameText().trim();
         String city = gui.getCityText().trim();
@@ -189,7 +193,7 @@ public class AddFormLogic {
         // 3. Prepare data for storage
         String nextIdStr;
         try {
-             nextIdStr = generateNextId(); // Use the correctly initialized dbManager
+            nextIdStr = generateNextId(); // Use the correctly initialized dbManager
         } catch (RuntimeException e) { // Catch potential errors from getMaxId/formatting
             gui.showError("Error generating next ID: " + e.getMessage());
             e.printStackTrace();
@@ -213,9 +217,9 @@ public class AddFormLogic {
             // Don't proceed to image saving if data saving failed
             return; // Stop the submission process
         } catch (RuntimeException e) { // Catch other potential errors from addRecord
-             gui.showError("An unexpected error occurred saving data: " + e.getMessage());
-             e.printStackTrace();
-             return;
+            gui.showError("An unexpected error occurred saving data: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
 
 
@@ -238,8 +242,10 @@ public class AddFormLogic {
         }
     }
 
-    /** Handles the action when the 'Cancel' button is clicked. */
-    public void handleCancelAction() {
+    /**
+     * Handles the action when the 'Cancel' button is clicked.
+     */
+    public void handleCancelAction () {
         new HomePage(username); // Navigate back
         gui.dispose(); // Close the AddForm window
     }
@@ -249,27 +255,22 @@ public class AddFormLogic {
 
     /**
      * Generates the next sequential ID based on the current max ID in the database.
+     *
      * @return The formatted ID string (e.g., "00015").
      * @throws RuntimeException if max ID cannot be determined.
      */
-    private String generateNextId() {
+    private String generateNextId () {
         // Use the instance variable databaseManager initialized with the correct path
-        OptionalInt maxIdOpt = this.databaseManager.getMaxId();
-
-        // Handle case where file might be empty or contain no valid IDs
-        int maxId = maxIdOpt.orElse(-1); // Default to -1 if no ID found
-
-        int nextId = maxId + 1;
-        return String.format("%05d", nextId); // Formats with leading zeros
+        return this.databaseManager.getNextID();
     }
 
     /**
      * Validates the core required input fields.
      */
-    public boolean isInputValid(String name, String city, String province, String category) {
+    public boolean isInputValid (String name, String city, String province, String category) {
         return name != null && !name.isBlank() &&
-               province != null && !province.isBlank() &&
-               category != null && !category.isBlank();
+                province != null && !province.isBlank() &&
+                category != null && !category.isBlank();
     }
 
 
@@ -278,15 +279,15 @@ public class AddFormLogic {
      * renaming it based on the location's ID.
      *
      * @param sourceImageFile The image file selected by the user.
-     * @param locationId The ID assigned to the new location (used for filename).
+     * @param locationId      The ID assigned to the new location (used for filename).
      * @return true if the image was copied successfully, false otherwise.
      */
-    private boolean saveImageToWritableLocation(File sourceImageFile, String locationId) { // Renamed for clarity
+    private boolean saveImageToWritableLocation (File sourceImageFile, String locationId) { // Renamed for clarity
         try {
             // Destination is the writableImageDirectory determined in constructor
             if (!Files.exists(writableImageDirectory)) {
                 Files.createDirectories(writableImageDirectory); // Ensure it exists
-                 System.out.println("Re-created missing writable image directory: " + writableImageDirectory);
+                System.out.println("Re-created missing writable image directory: " + writableImageDirectory);
             }
 
             // Determine the file extension
@@ -321,7 +322,7 @@ public class AddFormLogic {
     }
 
     // Main method for testing (optional)
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         // Ensure Look and Feel is set before creating GUI components
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -331,16 +332,16 @@ public class AddFormLogic {
 
         // Run the GUI on the Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
-             try {
-                 new AddFormLogic("TestUser");
-             } catch (Exception e) {
-                 // Catch runtime exceptions from constructor if initialization fails severely
-                 System.err.println("Failed to launch AddFormLogic: " + e.getMessage());
-                 e.printStackTrace();
-                 JOptionPane.showMessageDialog(null,
-                    "Application failed to start.\nCould not initialize form resources.",
-                    "Fatal Error", JOptionPane.ERROR_MESSAGE);
-             }
-         });
+            try {
+                new AddFormLogic("TestUser");
+            } catch (Exception e) {
+                // Catch runtime exceptions from constructor if initialization fails severely
+                System.err.println("Failed to launch AddFormLogic: " + e.getMessage());
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null,
+                        "Application failed to start.\nCould not initialize form resources.",
+                        "Fatal Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 }

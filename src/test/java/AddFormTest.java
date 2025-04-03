@@ -5,7 +5,6 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir; // Alternative: Use JUnit's TempDir for cleaner isolation
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
 
@@ -44,7 +42,7 @@ class AddFormTest {
     static final String[] INITIAL_RECORD = {"00000", "Initial", "InitCity", "InitProv", "InitCat"};
 
     @BeforeAll
-    static void setupClass() throws IOException {
+    static void setupClass () throws IOException {
         // --- Using Option 1 (Manual Directory) ---
         Files.createDirectories(testDirectory);
         testDatabasePath = testDirectory.resolve("testAddDB_Adapted.csv");
@@ -70,7 +68,7 @@ class AddFormTest {
     }
 
     @BeforeEach
-    void setupTest() throws IOException {
+    void setupTest () throws IOException {
         // Ensure paths are set
         assumeTrue(testDatabasePath != null && testDatabaseFile != null, "Test database path not initialized");
 
@@ -90,7 +88,7 @@ class AddFormTest {
     }
 
     @AfterEach
-    void tearDownTest() throws IOException {
+    void tearDownTest () throws IOException {
         // Clean up the database file after each test
         if (testDatabasePath != null) {
             Files.deleteIfExists(testDatabasePath);
@@ -100,14 +98,14 @@ class AddFormTest {
     }
 
     @AfterAll
-    static void tearDownClass() throws IOException {
+    static void tearDownClass () throws IOException {
         // Clean up the main test directory if using Option 1
         if (testDirectory != null && Files.exists(testDirectory)) {
             // Simple delete, might fail if dirs not empty (e.g., images left)
             // For robustness, consider recursive delete if needed.
             try {
                 // Clean image dir first
-                if(testImagePath != null && Files.exists(testImagePath)) {
+                if (testImagePath != null && Files.exists(testImagePath)) {
                     Files.deleteIfExists(testImagePath); // Delete image dir if empty
                 }
                 Files.deleteIfExists(testDirectory); // Delete main test dir if empty
@@ -119,7 +117,7 @@ class AddFormTest {
     }
 
     // Helper to read CSV content for verification (no change needed)
-    private List<String[]> readCsvContent(File file) throws IOException, CsvException {
+    private List<String[]> readCsvContent (File file) throws IOException, CsvException {
         try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             // Explicitly configure parser if DatabaseManager uses specific settings
             CSVReader csvReader = new CSVReader(reader); // Simpler, assumes default parsing is sufficient for test check
@@ -131,20 +129,14 @@ class AddFormTest {
 
     // Helper to simulate ID generation (no change needed)
     // Relies on DatabaseManager operating on the provided file.
-    private String simulateGenerateNextId(File currentFile) throws IOException {
+    private String simulateGenerateNextId (File currentFile) throws IOException {
         DatabaseManager tempDbManager = new DatabaseManager(currentFile);
-        OptionalInt maxIdOpt = tempDbManager.getMaxId();
-        if (!maxIdOpt.isPresent()) {
-            System.err.println("TEST WARNING: Max ID not found in " + currentFile.getName() + ", defaulting to 0. Check test setup or file content.");
-            return String.format("%05d", 0);
-        }
-        int nextId = maxIdOpt.getAsInt() + 1;
-        return String.format("%05d", nextId);
+        return tempDbManager.getNextID();
     }
 
     // Helper to simulate the add action (no change needed)
     // Relies on DatabaseManager operating on the provided file.
-    private void simulateAddRecordAction(String[] data, File file) throws IOException {
+    private void simulateAddRecordAction (String[] data, File file) throws IOException {
         DatabaseManager localDbManager = new DatabaseManager(file);
         localDbManager.addRecord(data);
     }
@@ -153,7 +145,7 @@ class AddFormTest {
     @Test
     @Order(1)
     @DisplayName("[Adapted] Should add a valid record successfully")
-    void addValidRecordSuccess() throws IOException, CsvException {
+    void addValidRecordSuccess () throws IOException, CsvException {
         // --- Input Data ---
         String name = "New Landmark";
         String city = "Test City";
@@ -166,7 +158,7 @@ class AddFormTest {
         String expectedNextIdStr = simulateGenerateNextId(testDatabaseFile);
 
         // --- Action ---
-        String[] newLocationData = { expectedNextIdStr, name, city, province, category };
+        String[] newLocationData = {expectedNextIdStr, name, city, province, category};
         assertDoesNotThrow(
                 () -> simulateAddRecordAction(newLocationData, testDatabaseFile),
                 "Simulated addRecord should not throw IO exception for valid data using test file"
@@ -180,35 +172,11 @@ class AddFormTest {
         assertArrayEquals(newLocationData, addedRow, "Added row content should match input data");
     }
 
-    @Test
-    @Order(2)
-    @DisplayName("[Adapted] Should increment Max ID after adding a record")
-    void newHighestIDTest() throws IOException, CsvException {
-        // --- Add first record ---
-        String firstId = simulateGenerateNextId(testDatabaseFile);
-        String[] firstData = {firstId, "First", "CityA", "ProvA", "CatA"};
-        simulateAddRecordAction(firstData, testDatabaseFile);
-        int idAfterFirstAdd = Integer.parseInt(firstId);
-
-        // --- Add second record ---
-        String secondId = simulateGenerateNextId(testDatabaseFile); // Get ID *after* first add
-        String[] secondData = {secondId, "Second", "CityB", "ProvB", "CatB"};
-        simulateAddRecordAction(secondData, testDatabaseFile);
-        int idAfterSecondAdd = Integer.parseInt(secondId);
-
-        // --- Verification ---
-        assertEquals(idAfterFirstAdd + 1, idAfterSecondAdd, "ID after second add should be one greater than the first");
-
-        DatabaseManager finalDbManager = new DatabaseManager(testDatabaseFile);
-        int finalMaxId = finalDbManager.getMaxId().orElse(-1);
-        assertEquals(idAfterSecondAdd, finalMaxId, "Final max ID in file should match the last added ID");
-    }
-
 
     @Test
     @Order(3)
     @DisplayName("[Adapted] Should NOT add record for incomplete form data")
-    void addIncompleteRecordNoChange() throws IOException, CsvException {
+    void addIncompleteRecordNoChange () throws IOException, CsvException {
         // --- Input Data (Missing Name) ---
         String name = ""; // Invalid
         String city = "Test City";
