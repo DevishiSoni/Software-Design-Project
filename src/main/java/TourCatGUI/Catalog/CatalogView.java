@@ -153,7 +153,20 @@ public class CatalogView {
         });
 
         // Button listeners
-        viewButton.addActionListener(e -> logic.handleViewAction());
+        viewButton.addActionListener(e ->
+                {
+                    int row = table.getSelectedRow();
+
+                    if(row == -1) return;
+
+                    String id = (String) tableModel.getValueAt(row, 0);
+                    String name = (String) tableModel.getValueAt(row, 1);
+                    String city = (String) tableModel.getValueAt(row, 2);
+                    String province = (String) tableModel.getValueAt(row, 3);
+                    String category = (String) tableModel.getValueAt(row, 4);
+
+                    logic.handleViewAction(id, name, city, province, category);
+                });
         returnButton.addActionListener(e -> logic.handleReturnAction());
         deleteButton.addActionListener(e -> logic.handleDeleteAction());
         filterButton.addActionListener(e -> logic.handleFilterAction());
