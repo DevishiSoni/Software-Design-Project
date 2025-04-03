@@ -4,11 +4,15 @@ import TourCatGUI.Catalog.CatalogLogic;
 import TourCatGUI.Forms.AddFormLogic;
 // Removed: import TourCatSystem.FileManager; // No longer using FileManager here
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 // Removed: java.io.* and java.net.Socket related imports
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.net.Socket;
 import java.net.URL; // Need URL for resource loading
 
 public class HomePage extends JFrame { // Should probably extend JFrame directly
@@ -20,8 +24,6 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
    JButton catalogueButton = new JButton("Catalogue");
    JButton addButton = new JButton("Add Location"); // Renamed for clarity
    JButton logout = new JButton("Logout");
-   JButton exitButton = new JButton("Exit"); // Added Exit button
-
    JLabel welcomeLabel; // Make it a member variable to update it
 
    // Constructor now just takes username (can be null/default)
@@ -55,15 +57,14 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
 
       welcomeLabel = new JLabel(getWelcomeMessage(), SwingConstants.CENTER);
       welcomeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 36));
-      welcomeLabel.setForeground(Color.WHITE); // Make text visible on potentially dark background
       // Add welcome label to the background panel using constraints
       GridBagConstraints gbc = new GridBagConstraints();
       gbc.gridx = 0;
-      gbc.gridy = 0; // Position it nicely
+      gbc.gridy = 50; // Position it nicely
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
-      gbc.anchor = GridBagConstraints.CENTER; // Center it
-      gbc.insets = new Insets(10, 10, 10, 10); // Add some padding
+      gbc.anchor = GridBagConstraints.FIRST_LINE_START; // Center it
+      gbc.insets = new Insets(75, 50, 0, 0); // Add some padding
       bgPanel.add(welcomeLabel, gbc);
 
 
@@ -72,18 +73,22 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
       JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT)); // Button alignment
 
       // Configure buttons
-      Dimension buttonSize = new Dimension(130, 40); // Adjusted size slightly
+      Dimension buttonSize = new Dimension(120, 40); // Adjusted size slightly
       homeButton.setPreferredSize(new Dimension(100, 40));
+      login.setPreferredSize(buttonSize);
       catalogueButton.setPreferredSize(buttonSize);
       addButton.setPreferredSize(new Dimension(140, 40));
-      exitButton.setPreferredSize(buttonSize);
+      logout.setPreferredSize(buttonSize);
+      login.setVisible(true);
+      logout.setVisible(false);
+
 
       // Add buttons to panel
       buttonPanel.add(homeButton);
+      buttonPanel.add(login);
       buttonPanel.add(catalogueButton);
       buttonPanel.add(addButton);
-      buttonPanel.add(exitButton);
-      buttonPanel.add(login);
+      buttonPanel.add(logout);
 
       // Search components (assuming FuzzyFinder handles search within Catalog view)
       // For simplicity, let's remove the search bar from the HomePage for now.
@@ -112,6 +117,42 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
          welcomeLabel.setText(getWelcomeMessage());
       });
 
+      logout.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            if (currentUsername == null) {
+               JOptionPane.showMessageDialog(HomePage.this, "No user is currently logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+               return;
+            }
+
+            try (Socket socket = new Socket("localhost", 12345);
+                 PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+               // Debug: Print the username being sent
+               System.out.println("Attempting to log out user: " + currentUsername);
+
+               // Send logout request
+               writer.println("LOGOUT");
+               writer.println(currentUsername); // Send the logged-in username
+
+               // Receive response from the server
+               String response = reader.readLine();
+               if ("LOGOUT_SUCCESS".equals(response)) {
+                  JOptionPane.showMessageDialog(HomePage.this, "Logout Successful!");
+                  currentUsername = null; // Clear the logged-in user
+               } else {
+                  JOptionPane.showMessageDialog(HomePage.this, response, "Error", JOptionPane.ERROR_MESSAGE);
+               }
+            } catch (IOException ex) {
+               ex.printStackTrace();
+            }
+            updateLoginLogoutUI();
+            welcomeLabel.setText(getWelcomeMessage());
+         }
+      });
+
+
       // --- Add Action Listeners ---
       homeButton.addActionListener(e -> {
          // Already on home, maybe refresh or do nothing?
@@ -134,16 +175,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
          this.dispose(); // Close the current home page
       });
 
-      exitButton.addActionListener(e -> {
-         // Confirm exit
-         int choice = JOptionPane.showConfirmDialog(this,
-                 "Are you sure you want to exit TourCat?",
-                 "Confirm Exit",
-                 JOptionPane.YES_NO_OPTION);
-         if (choice == JOptionPane.YES_OPTION) {
-            System.exit(0); // Exit the application
-         }
-      });
+
 
       // --- Finalize Frame ---
       setLocationRelativeTo(null); // Center on screen
@@ -162,10 +194,13 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
          return "Welcome to TourCat, " + safeUsername + "!";
       }
    }
-
    public void updateLoginLogoutUI() {
-
+      if (currentUsername == null) {
+         login.setVisible(true);
+         logout.setVisible(false);
+      } else {
+         login.setVisible(false);
+         logout.setVisible(true);
+      }
    }
-
-   // Removed the internal main method, MainApplication is the entry point
 }

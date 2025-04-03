@@ -346,29 +346,27 @@ public class LoginServer {
             }
             newUsername = newUsername.trim(); // Trim whitespace
 
-            // Synchronize potentially modifying 'credentials' and accessing it
             synchronized (credentials) {
-                synchronized (loggedInUsers) { // Also lock loggedInUsers if checking/modifying it
+                synchronized (loggedInUsers) { // Lock both credentials and loggedInUsers
                     if (credentials.containsKey(newUsername)) {
                         writer.println("REGISTRATION_FAILED: Username already exists");
                         System.out.println("Registration failed for " + newUsername + ": Username exists.");
                     } else {
                         credentials.put(newUsername, newPassword);
-                        // Trigger the save operation via the callback
-                        if (saveCredentialsCallback != null) {
-                            saveCredentialsCallback.run();
-                        } else {
-                            System.err.println("LoginServer: Save callback is null in ClientHandler!");
-                        }
+                        saveCredentialsCallback.run(); // Save the new credentials
                         writer.println("REGISTRATION_SUCCESS");
                         System.out.println("New user registered: " + newUsername);
-                        // Automatically log in the new user? Optional.
-                        // loggedInUsers.add(newUsername);
-                        // this.username = newUsername; // Track as logged in for this session
+
+                        // **Automatically log in the new user**
+                        loggedInUsers.add(newUsername);
+                        this.username = newUsername; // Track session for this handler
+                        writer.println("AUTO_LOGIN_SUCCESS");
+                        System.out.println("New user automatically logged in: " + newUsername);
                     }
                 }
             }
         }
+
 
         // handleLogout remains largely the same, uses static 'loggedInUsers'
         private void handleLogout(BufferedReader reader, PrintWriter writer) throws IOException {
