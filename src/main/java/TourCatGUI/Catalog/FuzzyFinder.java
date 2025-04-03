@@ -21,7 +21,7 @@ public class FuzzyFinder { // Renaming might be good later if not using fuzzy lo
      *
      * @param table The JTable to apply filtering to.
      */
-    public FuzzyFinder(JTable table) {
+    public FuzzyFinder (JTable table) {
         this.table = table;
         if (!(table.getModel() instanceof DefaultTableModel)) {
             throw new IllegalArgumentException("FuzzyFinder requires a DefaultTableModel for the JTable.");
@@ -38,7 +38,7 @@ public class FuzzyFinder { // Renaming might be good later if not using fuzzy lo
      *
      * @param query The text to search for. If empty or null, the filter is cleared.
      */
-    public void performFuzzySearch(String query) {
+    public void performFuzzySearch (String query) {
         final String preparedQuery = (query == null) ? "" : query.trim().toLowerCase();
 
         if (preparedQuery.isEmpty()) {
@@ -49,7 +49,7 @@ public class FuzzyFinder { // Renaming might be good later if not using fuzzy lo
                 // Create a RowFilter that checks designated columns for the query substring
                 RowFilter<DefaultTableModel, Integer> rowFilter = new RowFilter<>() {
                     @Override
-                    public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                    public boolean include (Entry<? extends DefaultTableModel, ? extends Integer> entry) {
                         // Iterate only through the searchable columns defined earlier
                         for (int colIndex : searchableColumns) {
                             // Ensure the column index is valid for the current row entry
@@ -81,56 +81,16 @@ public class FuzzyFinder { // Renaming might be good later if not using fuzzy lo
         }
     }
 
-    // --- Optional: Alternative using Regex for more complex patterns ---
-    // (Uncomment and use this instead of the contains-based filter if needed)
-    /*
-    public void performRegexSearch(String query) {
-        final String preparedQuery = (query == null) ? "" : query.trim();
-
-        if (preparedQuery.isEmpty()) {
-            sorter.setRowFilter(null);
-        } else {
-            try {
-                // Create a case-insensitive regex pattern
-                // We escape the query to treat it literally unless you intend regex features
-                Pattern pattern = Pattern.compile(Pattern.quote(preparedQuery), Pattern.CASE_INSENSITIVE);
-
-                RowFilter<DefaultTableModel, Integer> rowFilter = new RowFilter<>() {
-                    @Override
-                    public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                        for (int colIndex : searchableColumns) {
-                            if (colIndex >= 0 && colIndex < entry.getValueCount()) {
-                                Object value = entry.getValue(colIndex);
-                                if (value != null) {
-                                    Matcher matcher = pattern.matcher(value.toString());
-                                    if (matcher.find()) { // Check if the pattern is found anywhere
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-                        return false;
-                    }
-                };
-                sorter.setRowFilter(rowFilter);
-            } catch (PatternSyntaxException e) {
-                System.err.println("Invalid regex pattern: " + e.getMessage());
-                sorter.setRowFilter(null); // Clear filter on error
-            }
-        }
-    }
-    */
-
     /**
      * Clears any active filter, showing all rows.
      */
-    public void clearFilter() {
+    public void clearFilter () {
         sorter.setRowFilter(null);
     }
 
 
     // Example main method for basic testing (requires a visible JFrame)
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         // --- Setup Minimal GUI for Testing ---
         JFrame frame = new JFrame("FuzzyFinder Test");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -188,12 +148,18 @@ public class FuzzyFinder { // Renaming might be good later if not using fuzzy lo
         finder.performFuzzySearch("Park");
         System.out.println("Rows visible after searching 'Park': " + table.getRowCount()); // Shows filtered row count
 
-        try { Thread.sleep(2000); } catch (InterruptedException e) {} // Pause
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+        } // Pause
 
         finder.performFuzzySearch("hiStoric");
         System.out.println("Rows visible after searching 'hiStoric': " + table.getRowCount());
 
-        try { Thread.sleep(2000); } catch (InterruptedException e) {} // Pause
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+        } // Pause
 
         finder.clearFilter();
         System.out.println("Rows visible after clearing filter: " + table.getRowCount());

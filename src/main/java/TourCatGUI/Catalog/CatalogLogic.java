@@ -39,12 +39,12 @@ public class CatalogLogic {
     private String selectedProvince = null;
     private String selectedType = null;
 
-    public CatalogLogic(String username) {
+    public CatalogLogic (String username, File writableDatabaseFile) {
         this.username = username;
 
         try {
             // 1. Determine and prepare the writable database file location
-            this.writableDatabaseFile = initializeWritableDatabase();
+            this.writableDatabaseFile = writableDatabaseFile;
 
             // 2. Initialize Filter and DatabaseManager (using the writable file)
             // Assuming Filter is updated to work with the provided File path
@@ -62,7 +62,7 @@ public class CatalogLogic {
             // 6. Make the GUI visible
             this.gui.setVisible(true);
 
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             // Handle critical initialization errors
             System.err.println("FATAL: Could not initialize database. " + e.getMessage());
             e.printStackTrace();
@@ -78,11 +78,12 @@ public class CatalogLogic {
 
     /**
      * Ensures the writable database file exists, copying the default from resources if needed.
+     *
      * @return The File object pointing to the writable database.
-     * @throws IOException If file operations fail.
+     * @throws IOException        If file operations fail.
      * @throws URISyntaxException If finding the app's running location fails.
      */
-    private File initializeWritableDatabase() throws IOException, URISyntaxException {
+    private File initializeWritableDatabase () throws IOException, URISyntaxException {
         // Determine directory where the app is running (or user home dir)
         Path applicationDirectory = getApplicationDirectory(); // Use helper method
         Path externalDbPath = applicationDirectory.resolve(WRITABLE_DB_FILENAME);
@@ -118,10 +119,11 @@ public class CatalogLogic {
     /**
      * Helper to get the directory where the JAR/application is running.
      * Falls back to user home directory if running location is problematic (e.g., inside JAR structure).
+     *
      * @return Path to the application's directory or user home.
      * @throws URISyntaxException
      */
-    private Path getApplicationDirectory() throws URISyntaxException {
+    private Path getApplicationDirectory () throws URISyntaxException {
         try {
             // Get the path of the JAR file itself
             Path jarPath = Paths.get(CatalogLogic.class.getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -138,7 +140,7 @@ public class CatalogLogic {
             try {
                 Files.createDirectories(userHomePath); // Ensure the fallback directory exists
             } catch (IOException ioException) {
-                System.err.println("Error creating fallback directory in user home: "+ ioException.getMessage());
+                System.err.println("Error creating fallback directory in user home: " + ioException.getMessage());
                 // As a last resort, use current working directory, though less reliable
                 return Paths.get("").toAbsolutePath();
             }
@@ -152,23 +154,24 @@ public class CatalogLogic {
     /**
      * Loads data from the *writable* database file into the table model.
      */
-    private void loadInitialTableData() throws IOException { // Propagate potential IO errors
+    private void loadInitialTableData () throws IOException { // Propagate potential IO errors
         // Assuming LocationReader is updated to read from a File path correctly
         LocationReader reader = new LocationReader(writableDatabaseFile);
         this.tableModel = reader.getTableModel();
     }
 
     // Called by GUI after JTable is created
-    public void hideIdColumn(TableColumnModel columnModel) {
+    public void hideIdColumn (TableColumnModel columnModel) {
         // Assuming LocationReader provides a static method for this
         LocationReader.hideColumns(columnModel, new int[]{0}); // Assuming column 0 is ID
     }
 
     /**
      * Updates the table model with the given list of CSV data lines.
+     *
      * @param results List of strings, each representing a row from the CSV.
      */
-    private void updateTableModel(List<String> results) { // Use List interface
+    private void updateTableModel (List<String> results) { // Use List interface
         // Clear existing data (important!)
         tableModel.setRowCount(0);
 
@@ -192,9 +195,10 @@ public class CatalogLogic {
 
     /**
      * Reads all data lines (excluding header) from the *writable* database file.
+     *
      * @return A List of strings, each representing a data row.
      */
-    private List<String> readAllDataFromWritableFile() { // Renamed for clarity
+    private List<String> readAllDataFromWritableFile () { // Renamed for clarity
         ArrayList<String> allResults = new ArrayList<>();
         // Use the writableDatabaseFile instance variable
         try (BufferedReader br = new BufferedReader(new FileReader(writableDatabaseFile))) {
@@ -211,7 +215,7 @@ public class CatalogLogic {
             }
         } catch (IOException ex) {
             // Show error to the user via the GUI if available
-            if(gui != null) {
+            if (gui != null) {
                 gui.showError("Error reading database file: " + ex.getMessage());
             } else {
                 System.err.println("Error reading database file: " + ex.getMessage());
@@ -224,7 +228,7 @@ public class CatalogLogic {
 
     // --- Action Handlers (Called by GUI listeners) ---
 
-    public void handleSearch(String searchText) {
+    public void handleSearch (String searchText) {
         if (searchText != null && !searchText.isEmpty() && !searchText.equals("Search here:")) {
             fuzzyFinder.performFuzzySearch(searchText);
         } else {
@@ -235,18 +239,17 @@ public class CatalogLogic {
         }
     }
 
-    public void handleReturnAction() {
+    public void handleReturnAction () {
         // Consider passing the username back correctly
         new HomePage(username); // Assuming HomePage constructor handles username
         gui.dispose();
     }
 
-    public void handleViewAction(String id, String name, String city, String province, String category) {
+    public void handleViewAction (String id, String name, String city, String province, String category) {
 
         URL imageURL = null;
         File externalImageFile = null;
         String[] extensions = {".png", ".jpg", ".jpeg", ".gif"}; // Common extensions
-
 
 
 // --- Step 1: Check External Writable Location First ---
@@ -303,7 +306,7 @@ public class CatalogLogic {
         gui.displayDetailsWindow(id, name, city, province, category, imageURL);
     }
 
-    public void handleDeleteAction() {
+    public void handleDeleteAction () {
         int selectedRow = gui.getSelectedRow();
         if (selectedRow != -1) {
             int confirmation = JOptionPane.showConfirmDialog(
@@ -343,7 +346,7 @@ public class CatalogLogic {
         }
     }
 
-    public void handleFilterAction() {
+    public void handleFilterAction () {
         // Assuming Filter class reads correctly from the file path provided in its constructor
         filter.reset();
 
@@ -374,7 +377,7 @@ public class CatalogLogic {
     }
 
 
-    public void handleResetAction() {
+    public void handleResetAction () {
         // 1. Clear filter state in logic
         selectedProvince = null;
         selectedType = null;
@@ -404,11 +407,15 @@ public class CatalogLogic {
 
     // --- State Update Methods (Called by GUI listeners) ---
 
-    public void updateSelectedProvince(String province) {
+    public void updateSelectedProvince (String province) {
         this.selectedProvince = province;
     }
 
-    public void updateSelectedType(String type) {
+    public void updateSelectedType (String type) {
         this.selectedType = type;
+    }
+
+    public DefaultTableModel getTableModel () {
+        return this.tableModel;
     }
 }
