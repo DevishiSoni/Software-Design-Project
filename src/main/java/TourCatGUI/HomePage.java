@@ -168,7 +168,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
             new CatalogLogic(this.currentUsername, File);
             this.dispose(); // Close the current home page
         });
-
+ 
 
         // --- Finalize Frame ---
         setLocationRelativeTo(null); // Center on screen

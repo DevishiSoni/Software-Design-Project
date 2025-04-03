@@ -13,7 +13,7 @@ public class Filter {
     private static final int TYPE_COLUMN_INDEX = 4;
 
     // Constructor takes the database file
-    public Filter(File databaseFile) {
+    public Filter (File databaseFile) {
         if (databaseFile == null || !databaseFile.exists()) {
             throw new IllegalArgumentException("Database file must exist and not be null.");
         }
@@ -22,7 +22,7 @@ public class Filter {
     }
 
     // Method to read all relevant lines (excluding header)
-    private List<String> readAllLines() {
+    private List<String> readAllLines () {
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(databaseFile))) {
             String line;
@@ -44,7 +44,7 @@ public class Filter {
     }
 
     // Helper to safely get column data
-    private String getColumnData(String line, int columnIndex) {
+    private String getColumnData (String line, int columnIndex) {
         if (line == null) return null;
         String[] parts = line.split(","); // Simple CSV split
         if (columnIndex >= 0 && columnIndex < parts.length) {
@@ -57,7 +57,7 @@ public class Filter {
     // --- Filtering Methods ---
 
     // Filter by Province only
-    public void filterProvince(String selectedProvince) {
+    public void filterProvince (String selectedProvince) {
         results.clear();
         if (selectedProvince == null || selectedProvince.trim().isEmpty()) {
             return; // No filter applied if province is null/empty
@@ -72,7 +72,7 @@ public class Filter {
     }
 
     // Filter by Type only
-    public void filterType(String selectedType) {
+    public void filterType (String selectedType) {
         results.clear();
         if (selectedType == null || selectedType.trim().isEmpty()) {
             return; // No filter applied if type is null/empty
@@ -90,7 +90,7 @@ public class Filter {
     }
 
     // Filter by Both Province and Type
-    public void filterBoth(String selectedProvince, String selectedType) {
+    public void filterBoth (String selectedProvince, String selectedType) {
         results.clear();
         if (selectedProvince == null || selectedProvince.trim().isEmpty() ||
                 selectedType == null || selectedType.trim().isEmpty()) {
@@ -115,20 +115,20 @@ public class Filter {
     }
 
     // Get results
-    public ArrayList<String> getResults() {
+    public ArrayList<String> getResults () {
         // Return a copy to prevent external modification? Optional.
         // return new ArrayList<>(results);
         return results;
     }
 
     // Reset filter results
-    public void reset() {
+    public void reset () {
         results.clear();
         // Maybe also reset internal province/type state if they were instance vars
     }
 
     // Simple print method (mainly for testing)
-    public void printResults() {
+    public void printResults () {
         if (results.isEmpty()) {
             System.out.println("No matching results found for the last filter operation.");
         } else {

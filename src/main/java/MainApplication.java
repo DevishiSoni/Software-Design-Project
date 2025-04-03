@@ -1,15 +1,17 @@
 import TourCatGUI.HomePage; // Ensure correct import
+
 import javax.swing.*;
 
 public class MainApplication {
 
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         // Apply FlatLaf Look and Feel (optional but recommended for better UI)
         try {
             // You can choose other FlatLaf themes: FlatDarkLaf, FlatIntelliJLaf, FlatMacDarkLaf etc.
             UIManager.setLookAndFeel("com.formdev.flatlaf.FlatLightLaf");
             System.out.println("FlatLaf Light theme applied successfully.");
-        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException |
+                 IllegalAccessException e) {
             System.err.println("Failed to initialize FlatLaf theme. Using default Look and Feel.");
             e.printStackTrace(); // Log the error for debugging
         }

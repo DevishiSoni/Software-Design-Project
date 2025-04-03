@@ -34,7 +34,7 @@ public class CatalogView {
     JLabel filterBy;
 
     // Constructor takes username, logic instance, and the table model
-    CatalogView(String username, CatalogLogic logic, DefaultTableModel tableModel) {
+    CatalogView (String username, CatalogLogic logic, DefaultTableModel tableModel) {
         this.username = username;
         this.logic = logic;
         this.tableModel = tableModel; // Use the model created by logic
@@ -49,7 +49,7 @@ public class CatalogView {
     }
 
     // --- Initialization Helper ---
-    private void initComponents() {
+    private void initComponents () {
         frame = new JFrame("Tour Catalog - " + username);
         table = new JTable(tableModel); // Use the provided model
         scrollPane = new JScrollPane(table);
@@ -90,7 +90,7 @@ public class CatalogView {
     }
 
     // --- Layout Helper ---
-    private void layoutComponents() {
+    private void layoutComponents () {
         // Frame setup
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
@@ -124,18 +124,19 @@ public class CatalogView {
     }
 
     // --- Listener Setup Helper ---
-    private void attachListeners() {
+    private void attachListeners () {
         // Search field placeholder text behavior
         searchField.addFocusListener(new FocusListener() {
             @Override
-            public void focusGained(FocusEvent e) {
+            public void focusGained (FocusEvent e) {
                 if (searchField.getText().equals("Search here:")) {
                     searchField.setText("");
                     searchField.setForeground(Color.BLACK);
                 }
             }
+
             @Override
-            public void focusLost(FocusEvent e) {
+            public void focusLost (FocusEvent e) {
                 if (searchField.getText().isEmpty()) {
                     searchField.setText("Search here:");
                     searchField.setForeground(Color.GRAY);
@@ -147,26 +148,26 @@ public class CatalogView {
         // Search key listener
         searchField.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased (KeyEvent e) {
                 logic.handleSearch(searchField.getText());
             }
         });
 
         // Button listeners
         viewButton.addActionListener(e ->
-                {
-                    int row = table.getSelectedRow();
+        {
+            int row = table.getSelectedRow();
 
-                    if(row == -1) return;
+            if (row == -1) return;
 
-                    String id = (String) tableModel.getValueAt(row, 0);
-                    String name = (String) tableModel.getValueAt(row, 1);
-                    String city = (String) tableModel.getValueAt(row, 2);
-                    String province = (String) tableModel.getValueAt(row, 3);
-                    String category = (String) tableModel.getValueAt(row, 4);
+            String id = (String) tableModel.getValueAt(row, 0);
+            String name = (String) tableModel.getValueAt(row, 1);
+            String city = (String) tableModel.getValueAt(row, 2);
+            String province = (String) tableModel.getValueAt(row, 3);
+            String category = (String) tableModel.getValueAt(row, 4);
 
-                    logic.handleViewAction(id, name, city, province, category);
-                });
+            logic.handleViewAction(id, name, city, province, category);
+        });
         returnButton.addActionListener(e -> logic.handleReturnAction());
         deleteButton.addActionListener(e -> logic.handleDeleteAction());
         filterButton.addActionListener(e -> logic.handleFilterAction());
@@ -185,36 +186,36 @@ public class CatalogView {
 
     // --- Methods called by Logic to update GUI ---
 
-    public void setVisible(boolean visible) {
+    public void setVisible (boolean visible) {
         frame.setVisible(visible);
     }
 
-    public void dispose() {
+    public void dispose () {
         frame.dispose();
     }
 
-    public int getSelectedRow() {
+    public int getSelectedRow () {
         return table.getSelectedRow();
     }
 
-    public Object getValueAt(int row, int col) {
+    public Object getValueAt (int row, int col) {
         if (row >= 0 && row < tableModel.getRowCount() && col >= 0 && col < tableModel.getColumnCount()) {
             return tableModel.getValueAt(row, col);
         }
         return null;
     }
 
-    public void removeTableRow(int viewRow) {
+    public void removeTableRow (int viewRow) {
         int modelRow = table.convertRowIndexToModel(viewRow);
         // Logic class handles removing from the actual model
     }
 
-    public String getSearchText() {
+    public String getSearchText () {
         String text = searchField.getText();
         return text.equals("Search here:") ? "" : text;
     }
 
-    public void setSearchText(String text) {
+    public void setSearchText (String text) {
         searchField.setText(text);
         if (text.isEmpty() || text.equals("Search here:")) {
             searchField.setText("Search here:");
@@ -224,35 +225,35 @@ public class CatalogView {
         }
     }
 
-    public JTable getTable() {
+    public JTable getTable () {
         return table;
     }
 
-    public void resetFilters() {
+    public void resetFilters () {
         provinceComboBox.setSelectedIndex(0);
         typeComboBox.setSelectedIndex(0);
     }
 
-    public void showMessage(String message) {
+    public void showMessage (String message) {
         JOptionPane.showMessageDialog(frame, message, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public void showError(String message) {
+    public void showError (String message) {
         JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    // --- Details Popup (Modified) ---
+    
     /**
      * Displays a popup window with location details and an image loaded from a URL.
      *
-     * @param id         The location ID.
-     * @param name       The location name.
-     * @param city       The location city.
-     * @param province   The location province.
-     * @param category   The location category.
-     * @param imageURL   The URL pointing to the image resource (can be null).
+     * @param id       The location ID.
+     * @param name     The location name.
+     * @param city     The location city.
+     * @param province The location province.
+     * @param category The location category.
+     * @param imageURL The URL pointing to the image resource (can be null).
      */
-    public void displayDetailsWindow(String id, String name, String city, String province, String category, URL imageURL) { // Changed parameter type
+    public void displayDetailsWindow (String id, String name, String city, String province, String category, URL imageURL) { // Changed parameter type
         JFrame detailsFrame = new JFrame("Location Details: " + name);
         detailsFrame.setSize(450, 450);
         detailsFrame.setLayout(new BorderLayout(10, 10));

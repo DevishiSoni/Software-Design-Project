@@ -14,10 +14,11 @@ class BackgroundPanel extends JPanel {
 
     /**
      * Creates a panel with a background image loaded from a URL.
+     *
      * @param imageURL The URL pointing to the image resource.
-     * @param alpha The transparency level (0.0f to 1.0f).
+     * @param alpha    The transparency level (0.0f to 1.0f).
      */
-    public BackgroundPanel(URL imageURL, float alpha) { // Changed parameter type
+    public BackgroundPanel (URL imageURL, float alpha) { // Changed parameter type
         this.alpha = alpha;
         if (imageURL == null) {
             System.err.println("Error: Background image URL is null.");
@@ -37,7 +38,7 @@ class BackgroundPanel extends JPanel {
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    protected void paintComponent (Graphics g) {
         super.paintComponent(g);
         if (image != null) {
             // Apply transparency and draw the image (existing logic is fine)
@@ -59,4 +60,4 @@ class BackgroundPanel extends JPanel {
     }
 
     // Removed the main method from here, testing should be separate
-}
+} 

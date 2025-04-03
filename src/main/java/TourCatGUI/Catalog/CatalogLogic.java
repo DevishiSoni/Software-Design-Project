@@ -27,7 +27,7 @@ public class CatalogLogic {
     private DefaultTableModel tableModel;
     private FuzzyFinder fuzzyFinder;
     private Filter filter; // Reusable filter object
-
+ 
     // Constants for resource paths inside the JAR
     private static final String INTERNAL_DB_PATH = "/database.csv";
     private static final String IMAGE_RESOURCE_PATH_PREFIX = "/image/"; // Leading and trailing slash

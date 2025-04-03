@@ -15,7 +15,7 @@ public class LoginGUI extends JFrame {
     //    private JButton logoutButton;
     private String loggedInUser = null; // Track the logged-in user
 
-    public LoginGUI() {
+    public LoginGUI () {
         // Set up the GUI
         setTitle("TourCat - Login");
         setSize(500, 250);
@@ -44,11 +44,11 @@ public class LoginGUI extends JFrame {
 
         // Disable logout button initially
 //        logoutButton.setEnabled(false);
-
+ 
         // Add action listener for the login button
         loginButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed (ActionEvent e) {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
@@ -88,7 +88,7 @@ public class LoginGUI extends JFrame {
         // Add action listener for the register button
         registerButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed (ActionEvent e) {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
@@ -160,7 +160,7 @@ public class LoginGUI extends JFrame {
 //        });
     }
 
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         HomePage homePage = new HomePage(null);
 //        SwingUtilities.invokeLater(() -> {
 //            LoginGUI loginGUI = new LoginGUI();

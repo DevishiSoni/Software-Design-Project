@@ -16,26 +16,22 @@ public class LocationReader {
 
     private DefaultTableModel tableModel;
 
-    public LocationReader(File file)
-    {
+    public LocationReader (File file) {
 
-        try(CSVReader reader = new CSVReader(new FileReader(file))){
+        try (CSVReader reader = new CSVReader(new FileReader(file))) {
 
             String[] header = reader.readNext();
 
             tableModel = new DefaultTableModel();
 
-            if (header != null)
-            {
+            if (header != null) {
                 tableModel.setColumnIdentifiers(header);
             }
 
             String[] line;
-            while((line = reader.readNext()) != null)
-            {
+            while ((line = reader.readNext()) != null) {
                 tableModel.addRow(line);
             }
-
 
 
         } catch (IOException | CsvValidationException e) {
@@ -43,25 +39,23 @@ public class LocationReader {
         }
     }
 
-    public DefaultTableModel getTableModel() {
+    public DefaultTableModel getTableModel () {
         return this.tableModel;
     }
 
-    static void hideColumn(TableColumnModel tableColumnModel, int i){
+    static void hideColumn (TableColumnModel tableColumnModel, int i) {
         tableColumnModel.getColumn(i).setMinWidth(0);
         tableColumnModel.getColumn(i).setMaxWidth(0);
         tableColumnModel.getColumn(i).setPreferredWidth(0);
     }
 
-    public static void hideColumns(TableColumnModel tcm, int[] vals)
-    {
-        for(int i : vals)
-        {
+    public static void hideColumns (TableColumnModel tcm, int[] vals) {
+        for (int i : vals) {
             hideColumn(tcm, i);
         }
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main (String[] args) throws FileNotFoundException {
 
     }
 }

@@ -141,7 +141,7 @@ public class FuzzyFinder { // Renaming might be good later if not using fuzzy lo
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         // --- End GUI Setup ---
-
+ 
 
         // You can also test programmatically (though less visual)
         System.out.println("Testing programmatically:");
