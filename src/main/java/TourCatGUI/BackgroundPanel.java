@@ -14,30 +14,31 @@ class BackgroundPanel extends JPanel {
 
     /**
      * Creates a panel with a background image loaded from a URL.
-     * @param imageURL The URL pointing to the image resource.
-     * @param alpha The transparency level (0.0f to 1.0f).
+     *
+     * @param imagePath The URL pointing to the image resource.
+     * @param alpha     The transparency level (0.0f to 1.0f).
      */
-    public BackgroundPanel(URL imageURL, float alpha) { // Changed parameter type
+    public BackgroundPanel (URL imagePath, float alpha) { // Changed parameter type
         this.alpha = alpha;
-        if (imageURL == null) {
+        if (imagePath == null) {
             System.err.println("Error: Background image URL is null.");
             return; // Cannot load image
         }
         try {
             // Load the image directly from the URL
-            image = ImageIO.read(imageURL);
+            image = ImageIO.read(imagePath);
             if (image == null) {
-                System.err.println("Error: ImageIO.read returned null for URL: " + imageURL);
+                System.err.println("Error: ImageIO.read returned null for URL: " + imagePath);
             }
         } catch (IOException e) { // Catch IOException
-            System.err.println("Error loading background image from URL: " + imageURL);
+            System.err.println("Error loading background image from URL: " + imagePath);
             e.printStackTrace();
             // image will remain null, paintComponent will handle it
         }
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    protected void paintComponent (Graphics g) {
         super.paintComponent(g);
         if (image != null) {
             // Apply transparency and draw the image (existing logic is fine)

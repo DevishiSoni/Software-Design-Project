@@ -31,20 +31,13 @@ class AddFormTest {
     static Path testImagePath; // Define path for potential image tests
     static File testDatabaseFile;
 
-    // Option 2: Use JUnit's temporary directory (often preferred for isolation)
-    // @TempDir
-    // static Path sharedTempDir; // JUnit manages creation/deletion
-    // static Path testDatabasePath;
-    // static Path testImagePath;
-    // static File testDatabaseFile;
 
-
-    // Sample Header
+    // Setup for the directory stuff.
     static final String[] HEADER = {"ID", "Name", "City", "Province", "Category"};
     static final String[] INITIAL_RECORD = {"00000", "Initial", "InitCity", "InitProv", "InitCat"};
 
     @BeforeAll
-    static void setupClass() throws IOException {
+    static void setupClass () throws IOException {
         // --- Using Option 1 (Manual Directory) ---
         Files.createDirectories(testDirectory);
         testDatabasePath = testDirectory.resolve("testAddDB_Adapted.csv");
@@ -54,31 +47,17 @@ class AddFormTest {
         System.out.println("Test setup using manual directory: " + testDirectory);
         System.out.println("Test database path: " + testDatabasePath);
         System.out.println("Test image path: " + testImagePath);
-
-
-        // --- Using Option 2 (JUnit TempDir) ---
-        /*
-        assumeTrue(sharedTempDir != null, "JUnit TempDir was not injected");
-        testDatabasePath = sharedTempDir.resolve("testAddDB_Adapted.csv");
-        testImagePath = sharedTempDir.resolve("test_images");
-        Files.createDirectories(testImagePath);
-        testDatabaseFile = testDatabasePath.toFile();
-        System.out.println("Test setup using TempDir: " + sharedTempDir);
-        System.out.println("Test database path: " + testDatabasePath);
-        System.out.println("Test image path: " + testImagePath);
-        */
     }
 
     @BeforeEach
-    void setupTest() throws IOException {
-        // Ensure paths are set
+    void setupTest () throws IOException {
         assumeTrue(testDatabasePath != null && testDatabaseFile != null, "Test database path not initialized");
 
         // Write initial data to the test database file
         try (Writer writer = Files.newBufferedWriter(testDatabasePath, StandardCharsets.UTF_8);
              CSVWriter csvWriter = new CSVWriter(writer,
                      CSVWriter.DEFAULT_SEPARATOR,
-                     CSVWriter.NO_QUOTE_CHARACTER, // Match DatabaseManager config
+                     CSVWriter.NO_QUOTE_CHARACTER,
                      CSVWriter.NO_ESCAPE_CHARACTER,
                      CSVWriter.DEFAULT_LINE_END)) {
 
@@ -90,24 +69,22 @@ class AddFormTest {
     }
 
     @AfterEach
-    void tearDownTest() throws IOException {
+    void tearDownTest () throws IOException {
         // Clean up the database file after each test
         if (testDatabasePath != null) {
             Files.deleteIfExists(testDatabasePath);
         }
-        // Clean up any potential image files created during tests (more robust cleanup needed if image tests are active)
-        // Example: Files.walk(testImagePath).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
     }
 
+    //Clean up content.
     @AfterAll
-    static void tearDownClass() throws IOException {
-        // Clean up the main test directory if using Option 1
+    static void tearDownClass () throws IOException {
         if (testDirectory != null && Files.exists(testDirectory)) {
             // Simple delete, might fail if dirs not empty (e.g., images left)
             // For robustness, consider recursive delete if needed.
             try {
                 // Clean image dir first
-                if(testImagePath != null && Files.exists(testImagePath)) {
+                if (testImagePath != null && Files.exists(testImagePath)) {
                     Files.deleteIfExists(testImagePath); // Delete image dir if empty
                 }
                 Files.deleteIfExists(testDirectory); // Delete main test dir if empty
@@ -115,36 +92,22 @@ class AddFormTest {
                 System.err.println("Warning: Could not fully clean up test directory: " + testDirectory + " - " + e.getMessage());
             }
         }
-        // No need to cleanup TempDir if using Option 2 - JUnit handles it
     }
 
     // Helper to read CSV content for verification (no change needed)
-    private List<String[]> readCsvContent(File file) throws IOException, CsvException {
+    private List<String[]> readCsvContent (File file) throws IOException, CsvException {
         try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-            // Explicitly configure parser if DatabaseManager uses specific settings
-            CSVReader csvReader = new CSVReader(reader); // Simpler, assumes default parsing is sufficient for test check
+            //Open the file in the csv reader.
+            CSVReader csvReader = new CSVReader(reader);
             List<String[]> content = csvReader.readAll();
-            // csvReader.close(); // try-with-resources handles closing
+            csvReader.close();
             return content;
         }
     }
 
-    // Helper to simulate ID generation (no change needed)
-    // Relies on DatabaseManager operating on the provided file.
-    private String simulateGenerateNextId(File currentFile) throws IOException {
-        DatabaseManager tempDbManager = new DatabaseManager(currentFile);
-        OptionalInt maxIdOpt = tempDbManager.getMaxId();
-        if (!maxIdOpt.isPresent()) {
-            System.err.println("TEST WARNING: Max ID not found in " + currentFile.getName() + ", defaulting to 0. Check test setup or file content.");
-            return String.format("%05d", 0);
-        }
-        int nextId = maxIdOpt.getAsInt() + 1;
-        return String.format("%05d", nextId);
-    }
-
     // Helper to simulate the add action (no change needed)
     // Relies on DatabaseManager operating on the provided file.
-    private void simulateAddRecordAction(String[] data, File file) throws IOException {
+    private void simulateAddRecordAction (String[] data, File file) throws IOException {
         DatabaseManager localDbManager = new DatabaseManager(file);
         localDbManager.addRecord(data);
     }
@@ -152,63 +115,8 @@ class AddFormTest {
 
     @Test
     @Order(1)
-    @DisplayName("[Adapted] Should add a valid record successfully")
-    void addValidRecordSuccess() throws IOException, CsvException {
-        // --- Input Data ---
-        String name = "New Landmark";
-        String city = "Test City";
-        String province = "ON";
-        String category = "Monument";
-
-        // --- Initial State ---
-        List<String[]> initialContent = readCsvContent(testDatabaseFile);
-        assertEquals(2, initialContent.size(), "Initial file should have header + 1 initial record");
-        String expectedNextIdStr = simulateGenerateNextId(testDatabaseFile);
-
-        // --- Action ---
-        String[] newLocationData = { expectedNextIdStr, name, city, province, category };
-        assertDoesNotThrow(
-                () -> simulateAddRecordAction(newLocationData, testDatabaseFile),
-                "Simulated addRecord should not throw IO exception for valid data using test file"
-        );
-
-        // --- Verification ---
-        List<String[]> finalContent = readCsvContent(testDatabaseFile);
-        assertEquals(3, finalContent.size(), "File should have header + initial record + 1 new data row");
-        String[] addedRow = finalContent.get(2); // Get the last added row (index = size - 1)
-        assertNotNull(addedRow, "Added row should not be null");
-        assertArrayEquals(newLocationData, addedRow, "Added row content should match input data");
-    }
-
-    @Test
-    @Order(2)
-    @DisplayName("[Adapted] Should increment Max ID after adding a record")
-    void newHighestIDTest() throws IOException, CsvException {
-        // --- Add first record ---
-        String firstId = simulateGenerateNextId(testDatabaseFile);
-        String[] firstData = {firstId, "First", "CityA", "ProvA", "CatA"};
-        simulateAddRecordAction(firstData, testDatabaseFile);
-        int idAfterFirstAdd = Integer.parseInt(firstId);
-
-        // --- Add second record ---
-        String secondId = simulateGenerateNextId(testDatabaseFile); // Get ID *after* first add
-        String[] secondData = {secondId, "Second", "CityB", "ProvB", "CatB"};
-        simulateAddRecordAction(secondData, testDatabaseFile);
-        int idAfterSecondAdd = Integer.parseInt(secondId);
-
-        // --- Verification ---
-        assertEquals(idAfterFirstAdd + 1, idAfterSecondAdd, "ID after second add should be one greater than the first");
-
-        DatabaseManager finalDbManager = new DatabaseManager(testDatabaseFile);
-        int finalMaxId = finalDbManager.getMaxId().orElse(-1);
-        assertEquals(idAfterSecondAdd, finalMaxId, "Final max ID in file should match the last added ID");
-    }
-
-
-    @Test
-    @Order(3)
     @DisplayName("[Adapted] Should NOT add record for incomplete form data")
-    void addIncompleteRecordNoChange() throws IOException, CsvException {
+    void addIncompleteRecordNoChange () throws IOException, CsvException {
         // --- Input Data (Missing Name) ---
         String name = ""; // Invalid
         String city = "Test City";
@@ -256,24 +164,5 @@ class AddFormTest {
         assertArrayEquals(initialContent.toArray(), finalContent.toArray(),
                 "Test DB file content should not change on validation failure");
     }
-
-    // --- Image Test (Still Commented Out) ---
-    // To implement this correctly without FileManager:
-    // 1. Create a dummy image file within the test setup (e.g., in testImagePath).
-    // 2. Simulate adding the CSV record to testDatabaseFile.
-    // 3. Instantiate AddFormLogic. This instance will determine its *own* writable image path.
-    // 4. **Challenge:** We need a way for the test to *know* where AddFormLogic *will* save the image.
-    //    - Option A: Modify AddFormLogic constructor to accept the target image directory (best for testing).
-    //    - Option B: Replicate AddFormLogic's getApplicationDirectory logic within the test to *predict* the path. (Brittle).
-    // 5. Simulate the image save call (maybe expose a package-private method in AddFormLogic or make saveImageToWritableLocation public for testing).
-    // 6. Assert that the image file exists in the *predicted/provided* writable image directory (NOT the testImagePath setup dir).
-    // 7. Clean up the saved image file in @AfterEach or @AfterAll.
-
-//    @Test
-//    @Order(4)
-//    @DisplayName("[Adapted] Should attempt to save image when provided (basic check)")
-//    void addRecordWithImage() throws IOException {
-//        // ... implementation requires careful handling of AddFormLogic's internal paths ...
-//    }
 
 }

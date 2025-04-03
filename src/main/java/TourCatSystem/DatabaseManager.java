@@ -4,28 +4,33 @@ import com.opencsv.*;
 import com.opencsv.exceptions.CsvException; // Use CsvException for broader CSV errors
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt; // Good for returning optional numeric results
 
+import static TourCatSystem.AppDataManager.INTERNAL_DB_PATH;
+
 /**
  * Manages interaction with a location database stored in a CSV file.
  * Provides methods to read, add, delete, and query location records.
  * Each instance operates on a specific database file.
- *
+ * <p>
  * CSV Structure Expected:
  * - Column 0: ID (String, unique, typically numeric format like "00001")
  * - Column 1: Name (String)
  * - Column 2: City (String)
  * - Column 3: Province (String)
  * - Column 4: Category (String)
- *
+ * <p>
  * Dependencies: OpenCSV library.
- *
+ * <p>
  * Error Handling: Methods throw IOExceptions or CsvExceptions on failure.
- *
+ * <p>
  * Author: Garrett (Refactored by AI Assistant)
  * Version: 2.0
  * Date
@@ -48,9 +53,9 @@ public class DatabaseManager {
      *
      * @param databaseFile The CSV file to manage. Must not be null.
      * @throws IllegalArgumentException if databaseFile is null or not a file.
-     * @throws IOException if the file cannot be created or accessed appropriately.
+     * @throws IOException              if the file cannot be created or accessed appropriately.
      */
-    public DatabaseManager(File databaseFile) throws IOException {
+    public DatabaseManager (File databaseFile) throws IOException {
         if (databaseFile == null) {
             throw new IllegalArgumentException("Database file cannot be null.");
         }
@@ -71,7 +76,7 @@ public class DatabaseManager {
                 } else {
                     throw new IOException("Could not create database file: " + databaseFile.getAbsolutePath());
                 }
-            } catch(SecurityException se) {
+            } catch (SecurityException se) {
                 throw new IOException("Security exception creating file: " + databaseFile.getAbsolutePath(), se);
             }
         }
@@ -90,9 +95,10 @@ public class DatabaseManager {
 
     /**
      * Writes the header row if the database file is empty or newly created.
+     *
      * @throws IOException if writing fails.
      */
-    private void writeHeaderIfNotPresent() throws IOException {
+    private void writeHeaderIfNotPresent () throws IOException {
         if (databaseFile.length() == 0) { // Check if file is empty
             try (ICSVWriter writer = createCsvWriter(false)) { // false = don't append
                 writer.writeNext(new String[]{"ID", "Name", "City", "Province", "Category"});
@@ -108,7 +114,7 @@ public class DatabaseManager {
      * @return An configured ICSVWriter instance.
      * @throws IOException If the writer cannot be created.
      */
-    private ICSVWriter createCsvWriter(boolean append) throws IOException {
+    private ICSVWriter createCsvWriter (boolean append) throws IOException {
         // Based on original code, NO_QUOTE_CHARACTER was used. Be cautious if data might contain commas.
         // If data can contain commas or quotes, use DEFAULT_QUOTE_CHARACTER.
         return new CSVWriterBuilder(new FileWriter(databaseFile, append))
@@ -124,11 +130,11 @@ public class DatabaseManager {
      * This is generally safer and more reliable than deleting by name if IDs are unique.
      *
      * @param locationIdToDelete The ID of the location record to delete.
-     * @throws IOException  If file reading/writing fails.
-     * @throws CsvException If there's an error processing the CSV data.
+     * @throws IOException             If file reading/writing fails.
+     * @throws CsvException            If there's an error processing the CSV data.
      * @throws RecordNotFoundException If no record with the specified ID is found.
      */
-    public void deleteById(String locationIdToDelete) throws IOException, CsvException, RecordNotFoundException {
+    public void deleteById (String locationIdToDelete) throws IOException, CsvException, RecordNotFoundException {
         if (locationIdToDelete == null || locationIdToDelete.trim().isEmpty()) {
             throw new IllegalArgumentException("Location ID to delete cannot be null or empty.");
         }
@@ -154,7 +160,7 @@ public class DatabaseManager {
                 found = true; // Found the record, don't add it to rowsToWrite
             } else {
                 // Check for consistent column count if desired, otherwise just write valid rows
-                if(row.length != expectedColumnCount) {
+                if (row.length != expectedColumnCount) {
                     System.err.println("Warning: Row with inconsistent column count encountered: " + String.join(",", row));
                     // Decide whether to skip or write these malformed rows
                 }
@@ -177,10 +183,10 @@ public class DatabaseManager {
      *
      * @param newLocationData An array representing the new location record.
      *                        Must match the expected CSV structure (ID, Name, City, Province, Category).
-     * @throws IOException  If writing to the file fails.
+     * @throws IOException              If writing to the file fails.
      * @throws IllegalArgumentException If newLocationData is null or has incorrect length.
      */
-    public void addRecord(String[] newLocationData) throws IOException {
+    public void addRecord (String[] newLocationData) throws IOException {
         // Basic validation - adjust expected length if columns change
         int expectedColumns = 5;
         if (newLocationData == null || newLocationData.length < expectedColumns) {
@@ -194,61 +200,19 @@ public class DatabaseManager {
             writer.writeNext(newLocationData);
         }
     }
-
-
-    /**
-     * Finds the maximum numeric ID present in the ID column of the CSV file.
-     * Assumes IDs are stored as strings but represent integers.
-     *
-     * @return An OptionalInt containing the maximum ID, or empty if the file is empty,
-     *         has no valid IDs, or an error occurs.
-     */
-    public OptionalInt getMaxId() {
-        int maxId = -1;
-        boolean idFound = false;
-
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(databaseFile))
-                .withCSVParser(csvParser)
-                .withSkipLines(1) // Skip header row for max ID calculation
-                .build())
-        {
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                if (nextLine.length > ID_COLUMN && nextLine[ID_COLUMN] != null) {
-                    try {
-                        int id = Integer.parseInt(nextLine[ID_COLUMN].trim());
-                        if (id > maxId) {
-                            maxId = id;
-                            idFound = true;
-                        }
-                    } catch (NumberFormatException e) {
-                        System.err.println("Warning: Non-numeric ID encountered and skipped: " + nextLine[ID_COLUMN]);
-                        // Continue processing other rows
-                    }
-                }
-            }
-        } catch (IOException | CsvException e) {
-            System.err.println("Error reading file to determine max ID: " + e.getMessage());
-            return OptionalInt.empty(); // Return empty on error
-        }
-
-        return idFound ? OptionalInt.of(maxId) : OptionalInt.empty();
-    }
-
-
+    
     /**
      * Reads all valid data rows from the CSV file (excluding the header).
      *
      * @return A List of String arrays, where each array represents a row.
-     * @throws IOException if file reading fails.
+     * @throws IOException  if file reading fails.
      * @throws CsvException if CSV parsing fails.
      */
-    public List<String[]> readAllRecords() throws IOException, CsvException {
+    public List<String[]> readAllRecords () throws IOException, CsvException {
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(databaseFile))
                 .withCSVParser(csvParser)
                 .withSkipLines(1) // Skip header row
-                .build())
-        {
+                .build()) {
             return reader.readAll();
         }
     }
@@ -257,8 +221,25 @@ public class DatabaseManager {
      * Custom exception for cases where a record lookup fails.
      */
     public static class RecordNotFoundException extends Exception {
-        public RecordNotFoundException(String message) {
+        public RecordNotFoundException (String message) {
             super(message);
         }
     }
+
+
+    /**
+     * Ensures the writable database file exists, copying the default from resources if needed.
+     *
+     * @return The File object pointing to the writable database.
+     * @throws IOException        If file operations fail.
+     * @throws URISyntaxException If finding the app's running location fails.
+     */
+    private File initializeWritableDatabase () throws IOException, URISyntaxException {
+        File externalDbFile = AppDataManager.getWritableDatabasePath().toFile();
+
+
+        return externalDbFile;
+    }
+
+
 }

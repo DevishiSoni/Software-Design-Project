@@ -12,10 +12,10 @@ import java.net.URL; // Import URL for image loading
 
 public class CatalogView {
 
-    private CatalogLogic logic; // Reference to the logic class
-    private String username;
+    private final CatalogLogic logic; // Reference to the logic class
+    private final String username;
 
-    // --- GUI Components ---
+    //GUI components.
     JFrame frame;
     JTable table;
     DefaultTableModel tableModel; // Model managed by logic, but GUI needs reference

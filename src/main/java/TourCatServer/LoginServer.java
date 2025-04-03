@@ -1,5 +1,7 @@
 package TourCatServer;
 
+import TourCatSystem.AppDataManager;
+
 import java.io.*;
 import java.net.*;
 import java.nio.file.*; // Import NIO Paths
@@ -16,8 +18,6 @@ public class LoginServer {
     // Filename for the writable credentials file (outside JAR)
     private static final String WRITABLE_CREDENTIALS_FILENAME = "user_credentials.txt";
 
-    // Path to the actual writable credentials file (determined at runtime)
-    private Path writableCredentialsPath;
 
     // --- Data Structures (Keep static if server runs as singleton within app) ---
     private static HashMap<String, String> credentials = new HashMap<>();
@@ -25,6 +25,8 @@ public class LoginServer {
 
     // --- Instance Variables ---
     private ServerSocket serverSocket;
+
+    private Path writableCredentialsPath;
 
 
     /**
@@ -40,8 +42,7 @@ public class LoginServer {
      * @throws URISyntaxException if finding application directory fails.
      */
     private void initialize() throws IOException, URISyntaxException {
-        Path appDataDirectory = getApplicationDirectory(); // Find where writable data should go
-        this.writableCredentialsPath = appDataDirectory.resolve(WRITABLE_CREDENTIALS_FILENAME);
+        this.writableCredentialsPath = AppDataManager.getWritableCredentialsPath();
 
         System.out.println("LoginServer: Using writable credentials file: " + this.writableCredentialsPath);
 
@@ -69,9 +70,14 @@ public class LoginServer {
 
                 // Option 2: Create an empty file - allows server to start but with no initial users
                 System.err.println("LoginServer: Warning - Could not find internal resource: " + INTERNAL_CREDENTIALS_RESOURCE_PATH + ". Creating empty credentials file.");
+
+                System.out.println();
+
+
                 Files.createDirectories(writableCredentialsPath.getParent()); // Ensure parent dir exists
+
                 Files.createFile(writableCredentialsPath); // Create empty file
-                return; // Skip copy attempt
+                return;
             }
 
             try (InputStream internalStream = getClass().getResourceAsStream(INTERNAL_CREDENTIALS_RESOURCE_PATH)) {
@@ -92,52 +98,8 @@ public class LoginServer {
     }
 
 
-    /**
-     * Helper to get the directory for writable application data.
-     * Uses JAR location's parent or falls back to user home.
-     * (Adapted from CatalogLogic/AddFormLogic)
-     * @return Path to the application's writable data directory.
-     * @throws URISyntaxException
-     */
-    private Path getApplicationDirectory() throws URISyntaxException {
-        try {
-            Path jarPath = Paths.get(LoginServer.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            Path parentDir = Files.isDirectory(jarPath) ? jarPath : jarPath.getParent(); // Handle running from classes vs JAR
-            if (parentDir == null) { // Parent might be null if running from root? Unlikely but possible.
-                throw new URISyntaxException("JAR path parent is null", jarPath.toString());
-            }
-            // Let's create a dedicated subdir for TourCat data within the parent dir or user home
-            Path dataDir = parentDir.resolve("TourCatData");
-            Files.createDirectories(dataDir); // Ensure it exists
-            return dataDir;
-
-        } catch (URISyntaxException | NullPointerException | IOException e ) { // Catch broader exceptions during path finding/creation
-            System.err.println("LoginServer: Warning - Could not determine application directory reliably. Falling back to user home. Error: " + e.getMessage());
-            String userHome = System.getProperty("user.home");
-            Path userHomePath = Paths.get(userHome, "TourCatData"); // Subfolder in user home
-            try {
-                Files.createDirectories(userHomePath); // Ensure the fallback directory exists
-            } catch (IOException ioException) {
-                System.err.println("LoginServer: Error creating fallback directory in user home: "+ ioException.getMessage());
-                // As a last resort, use current working directory, though less reliable
-                Path cwdDataPath = Paths.get("").toAbsolutePath().resolve("TourCatData");
-                try {
-                    Files.createDirectories(cwdDataPath);
-                    return cwdDataPath;
-                } catch(IOException finalE) {
-                    System.err.println("LoginServer: FATAL - Cannot create any data directory.");
-                    throw new RuntimeException("Cannot determine or create application data directory", finalE);
-                }
-            }
-            return userHomePath;
-        }
-    }
 
 
-    /**
-     * Loads credentials from the writable file.
-     * Called *after* initialize() ensures the file path is set and file exists.
-     */
     private void loadCredentialsFromWritableFile() {
         credentials.clear(); // Clear existing before loading
         try (BufferedReader br = Files.newBufferedReader(writableCredentialsPath)) { // Use NIO Files for reading

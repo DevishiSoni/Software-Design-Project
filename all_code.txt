@@ -418,7 +418,7 @@ package TourCatGUI.Catalog;
 import TourCatGUI.HomePage;
 import TourCatSystem.DatabaseManager;
 // Assuming FileManager might still be used for *finding* the writable path, or replaced by a new manager
-import TourCatSystem.Filter;
+import TourCatGUI.Catalog.Filter;
 import TourCatSystem.LocationReader;
 import com.opencsv.exceptions.CsvException;
 
