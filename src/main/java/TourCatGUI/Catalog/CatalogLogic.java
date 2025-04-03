@@ -10,7 +10,9 @@ import com.opencsv.exceptions.CsvException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.TableView;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*; // Import NIO for file operations
@@ -239,43 +241,66 @@ public class CatalogLogic {
         gui.dispose();
     }
 
-    public void handleViewAction() {
-        int selectedRow = gui.getSelectedRow();
-        if (selectedRow != -1) {
-            int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
+    public void handleViewAction(String id, String name, String city, String province, String category) {
 
-            String id = (String) tableModel.getValueAt(modelRow, 0);
-            String name = (String) tableModel.getValueAt(modelRow, 1);
-            String city = (String) tableModel.getValueAt(modelRow, 2);
-            String province = (String) tableModel.getValueAt(modelRow, 3);
-            String category = (String) tableModel.getValueAt(modelRow, 4);
+        URL imageURL = null;
+        File externalImageFile = null;
+        String[] extensions = {".png", ".jpg", ".jpeg", ".gif"}; // Common extensions
 
-            // --- Load Image using Classpath Resources ---
-            URL imageURL = null;
-            String[] extensions = {".png", ".jpg", ".jpeg", ".gif"}; // Add more if needed
+
+
+// --- Step 1: Check External Writable Location First ---
+        try {
+            // Need the path to the writable image directory (AddFormLogic has it, CatalogLogic needs it too)
+            // Solution: Replicate getApplicationDirectory() logic here or pass it during initialization
+            Path appDataDirectory = getApplicationDirectory(); // Assuming this method exists/is accessible
+            Path writableImageDirectory = appDataDirectory.resolve("images"); // Or use WRITABLE_IMAGE_DIRNAME constant
+
             for (String ext : extensions) {
-                String resourcePath = IMAGE_RESOURCE_PATH_PREFIX + id + ext;
-                imageURL = getClass().getResource(resourcePath);
-                if (imageURL != null) {
-                    System.out.println("Found image resource: " + resourcePath);
-                    break; // Found one, stop looking
-                } else {
-                    System.out.println("Did not find image resource: " + resourcePath);
+                Path potentialExternalPath = writableImageDirectory.resolve(id + ext);
+                if (Files.exists(potentialExternalPath)) {
+                    externalImageFile = potentialExternalPath.toFile();
+                    System.out.println("Found external image file: " + externalImageFile.getAbsolutePath());
+                    break; // Found it
                 }
             }
-
-            if (imageURL == null) {
-                System.err.println("Could not find image resource for ID: " + id + " with common extensions.");
-            }
-            // --------------------------------------------
-
-            // Ask GUI to display the details window, passing the URL
-            // *** Requires CatalogView.displayDetailsWindow to be updated ***
-            gui.displayDetailsWindow(id, name, city, province, category, imageURL);
-
-        } else {
-            gui.showMessage("Please select a location from the table to view details.");
+        } catch (Exception e) { // Catch errors during external path resolution/check
+            System.err.println("Error checking for external image file for ID " + id + ": " + e.getMessage());
+            // Continue to check internal resources
         }
+
+
+// --- Step 2: If not found externally, check Internal JAR Resources ---
+        if (externalImageFile == null) {
+            for (String ext : extensions) {
+                String resourcePath = IMAGE_RESOURCE_PATH_PREFIX + id + ext; // e.g., "/image/00001.png"
+                imageURL = getClass().getResource(resourcePath);
+                if (imageURL != null) {
+                    System.out.println("Found internal image resource: " + resourcePath);
+                    break; // Found one, stop looking
+                }
+            }
+        }
+
+// --- Step 3: Pass result to the GUI ---
+        if (externalImageFile != null) {
+            try {
+                // Convert external File to URL for ImageIcon compatibility if needed,
+                // or modify displayDetailsWindow to accept File. Using toURI().toURL() is common.
+                imageURL = externalImageFile.toURI().toURL();
+            } catch (MalformedURLException e) {
+                System.err.println("Error converting external file path to URL: " + e.getMessage());
+                imageURL = null; // Fallback
+            }
+        }
+
+// --- Final check and display ---
+        if (imageURL == null && externalImageFile == null) { // Double check, though imageURL might be set from file
+            System.err.println("Could not find image resource or file for ID: " + id);
+        }
+
+// Pass the final imageURL (which might be from internal or external source)
+        gui.displayDetailsWindow(id, name, city, province, category, imageURL);
     }
 
     public void handleDeleteAction() {
@@ -290,7 +315,7 @@ public class CatalogLogic {
             );
 
             if (confirmation == JOptionPane.YES_OPTION) {
-                int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
+                int modelRow = gui.getSelectedRow();
                 String selectedRowID = (String) tableModel.getValueAt(modelRow, 0);
 
                 try {

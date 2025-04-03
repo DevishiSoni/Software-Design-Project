@@ -210,4 +210,7 @@ public class AddFormGUI extends JFrame {
     public String getProvinceText() { return provinceField.getText(); }
     public String getCategoryText() { return categoryField.getText(); }
 
+    public void showError(String s) {
+        System.err.println("Error: " + s);
+    }
 }
