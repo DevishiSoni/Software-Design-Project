@@ -14,7 +14,7 @@ public class LoginServer {
     // Internal path (within JAR) for the default/template credentials file
     private static final String INTERNAL_CREDENTIALS_RESOURCE_PATH = "/default_credentials.txt";
     // Filename for the writable credentials file (outside JAR)
-    private static final String WRITABLE_CREDENTIALS_FILENAME = "/user_credentials.txt";
+    private static final String WRITABLE_CREDENTIALS_FILENAME = "user_credentials.txt";
 
     // Path to the actual writable credentials file (determined at runtime)
     private Path writableCredentialsPath;

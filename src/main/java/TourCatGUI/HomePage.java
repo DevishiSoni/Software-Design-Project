@@ -16,10 +16,10 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
 
    // Buttons (Consider removing login/logout if not needed)
    JButton homeButton = new JButton("Home");
-   // Removed: JButton login = new JButton("Login");
+   JButton login = new JButton("Login");
    JButton catalogueButton = new JButton("Catalogue");
    JButton addButton = new JButton("Add Location"); // Renamed for clarity
-   // Removed: JButton logout = new JButton("Logout");
+   JButton logout = new JButton("Logout");
    JButton exitButton = new JButton("Exit"); // Added Exit button
 
    JLabel welcomeLabel; // Make it a member variable to update it
@@ -83,6 +83,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
       buttonPanel.add(catalogueButton);
       buttonPanel.add(addButton);
       buttonPanel.add(exitButton);
+      buttonPanel.add(login);
 
       // Search components (assuming FuzzyFinder handles search within Catalog view)
       // For simplicity, let's remove the search bar from the HomePage for now.
@@ -100,6 +101,16 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
       // --- Add components to the main frame ('this') ---
       add(topPanel, BorderLayout.NORTH);
       add(bgPanel, BorderLayout.CENTER); // Add background panel to the center
+
+      login.addActionListener(e -> {
+         this.setVisible(false);
+         SwingUtilities.invokeLater(() -> {
+            LoginGUI loginGUI = new LoginGUI();
+            loginGUI.setVisible(true);
+         });
+         dispose();
+         welcomeLabel.setText(getWelcomeMessage());
+      });
 
       // --- Add Action Listeners ---
       homeButton.addActionListener(e -> {
