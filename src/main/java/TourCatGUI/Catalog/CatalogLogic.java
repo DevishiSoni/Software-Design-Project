@@ -315,7 +315,7 @@ public class CatalogLogic {
             );
 
             if (confirmation == JOptionPane.YES_OPTION) {
-                int modelRow = gui.getTable().convertRowIndexToModel(selectedRow);
+                int modelRow = gui.getSelectedRow();
                 String selectedRowID = (String) tableModel.getValueAt(modelRow, 0);
 
                 try {

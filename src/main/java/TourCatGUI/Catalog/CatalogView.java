@@ -155,15 +155,15 @@ public class CatalogView {
         // Button listeners
         viewButton.addActionListener(e ->
                 {
-                    int col = table.getSelectedRow();
+                    int row = table.getSelectedRow();
 
-                    if(col == -1) return;
+                    if(row == -1) return;
 
-                    String id = (String) tableModel.getValueAt(0, col);
-                    String name = (String) tableModel.getValueAt(1, col);
-                    String city = (String) tableModel.getValueAt(2, col);
-                    String province = (String) tableModel.getValueAt(3, col);
-                    String category = (String) tableModel.getValueAt(4, col);
+                    String id = (String) tableModel.getValueAt(row, 0);
+                    String name = (String) tableModel.getValueAt(row, 1);
+                    String city = (String) tableModel.getValueAt(row, 2);
+                    String province = (String) tableModel.getValueAt(row, 3);
+                    String category = (String) tableModel.getValueAt(row, 4);
 
                     logic.handleViewAction(id, name, city, province, category);
                 });
