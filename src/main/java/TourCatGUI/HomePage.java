@@ -79,8 +79,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
       catalogueButton.setPreferredSize(buttonSize);
       addButton.setPreferredSize(new Dimension(140, 40));
       logout.setPreferredSize(buttonSize);
-      login.setVisible(true);
-      logout.setVisible(false);
+      updateLoginLogoutUI();
 
 
       // Add buttons to panel
@@ -167,12 +166,14 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
          // Pass the current username (can be null)
          new AddFormLogic(this.currentUsername);
          this.dispose(); // Close the current home page
+         updateLoginLogoutUI();
       });
 
       catalogueButton.addActionListener( e -> {
          // Pass the current username (can be null)
          new CatalogLogic(this.currentUsername);
          this.dispose(); // Close the current home page
+         updateLoginLogoutUI();
       });
 
 
