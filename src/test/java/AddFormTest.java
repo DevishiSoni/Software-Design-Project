@@ -28,15 +28,7 @@ class AddFormTest {
     static Path testDatabasePath;
     static Path testImagePath; // Define path for potential image tests
     static File testDatabaseFile;
-
-    // Option 2: Use JUnit's temporary directory (often preferred for isolation)
-    // @TempDir
-    // static Path sharedTempDir; // JUnit manages creation/deletion
-    // static Path testDatabasePath;
-    // static Path testImagePath;
-    // static File testDatabaseFile;
-
-
+    
     // Sample Header
     static final String[] HEADER = {"ID", "Name", "City", "Province", "Category"};
     static final String[] INITIAL_RECORD = {"00000", "Initial", "InitCity", "InitProv", "InitCat"};
@@ -52,19 +44,6 @@ class AddFormTest {
         System.out.println("Test setup using manual directory: " + testDirectory);
         System.out.println("Test database path: " + testDatabasePath);
         System.out.println("Test image path: " + testImagePath);
-
-
-        // --- Using Option 2 (JUnit TempDir) ---
-        /*
-        assumeTrue(sharedTempDir != null, "JUnit TempDir was not injected");
-        testDatabasePath = sharedTempDir.resolve("testAddDB_Adapted.csv");
-        testImagePath = sharedTempDir.resolve("test_images");
-        Files.createDirectories(testImagePath);
-        testDatabaseFile = testDatabasePath.toFile();
-        System.out.println("Test setup using TempDir: " + sharedTempDir);
-        System.out.println("Test database path: " + testDatabasePath);
-        System.out.println("Test image path: " + testImagePath);
-        */
     }
 
     @BeforeEach
@@ -224,24 +203,4 @@ class AddFormTest {
         assertArrayEquals(initialContent.toArray(), finalContent.toArray(),
                 "Test DB file content should not change on validation failure");
     }
-
-    // --- Image Test (Still Commented Out) ---
-    // To implement this correctly without FileManager:
-    // 1. Create a dummy image file within the test setup (e.g., in testImagePath).
-    // 2. Simulate adding the CSV record to testDatabaseFile.
-    // 3. Instantiate AddFormLogic. This instance will determine its *own* writable image path.
-    // 4. **Challenge:** We need a way for the test to *know* where AddFormLogic *will* save the image.
-    //    - Option A: Modify AddFormLogic constructor to accept the target image directory (best for testing).
-    //    - Option B: Replicate AddFormLogic's getApplicationDirectory logic within the test to *predict* the path. (Brittle).
-    // 5. Simulate the image save call (maybe expose a package-private method in AddFormLogic or make saveImageToWritableLocation public for testing).
-    // 6. Assert that the image file exists in the *predicted/provided* writable image directory (NOT the testImagePath setup dir).
-    // 7. Clean up the saved image file in @AfterEach or @AfterAll.
-
-//    @Test
-//    @Order(4)
-//    @DisplayName("[Adapted] Should attempt to save image when provided (basic check)")
-//    void addRecordWithImage() throws IOException {
-//        // ... implementation requires careful handling of AddFormLogic's internal paths ...
-//    }
-
 }

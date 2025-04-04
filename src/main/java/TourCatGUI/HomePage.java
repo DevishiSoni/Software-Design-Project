@@ -1,7 +1,9 @@
 package TourCatGUI;
 
 import TourCatGUI.Catalog.CatalogLogic;
+import TourCatGUI.Catalog.CatalogView;
 import TourCatGUI.Forms.AddFormLogic;
+import TourCatSystem.AppDataManager;
 import TourCatSystem.DatabaseManager;
 // Removed: import TourCatSystem.FileManager; // No longer using FileManager here
 
@@ -165,10 +167,10 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
         catalogueButton.addActionListener(e -> {
             // Pass the current username (can be null)
 
-            new CatalogLogic(this.currentUsername, File);
+            new CatalogLogic(this.currentUsername, AppDataManager.writableDatabaseFile);
             this.dispose(); // Close the current home page
         });
- 
+
 
         // --- Finalize Frame ---
         setLocationRelativeTo(null); // Center on screen

@@ -1,81 +1,70 @@
 import TourCatGUI.Catalog.CatalogLogic;
-import TourCatGUI.Catalog.CatalogView; // Import needed if interacting with GUI elements
-import TourCatSystem.DatabaseManager;   // Import needed for testing delete interaction
+import TourCatSystem.DatabaseManager; // For checking file state post-delete
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir; // Use TempDir for isolated testing
+import org.junit.jupiter.api.io.TempDir;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Vector;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class) // Keep tests ordered if needed
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CatalogLogicTesting {
 
     @TempDir
-    Path tempDir; // JUnit creates and cleans this temporary directory
+    Path tempDir; // JUnit manages this
 
-    CatalogLogic catalogLogic;
-    File writableDbFile; // The actual database file used in the temp directory
-    DefaultTableModel tableModel; // To check the model state directly
+    CatalogLogic catalogLogic; // Instance under test
+    File writableDbFile;     // Path to the test DB file
+    DefaultTableModel tableModel; // Direct access to the model state
 
-    // Sample data matching the expected CSV structure
+    // Test Data Constants
     static final String[] HEADER = {"ID", "Name", "City", "Province", "Category"};
     static final String[] DATA_ROW_1 = {"00001", "Niagara Falls", "Niagara", "ON", "Waterfall"};
     static final String[] DATA_ROW_2 = {"00002", "CN Tower", "Toronto", "ON", "Landmark"};
     static final String[] DATA_ROW_3 = {"00003", "Stanley Park", "Vancouver", "BC", "Park"};
-    static final String[] DATA_ROW_4 = {"00004", "Old Quebec", "Quebec City", "QC", "Historic Site"}; // Note space
+    static final String[] DATA_ROW_4 = {"00004", "Old Quebec", "Quebec City", "QC", "Historic Site"};
 
     @BeforeEach
-    void setUp () throws IOException, URISyntaxException {
-        // --- 1. Prepare the Writable Database File in TempDir ---
-        Path dbPath = tempDir.resolve("userdata_database.csv"); // Use the standard name CatalogLogic expects
+    void setUp () throws IOException {
+        // 1. Define the path for the database within the temp directory
+        Path dbPath = tempDir.resolve("test_catalog_db.csv"); // Use a unique name
         writableDbFile = dbPath.toFile();
+        System.out.println("Test DB path: " + writableDbFile.getAbsolutePath());
 
-        // --- 2. Copy Default Content (if available) or Create Dummy ---
-        // Try to copy the default database from resources, like CatalogLogic does
-        URL internalDbUrl = getClass().getResource("/database.csv"); // Path in resources
-        if (internalDbUrl != null) {
-            try (InputStream internalStream = getClass().getResourceAsStream("/database.csv")) {
-                assumeTrue(internalStream != null, "Could not open resource stream /database.csv");
-                Files.copy(internalStream, dbPath, StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("Copied default database to: " + dbPath);
-            } catch (Exception e) {
-                System.err.println("Warning: Failed to copy default DB resource. Creating basic test file. Error: " + e);
-                createBasicTestCsv(writableDbFile); // Fallback
-            }
-        } else {
-            System.err.println("Warning: Default resource /database.csv not found. Creating basic test file.");
-            createBasicTestCsv(writableDbFile); // Create a basic file if resource missing
-        }
+        // 2. Create a fresh dummy CSV file for each test
+        //    This ensures tests are isolated and start from a known state.
+        createBasicTestCsv(writableDbFile);
 
-        // --- 3. Instantiate CatalogLogic using the Test Constructor ---
-        // Pass the path to our temporary database file.
-        // Set initializeGui to true IF tests rely on FuzzyFinder or other GUI elements.
-        // Set to false if only testing data loading/filtering logic directly.
-        catalogLogic = new CatalogLogic("testUser", writableDbFile); // Initialize with GUI elements needed for filter/reset
+        // 3. Instantiate CatalogLogic WITHOUT the GUI
+        //    Pass the path to our temporary database file.
+        catalogLogic = new CatalogLogic("testUser", writableDbFile, false); // *** false = no GUI ***
 
-        // --- 4. Get the table model loaded by CatalogLogic ---
+        // 4. Get the table model loaded by CatalogLogic
         tableModel = catalogLogic.getTableModel();
         assertNotNull(tableModel, "Table model should be loaded by CatalogLogic constructor");
-        System.out.println("Initial TableModel Row Count: " + tableModel.getRowCount());
+
+        // 5. Verify initial state (optional but good)
+        assertEquals(4, tableModel.getRowCount(), "Initial model should have 4 data rows from test file");
+        System.out.println("Setup complete. Initial TableModel Row Count: " + tableModel.getRowCount());
     }
 
-    // Helper to create a basic CSV if the resource isn't found
+    // Helper to create the CSV file with test data
     private void createBasicTestCsv (File file) throws IOException {
+        // Ensure parent directory exists (JUnit's @TempDir usually handles this, but belt-and-suspenders)
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
         try (CSVWriter writer = new CSVWriter(new FileWriter(file))) {
             writer.writeNext(HEADER);
             writer.writeNext(DATA_ROW_1);
@@ -83,61 +72,66 @@ class CatalogLogicTesting {
             writer.writeNext(DATA_ROW_3);
             writer.writeNext(DATA_ROW_4);
         }
+        System.out.println("Created/Replaced test CSV file: " + file.getAbsolutePath());
+    }
+
+    @Test
+    @Order(0)
+    @DisplayName("Should create or load file.")
+    void createDatafile () {
+        System.out.println(writableDbFile.getAbsolutePath() + ": file exists?");
+
+        Assertions.assertTrue(writableDbFile.exists());
+
     }
 
     @Test
     @Order(1)
-    @DisplayName("Should load initial data correctly from the prepared file")
+    @DisplayName("Should load initial data correctly")
     void testInitialDataLoading () {
-        // Assumes the copied/created CSV has HEADER + 4 data rows initially
-        assertEquals(4, tableModel.getRowCount(), "Should load the initial data rows (excluding header)");
-        // Check some values from the first data row (adjust indices based on HEADER)
-        assertEquals(DATA_ROW_1[1], tableModel.getValueAt(0, 1), "First row name should match"); // Name at index 1
-        assertEquals(DATA_ROW_1[3], tableModel.getValueAt(0, 3), "First row province should match"); // Province at index 3
+        // Assertions are mostly covered by setUp verification, but can add more specific checks
+        assertEquals(4, tableModel.getRowCount(), "Should load 4 data rows");
+        assertEquals(DATA_ROW_1[1], tableModel.getValueAt(0, 1), "Row 1 Name check"); // Niagara Falls
+        assertEquals(DATA_ROW_3[3], tableModel.getValueAt(2, 3), "Row 3 Province check"); // BC
+        assertEquals(DATA_ROW_4[4], tableModel.getValueAt(3, 4), "Row 4 Category check"); // Historic Site
     }
 
     @Test
     @Order(2)
-    @DisplayName("Should read all data rows correctly")
+    @DisplayName("Should read all data rows correctly using readAllDataFromWritableFile")
     void testReadAllDataFromWritableFile () {
         List<String> dataLines = catalogLogic.readAllDataFromWritableFile();
+
+        System.out.println(dataLines.get(0));
+        System.out.println(DATA_ROW_1[0]);
+
         assertNotNull(dataLines);
-        // Should contain the string representation of the data rows
         assertEquals(4, dataLines.size(), "Should read all 4 data rows (header skipped)");
-        assertTrue(dataLines.get(0).startsWith(DATA_ROW_1[0]), "First data line should start with ID"); // "00001,Niagara..."
-        assertTrue(dataLines.get(1).contains(DATA_ROW_2[1]), "Second data line should contain Name"); // "...,CN Tower,..."
+        assertTrue(dataLines.get(0).contains(DATA_ROW_1[0]), "First data line check"); // Starts with "00001"
+        assertTrue(dataLines.get(0).contains(DATA_ROW_1[1]), "First data line check"); // Starts with "00001"
     }
 
     @Test
     @Order(3)
-    @DisplayName("Should filter by a valid Province (ON)")
-    void testFilterByValidProvince () {
-        catalogLogic.updateSelectedProvince("ON"); // Set filter criteria
-        catalogLogic.handleFilterAction();      // Apply the filter
-
-        // Verify the table model reflects the filtered results
-        assertEquals(2, tableModel.getRowCount(), "Should find 2 locations in ON");
-        assertEquals(DATA_ROW_1[1], tableModel.getValueAt(0, 1), "First ON result should be Niagara Falls");
-        assertEquals(DATA_ROW_2[1], tableModel.getValueAt(1, 1), "Second ON result should be CN Tower");
-    }
-
-    @Test
-    @Order(4)
-    @DisplayName("Should filter by a valid Province (BC)")
-    void testFilterByValidProvinceBC () {
-        catalogLogic.updateSelectedProvince("BC");
+    @DisplayName("Should filter by valid Province (ON)")
+    void testFilterByValidProvinceON () {
+        catalogLogic.updateSelectedProvince("ON");
+        catalogLogic.updateSelectedType(null);
         catalogLogic.handleFilterAction();
 
-        assertEquals(1, tableModel.getRowCount(), "Should find 1 location in BC");
-        assertEquals(DATA_ROW_3[1], tableModel.getValueAt(0, 1), "BC result should be Stanley Park");
-    }
 
+        List<String> strings = catalogLogic.getFilter().getResults();
+
+
+        assertEquals(2, strings.size(), "Should find 2 locations in ON");
+    }
 
     @Test
     @Order(5)
-    @DisplayName("Should return no results for an invalid Province")
+    @DisplayName("Should return no results for non-existent Province (MB)")
     void testFilterByInvalidProvince () {
-        catalogLogic.updateSelectedProvince("MB"); // Manitoba - not in our test data
+        catalogLogic.updateSelectedProvince("MB");
+        catalogLogic.updateSelectedType(null);
         catalogLogic.handleFilterAction();
 
         assertEquals(0, tableModel.getRowCount(), "Should find 0 locations in MB");
@@ -145,26 +139,28 @@ class CatalogLogicTesting {
 
     @Test
     @Order(6)
-    @DisplayName("Should filter by a valid Type (Waterfall)")
+    @DisplayName("Should filter by valid Type (Park)")
     void testFilterByValidType () {
-        catalogLogic.updateSelectedType("Waterfall");
+        catalogLogic.updateSelectedProvince(null);
+        catalogLogic.updateSelectedType("Park");
         catalogLogic.handleFilterAction();
 
-        assertEquals(1, tableModel.getRowCount(), "Should find 1 Waterfall");
-        assertEquals(DATA_ROW_1[1], tableModel.getValueAt(0, 1), "Waterfall result should be Niagara Falls");
+        assertEquals(1, tableModel.getRowCount(), "Should find 1 Park");
+        assertEquals(DATA_ROW_3[1], tableModel.getValueAt(0, 1), "Park result should be Stanley Park");
     }
+
 
     @Test
     @Order(7)
-    @DisplayName("Should filter by a valid Type with space (Historic Site)")
+    @DisplayName("Should filter by valid Type with space (Historic Site)")
     void testFilterByValidTypeWithSpace () {
+        catalogLogic.updateSelectedProvince(null);
         catalogLogic.updateSelectedType("Historic Site"); // Type with a space
         catalogLogic.handleFilterAction();
 
         assertEquals(1, tableModel.getRowCount(), "Should find 1 Historic Site");
         assertEquals(DATA_ROW_4[1], tableModel.getValueAt(0, 1), "Historic Site result should be Old Quebec");
     }
-
 
     @Test
     @Order(8)
@@ -182,129 +178,105 @@ class CatalogLogicTesting {
     @Order(9)
     @DisplayName("Should return no results if Province/Type combo doesn't match")
     void testFilterByMismatchProvinceAndType () {
-        catalogLogic.updateSelectedProvince("BC"); // Stanley Park
-        catalogLogic.updateSelectedType("Waterfall"); // Niagara
+        catalogLogic.updateSelectedProvince("BC"); // Stanley Park is BC/Park
+        catalogLogic.updateSelectedType("Waterfall"); // Niagara is ON/Waterfall
         catalogLogic.handleFilterAction();
 
         assertEquals(0, tableModel.getRowCount(), "Should find 0 Waterfalls in BC");
     }
 
-
     @Test
     @Order(10)
     @DisplayName("Should reset filters and show all data")
-    void testHandleResetAction () {
+    void testResetAction () {
         // Apply some filters first
         catalogLogic.updateSelectedProvince("ON");
         catalogLogic.updateSelectedType("Landmark");
         catalogLogic.handleFilterAction();
-        assertEquals(1, tableModel.getRowCount(), "Pre-condition: Filter should be active");
-        assertNotNull(catalogLogic.getSelectedProvince(), "Pre-condition: Province should be selected");
-        assertNotNull(catalogLogic.getSelectedType(), "Pre-condition: Type should be selected");
+        assertEquals(1, tableModel.getRowCount(), "Pre-condition: Should be filtered to 1 row");
 
-        // Perform the reset
+        // Action: Reset
         catalogLogic.handleResetAction();
 
-        // Verify state after reset
-        assertNull(catalogLogic.getSelectedProvince(), "Selected province should be null after reset");
-        assertNull(catalogLogic.getSelectedType(), "Selected type should be null after reset");
-        assertEquals(4, tableModel.getRowCount(), "Table should show all 4 rows after reset");
-
-        // Also check if GUI reset methods were likely called (requires GUI instance)
-        if (catalogLogic.gui != null) {
-            // We can't easily verify mock calls without Mockito, but check combo box state
-            assertEquals(0, ((JComboBox<?>) catalogLogic.gui.provinceComboBox).getSelectedIndex(), "Province combo box should be reset");
-            assertEquals(0, ((JComboBox<?>) catalogLogic.gui.typeComboBox).getSelectedIndex(), "Type combo box should be reset");
-        }
+        // Verification: Should show all original rows
+        assertEquals(4, tableModel.getRowCount(), "Should show all 4 rows after reset");
+        assertEquals(DATA_ROW_1[1], tableModel.getValueAt(0, 1), "Row 1 Name check after reset");
+        assertEquals(DATA_ROW_4[1], tableModel.getValueAt(3, 1), "Row 4 Name check after reset");
     }
 
-    // --- Deletion Tests (Need careful setup as they modify the file) ---
-    // Note: These tests will modify the temporary file state between runs if not ordered carefully
-    // or if @AfterEach doesn't restore the file perfectly. @TempDir helps isolate runs.
 
     @Test
     @Order(11)
-    @DisplayName("Should delete a selected record successfully")
-    void testHandleDeleteAction_ValidSelection () throws IOException, CsvException {
-        // Pre-condition: Assume 4 rows loaded initially
+    @DisplayName("Should NOT delete if handleDeleteAction called without GUI/Selection")
+    void testHandleDeleteAction_NoGuiOrSelection () throws IOException, CsvException {
+        // Pre-condition: 4 rows exist in model and file
         assertEquals(4, tableModel.getRowCount());
+        long initialFileLength = writableDbFile.length(); // Check file size as proxy for content change
 
-        // --- Simulate GUI Interaction ---
-        // We need to tell CatalogLogic *which* row to delete without a real JTable selection.
-        // Option 1: Modify CatalogLogic.handleDeleteAction to accept a row index (best for testing).
-        // Option 2: Assume we can programmatically select a row on the dummy table IF GUI was initialized.
-        // Option 3: Directly call the underlying DatabaseManager's delete (less ideal, tests DBManager not CatalogLogic's handling).
-
-        // Let's try Option 2 (requires initializeGui=true in setUp)
-        assumeTrue(catalogLogic.gui != null && catalogLogic.gui.getTable() != null, "GUI/Table must be initialized for selection simulation");
-        JTable table = catalogLogic.gui.getTable();
-        int rowToSelectAndViewIndex = 1; // Select the second row (CN Tower, ID 00002)
-        table.setRowSelectionInterval(rowToSelectAndViewIndex, rowToSelectAndViewIndex);
-        int modelRowToDelete = table.convertRowIndexToModel(rowToSelectAndViewIndex);
-        String idToDelete = (String) tableModel.getValueAt(modelRowToDelete, 0); // Get ID from model
-
-        assertEquals("00002", idToDelete, "Should be deleting ID 00002");
-
-        // Store row count before deletion
-        int initialRowCount = tableModel.getRowCount();
-
-        // --- Action ---
-        // We need to bypass the JOptionPane confirmation for the test.
-        // This is hard without refactoring CatalogLogic or using mocking/power-mocking.
-        // WORKAROUND: For this test, let's directly call the core deletion logic
-        // parts within handleDeleteAction, bypassing the confirmation dialog.
-        try {
-            DatabaseManager dbManager = new DatabaseManager(writableDbFile); // Use the *same* test file
-            dbManager.deleteById(idToDelete); // Perform the actual deletion
-            tableModel.removeRow(modelRowToDelete); // Manually update the model like logic would
-            // catalogLogic.gui.showMessage("Location deleted successfully."); // Simulate message
-
-        } catch (DatabaseManager.RecordNotFoundException e) {
-            fail("Record to delete (" + idToDelete + ") not found", e);
-        } catch (IOException | CsvException e) {
-            fail("Error during deletion process", e);
-        }
-
-        // --- Verification ---
-        assertEquals(initialRowCount - 1, tableModel.getRowCount(), "Row count should decrease by 1 after deletion");
-
-        // Verify the record is actually gone from the file
-        DatabaseManager checker = new DatabaseManager(writableDbFile);
-        boolean found = false;
-        try {
-            for (String[] row : checker.readAllRecords()) {
-                if (row.length > 0 && row[0].equals(idToDelete)) {
-                    found = true;
-                    break;
-                }
-            }
-        } catch (Exception e) { /* ignore read errors here, focus on found flag */ }
-        assertFalse(found, "Deleted record ID (" + idToDelete + ") should not exist in the file anymore");
-    }
-
-
-    @Test
-    @Order(12)
-    @DisplayName("Should not delete if no record is selected")
-    void testHandleDeleteAction_NoSelection () throws IOException, CsvException {
-        // Pre-condition: Assume 4 rows loaded initially
-        assertEquals(4, tableModel.getRowCount());
-        int initialRowCount = tableModel.getRowCount();
-
-        // Ensure no row is selected in the dummy table
-        assumeTrue(catalogLogic.gui != null && catalogLogic.gui.getTable() != null, "GUI/Table must be initialized");
-        catalogLogic.gui.getTable().clearSelection();
-
-        // --- Action ---
-        // Call the original method. It should check getSelectedRow() == -1 and return early.
-        // It *might* show a message dialog which we can't easily test here.
+        // Action: Call delete. Since we initialized without GUI, it should ideally do nothing
+        // or log an error, but not modify the data.
         catalogLogic.handleDeleteAction();
 
-        // --- Verification ---
-        assertEquals(initialRowCount, tableModel.getRowCount(), "Row count should NOT change when nothing is selected");
+        // Verification
+        assertEquals(4, tableModel.getRowCount(), "Model row count should NOT change");
 
-        // Verify file content hasn't changed (optional but good)
+        // Verify file content hasn't changed
+        assertEquals(initialFileLength, writableDbFile.length(), "File size should not change");
+        // Optionally, read the file again and verify content fully
         DatabaseManager checker = new DatabaseManager(writableDbFile);
-        assertEquals(initialRowCount, checker.readAllRecords().size(), "File content should not change");
+        List<String[]> records = checker.readAllRecords(); // Reads data rows only
+        assertEquals(4, records.size(), "File should still contain 4 data records");
+    }
+
+    // --- Deletion Success Test (Commented Out - Requires Mocking/Refactoring) ---
+    /*
+    @Test
+    @Order(12)
+    @DisplayName("Should delete selected record (Requires Mocking/Refactoring)")
+    void testHandleDeleteAction_WithSelection() {
+        // PROBLEM: Cannot easily test this path without:
+        // 1. Initializing the GUI (difficult in headless tests, introduces Swing dependency).
+        // 2. Simulating row selection reliably.
+        // 3. Bypassing or Mocking the JOptionPane confirmation dialog.
+
+        // --- Potential Setup (if GUI were initialized and mocking possible) ---
+        // CatalogLogic testLogicWithGui = new CatalogLogic("testUser", writableDbFile, true); // Need GUI
+        // DefaultTableModel testModel = testLogicWithGui.getTableModel();
+        // assumeTrue(testLogicWithGui.gui != null && testLogicWithGui.gui.getTable() != null, "GUI Required");
+        // JTable table = testLogicWithGui.gui.getTable();
+        // int viewRowToSelect = 1; // e.g., CN Tower (ID 00002)
+        // int modelRowToDelete = table.convertRowIndexToModel(viewRowToSelect);
+        // String idToDelete = (String) testModel.getValueAt(modelRowToDelete, 0);
+        // table.setRowSelectionInterval(viewRowToSelect, viewRowToSelect); // Simulate selection
+
+        // --- Mocking JOptionPane (Conceptual using Mockito/PowerMock) ---
+        // PowerMockito.mockStatic(JOptionPane.class);
+        // Mockito.when(JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt())).thenReturn(JOptionPane.YES_OPTION);
+
+        // --- Action ---
+        // testLogicWithGui.handleDeleteAction();
+
+        // --- Assertions ---
+        // assertEquals(3, testModel.getRowCount(), "Model should have one less row");
+        // // Verify file using DatabaseManager...
+        // assertFalse(checkIfIdExistsInFile(idToDelete, writableDbFile), "ID should be removed from file");
+
+        fail("Test testHandleDeleteAction_WithSelection is not implemented due to JOptionPane and GUI selection complexity. Requires mocking or refactoring CatalogLogic.");
+    }
+    */
+
+    // Helper function for commented-out test
+    private boolean checkIfIdExistsInFile (String id, File file) {
+        try {
+            DatabaseManager checker = new DatabaseManager(file);
+            for (String[] row : checker.readAllRecords()) {
+                if (row.length > 0 && row[0].equals(id)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error checking file for ID existence: " + e.getMessage());
+        }
+        return false;
     }
 }

@@ -21,13 +21,13 @@ import java.util.List; // Use List interface
 
 public class CatalogLogic {
 
-    private CatalogView gui; // Reference to the GUI
+    public CatalogView gui; // Reference to the GUI
     private String username;
     private File writableDatabaseFile; // Path to the database file the user can modify
     private DefaultTableModel tableModel;
     private FuzzyFinder fuzzyFinder;
     private Filter filter; // Reusable filter object
- 
+
     // Constants for resource paths inside the JAR
     private static final String INTERNAL_DB_PATH = "/database.csv";
     private static final String IMAGE_RESOURCE_PATH_PREFIX = "/image/"; // Leading and trailing slash
@@ -40,6 +40,10 @@ public class CatalogLogic {
     private String selectedType = null;
 
     public CatalogLogic (String username, File writableDatabaseFile) {
+        new CatalogLogic(username, writableDatabaseFile, false);
+    }
+
+    public CatalogLogic (String username, File writableDatabaseFile, boolean initGUI) {
         this.username = username;
 
         try {
@@ -198,7 +202,7 @@ public class CatalogLogic {
      *
      * @return A List of strings, each representing a data row.
      */
-    private List<String> readAllDataFromWritableFile () { // Renamed for clarity
+    public List<String> readAllDataFromWritableFile () { // Renamed for clarity
         ArrayList<String> allResults = new ArrayList<>();
         // Use the writableDatabaseFile instance variable
         try (BufferedReader br = new BufferedReader(new FileReader(writableDatabaseFile))) {
@@ -350,8 +354,8 @@ public class CatalogLogic {
         // Assuming Filter class reads correctly from the file path provided in its constructor
         filter.reset();
 
-        boolean provinceSelected = selectedProvince != null && !selectedProvince.isEmpty();
-        boolean typeSelected = selectedType != null && !selectedType.isEmpty();
+        boolean provinceSelected = selectedProvince != null;
+        boolean typeSelected = selectedType != null;
 
         // Determine which filter method to call based on selections
         if (provinceSelected && typeSelected) {
@@ -417,5 +421,9 @@ public class CatalogLogic {
 
     public DefaultTableModel getTableModel () {
         return this.tableModel;
+    }
+
+    public Filter getFilter () {
+        return this.filter;
     }
 }
