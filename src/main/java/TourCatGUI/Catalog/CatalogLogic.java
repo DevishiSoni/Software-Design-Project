@@ -179,6 +179,8 @@ public class CatalogLogic {
         // Clear existing data (important!)
         tableModel.setRowCount(0);
 
+        System.out.println(tableModel.getColumnCount());
+
         if (results != null) {
             for (String resultLine : results) {
                 if (resultLine != null && !resultLine.trim().isEmpty()) {
@@ -214,7 +216,7 @@ public class CatalogLogic {
                     continue; // Skip the header line
                 }
                 if (!line.trim().isEmpty()) { // Avoid adding blank lines
-                    allResults.add(line);
+                    allResults.addAll(List.of(line.split(",")));
                 }
             }
         } catch (IOException ex) {

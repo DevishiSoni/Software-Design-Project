@@ -28,7 +28,7 @@ class AddFormTest {
     static Path testDatabasePath;
     static Path testImagePath; // Define path for potential image tests
     static File testDatabaseFile;
-    
+
     // Sample Header
     static final String[] HEADER = {"ID", "Name", "City", "Province", "Category"};
     static final String[] INITIAL_RECORD = {"00000", "Initial", "InitCity", "InitProv", "InitCat"};
@@ -92,7 +92,6 @@ class AddFormTest {
                 System.err.println("Warning: Could not fully clean up test directory: " + testDirectory + " - " + e.getMessage());
             }
         }
-        // No need to cleanup TempDir if using Option 2 - JUnit handles it
     }
 
     // Helper to read CSV content for verification (no change needed)

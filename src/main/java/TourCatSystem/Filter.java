@@ -116,8 +116,6 @@ public class Filter {
 
     // Get results
     public ArrayList<String> getResults () {
-        // Return a copy to prevent external modification? Optional.
-        // return new ArrayList<>(results);
         return results;
     }
 
