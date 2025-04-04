@@ -79,7 +79,6 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
       catalogueButton.setPreferredSize(buttonSize);
       addButton.setPreferredSize(new Dimension(140, 40));
       logout.setPreferredSize(buttonSize);
-      updateLoginLogoutUI();
 
 
       // Add buttons to panel
@@ -113,6 +112,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
             loginGUI.setVisible(true);
          });
          dispose();
+         updateLoginLogoutUI();
          welcomeLabel.setText(getWelcomeMessage());
       });
 
@@ -179,6 +179,7 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
 
 
       // --- Finalize Frame ---
+      updateLoginLogoutUI();
       setLocationRelativeTo(null); // Center on screen
       setVisible(true); // Make the frame visible
    }
@@ -196,7 +197,8 @@ public class HomePage extends JFrame { // Should probably extend JFrame directly
       }
    }
    public void updateLoginLogoutUI() {
-      if (currentUsername == null) {
+      System.out.println("updateLoginLogoutUI: currentUsername = " + currentUsername);
+      if (currentUsername == null || currentUsername.isEmpty() || currentUsername.equalsIgnoreCase("DefaultUser")) {
          login.setVisible(true);
          logout.setVisible(false);
       } else {
