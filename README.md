@@ -41,7 +41,7 @@ TourCat is a comprehensive desktop application designed to help users discover, 
   
 #### Through the build file: ####
 1. Make sure you have Maven and Launch4J installed on your local device and the repo cloned. 
-2. Open up the terminal and navigate to the directory where you've clone the github repository.
+2. Open up the terminal and navigate to the directory where you've cloned the github repository.
 3. Run the following comands:
 ### Build executable: ###
         ./build.ps1  # Windows PowerShell script
