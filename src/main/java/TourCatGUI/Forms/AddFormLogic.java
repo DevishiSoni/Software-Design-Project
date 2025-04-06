@@ -29,7 +29,7 @@ public class AddFormLogic {
     // Constants (should match CatalogLogic if shared)
     private static final String INTERNAL_DB_PATH = "/database.csv";
     private static final String WRITABLE_DB_FILENAME = "userdata_database.csv";
-    private static final String WRITABLE_IMAGE_DIRNAME = "images"; // Subdirectory for images
+    private static final String WRITABLE_IMAGE_DIRNAME = "image"; // Subdirectory for images
 
 
     public AddFormLogic (String username) {

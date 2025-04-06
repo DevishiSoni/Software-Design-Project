@@ -6,11 +6,11 @@ import TourCatSystem.DatabaseManager;
 import TourCatSystem.Filter;
 import TourCatSystem.LocationReader;
 import com.opencsv.exceptions.CsvException;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
-import javax.swing.text.TableView;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -18,6 +18,7 @@ import java.net.URL;
 import java.nio.file.*; // Import NIO for file operations
 import java.util.ArrayList;
 import java.util.List; // Use List interface
+import java.util.concurrent.atomic.AtomicReference;
 
 public class CatalogLogic {
 
@@ -27,6 +28,8 @@ public class CatalogLogic {
     private DefaultTableModel tableModel;
     private FuzzyFinder fuzzyFinder;
     private Filter filter; // Reusable filter object
+
+    private DatabaseManager databaseManager; // Instance initialized once
 
     // Constants for resource paths inside the JAR
     private static final String INTERNAL_DB_PATH = "/database.csv";
@@ -41,6 +44,11 @@ public class CatalogLogic {
 
     public CatalogLogic(String username) {
         this.username = username;
+        try {
+            this.databaseManager = new DatabaseManager(initializeWritableDatabase());
+        } catch (IOException | URISyntaxException err){
+            System.out.println("Database manager couldn't be initialized");
+        }
 
         try {
             // 1. Determine and prepare the writable database file location
@@ -402,6 +410,7 @@ public class CatalogLogic {
     }
 
 
+
     // --- State Update Methods (Called by GUI listeners) ---
 
     public void updateSelectedProvince(String province) {
@@ -410,5 +419,60 @@ public class CatalogLogic {
 
     public void updateSelectedType(String type) {
         this.selectedType = type;
+    }
+
+
+
+
+
+
+
+    public String generateNextId () {
+        // Use the instance variable databaseManager initialized with the correct path
+        return this.databaseManager.getNextID();
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+
+    public boolean saveImageToWritableLocation (AtomicReference<File> sourceImageFile, String locationId) { // Renamed for clarity
+        Path writableImageDirectory = writableDatabaseFile.getParentFile().toPath().resolve("image");
+        try {
+            // Destination is the writableImageDirectory determined in constructor
+            if (!Files.exists(writableImageDirectory)) {
+                Files.createDirectories(writableImageDirectory); // Ensure it exists
+                System.out.println("Re-created missing writable image directory: " + writableImageDirectory);
+            }
+
+            // Determine the file extension
+            String extension = FilenameUtils.getExtension(sourceImageFile.get().getName());
+            if (extension == null || extension.isEmpty()) {
+                System.err.println("Warning: Selected image has no extension. Defaulting to .jpg");
+                extension = "jpg"; // Default extension or handle differently
+            }
+
+            // Create the destination filename (e.g., "00015.png")
+            String destinationFilename = locationId + "." + extension.toLowerCase();
+            Path destinationPath = writableImageDirectory.resolve(destinationFilename);
+
+            // Copy the file, replacing if it somehow already exists
+            Files.copy(sourceImageFile.get().toPath(), destinationPath,
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            System.out.println("Image successfully saved to writable location: " + destinationPath);
+            return true;
+
+        } catch (IOException e) {
+            System.err.println("Error saving image file to " + writableImageDirectory + ": " + e.getMessage());
+            e.printStackTrace();
+            gui.showError("Could not save image: " + e.getMessage()); // Show error to user
+            return false;
+        } catch (Exception e) { // Catch unexpected errors
+            System.err.println("Unexpected error saving image: " + e.getMessage());
+            e.printStackTrace();
+            gui.showError("Unexpected error saving image.");
+            return false;
+        }
     }
 }
