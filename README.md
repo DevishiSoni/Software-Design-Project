@@ -13,7 +13,7 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 - 🗺️ **Interactive Catalog**: Browse plenty of Canadian landmarks with detailed information, allowing for users to add their own!
 - 🔐 **User Accounts**: Secure login system with personalized profiles  
 - ⭐ **Favorites System**: Save and organize preferred landmarks    
-- 🔍 **Advanced Search**: Filter by province, and type
+- 🔍 **Advanced Search**: Filter by province, and type of landmark
 
 *Built with Java and JavaFX, TourCat combines robust backend functionality with an intuitive user interface.*  
 
@@ -22,7 +22,7 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 ### Prerequisites
      - Java 17+ 
      - Maven 3.8+
-     - IntelliJ IDEA (recommended) or any IDE
+     - IntelliJ IDEA (recommended) or any IDE of your choice
      - Launch4J (For executable build)
 
 #### Through an IDE: ####
@@ -40,8 +40,8 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 - Right-click each file → "Run" in sequence
   
 #### Through the build file: ####
-1. Make sure you have Maven and Launch4J installed on your local device and the repo cloned 
-2. Open up the terminal and navigate to the directory where you've clone the github
+1. Make sure you have Maven and Launch4J installed on your local device and the repo cloned. 
+2. Open up the terminal and navigate to the directory where you've clone the github repository.
 3. Run the following comands:
 ### Build executable: ###
         ./build.ps1  # Windows PowerShell script
