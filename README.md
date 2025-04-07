@@ -47,6 +47,8 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 ### Run application:
      java -jar target/TourCat.jar  # Cross-platform
 
+*Note: Complete deployment from the build file is functional with certain constraints due to a lack of time to fix all bugs regarding the executable.*
+
 4. Give the applications a few seconds to load and then you're good to go!
 
 
