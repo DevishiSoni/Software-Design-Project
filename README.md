@@ -10,10 +10,9 @@
 
 TourCat is a comprehensive desktop application designed to help users discover, explore, and interact with Canadian landmarks. The system provides:  
 
-- 🗺️ **Interactive Catalog**: Browse plenty of Canadian landmarks with detailed information, allowing for users to add their own!
-- 🔐 **User Accounts**: Secure login system with personalized profiles  
-- ⭐ **Favorites System**: Save and organize preferred landmarks    
-- 🔍 **Advanced Search**: Filter by province and type of landmark
+- **Interactive Catalog**: Browse many Canadian landmarks with detailed information and related pictures. This also includes many functionailities such as adding and deleting, viewing and editing landmarks.
+- **User Accounts**: Secure login and logout system with personalized profiles.
+- **Advanced Search**: Filter by province and type of landmark.
 
 *Built with Java, TourCat combines robust backend functionality with an intuitive user interface.*  
 
@@ -47,7 +46,9 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 ### Run application:
      java -jar target/TourCat.jar  # Cross-platform
 
-*Note: Complete deployment from the build file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the executable.*
+## Developer Notes
+*Our code still includes small bugs that may hinder the easy-of-use of our program, however the major functionalities are implemented.*
+*Complete deployment from the build file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the executable.*
 
 4. Give the applications a few seconds to load and then you're good to go!
 
