@@ -45,12 +45,12 @@ TourCat is a comprehensive desktop application designed to help users discover, 
         mvn clean install
 ### Run application:
      java -jar target/TourCat.jar  # Cross-platform
+4. Give the applications a few seconds to load and then you're good to go!
 
 ## Developer Notes
 *Our code still includes small bugs that may hinder the easy-of-use of our program, however the major functionalities are implemented.*
-*Complete deployment from the build file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the executable.*
 
-4. Give the applications a few seconds to load and then you're good to go!
+*Complete deployment from the build file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the executable.*
 
 
 
