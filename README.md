@@ -43,10 +43,8 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 2. Open up the terminal and navigate to the directory where you've cloned the github repository.
 3. Run the following comands:
 ### Build executable: ###
-        ./build.ps1  # Windows PowerShell script
+        mvn clean install
 ### Run application:
-     .\target\TourCat.exe  # Windows
-     # OR
      java -jar target/TourCat.jar  # Cross-platform
 
 4. Give the applications a few seconds to load and then you're good to go!
