@@ -23,7 +23,6 @@ TourCat is a comprehensive desktop application designed to help users discover, 
      - Java 17+ 
      - Maven 3.8+
      - IntelliJ IDEA (recommended) or any IDE of your choice
-     - Launch4J (For executable build)
 
 #### Through an IDE: ####
 1. **Clone the repository**:  
