@@ -8,7 +8,7 @@
 
 ---
 
-TourCat is a comprehensive desktop application designed to help users discover, explore, and interact with Canadian landmarks. The system provides:  
+TourCat is a desktop application designed to help users discover, explore, and interact with Canadian landmarks. The system provides:  
 
 - **Interactive Catalog**: Browse many Canadian landmarks with detailed information and related pictures. This also includes many functionailities such as adding and deleting, viewing and editing landmarks.
 - **User Accounts**: Secure login and logout system with personalized profiles.
@@ -38,23 +38,18 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 - Right-click each file → "Run" in sequence
   
 #### Through the build file: ####
-1. Make sure you have Maven and Launch4J installed on your local device and the repo cloned. 
+1. Make sure you have Maven installed on your local device and the repo cloned. 
 2. Open up the terminal and navigate to the directory where you've cloned the github repository.
 3. Run the following comands:
 ### Build executable: ###
         mvn clean install
 ### Run application:
      java -jar target/TourCat.jar  # Cross-platform
-4. Give the applications a few seconds to load and then you're good to go!
+4. Give the application a few seconds to load and then you're good to go!
 
 ## Developer Notes
-*Our code still includes small bugs that may hinder the easy-of-use of our program, however the major functionalities are implemented.*
+*Our code still includes bugs that may hinder the ease-of-use of our program, and some functionalities like editing and deleting a location. However the major functionalities have been implemented.*
 
 *Complete deployment from the build file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the executable.*
 
-
-
-
 ## Happy Touring!
-
-
