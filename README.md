@@ -38,13 +38,17 @@ TourCat is a desktop application designed to help users discover, explore, and i
 - Right-click each file → "Run" in sequence
   
 #### Through the build file: ####
-1. Make sure you have Maven installed on your local device and the repo cloned. 
+1. Make sure you have Maven installed on your local device and the repository cloned. 
 2. Open up the terminal and navigate to the directory where you've cloned the github repository.
-3. Run the following comands:
+3. Run the 'TourCatServer.Login.Server'.
+4. Run the following comands in the terminal:
 ### Build executable: ###
         mvn clean install
 ### Run application:
      java -jar target/TourCat.jar  # Cross-platform
+     
+*Note: An error may pop up describing 'build failure', but once you run the .jar file, it will execute!*
+
 4. Give the application a few seconds to load and then you're good to go!
 
 ## Developer Notes
