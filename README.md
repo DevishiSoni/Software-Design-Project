@@ -50,6 +50,6 @@ TourCat is a desktop application designed to help users discover, explore, and i
 ## Developer Notes
 *Our code still includes bugs that may hinder the ease-of-use of our program, and some functionalities like editing and deleting a location. However the major functionalities have been implemented. Please see the Project Board for further information.*
 
-*Complete deployment from the build file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the executable.*
+*Complete deployment from the .jar file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the .jar file.*
 
 ## Happy Touring!
