@@ -13,9 +13,9 @@ TourCat is a comprehensive desktop application designed to help users discover, 
 - 🗺️ **Interactive Catalog**: Browse plenty of Canadian landmarks with detailed information, allowing for users to add their own!
 - 🔐 **User Accounts**: Secure login system with personalized profiles  
 - ⭐ **Favorites System**: Save and organize preferred landmarks    
-- 🔍 **Advanced Search**: Filter by province, and type of landmark
+- 🔍 **Advanced Search**: Filter by province and type of landmark
 
-*Built with Java and JavaFX, TourCat combines robust backend functionality with an intuitive user interface.*  
+*Built with Java, TourCat combines robust backend functionality with an intuitive user interface.*  
 
 
 ## Installation Guide
