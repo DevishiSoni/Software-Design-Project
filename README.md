@@ -1,4 +1,6 @@
 # **TourCat**
+This project was originally developed as part of a university group project.
+
 ## Development Team  
 - **Devishi Soni** (Project Manager)
 - **Eve Murphy-Beaudet** (Technical Manager)  
