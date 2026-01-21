@@ -57,3 +57,6 @@ TourCat is a desktop application designed to help users discover, explore, and i
 *Complete deployment from the .jar file is functional, with an exception of certain constraints due to a lack of time to fix all the bugs. One of the biggest constraints is that the editing function does not work when running from the .jar file.*
 
 ## Happy Touring!
+
+## Demo Video
+[Demo Video](https://drive.google.com/file/d/1Rt5Fe12pDPJiMH3gIG_yJ4nh5qxCqvzL/view?usp=sharing)
